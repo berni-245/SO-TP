@@ -11,3 +11,4 @@
 *.o
 
 .*history
+.clangd
