@@ -10,5 +10,8 @@
 #Object files
 *.o
 
+#Debug info files
+*.elf
+
 .*history
 .clangd
