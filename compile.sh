@@ -1,6 +1,6 @@
 #!/bin/sh
 
-container='arqui_builder'
+container='TPEarqui'
 docker='sudo docker'
 
 $docker start $container

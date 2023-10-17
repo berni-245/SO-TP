@@ -100,5 +100,7 @@ int main()
 	ncNewline();
 
 	ncPrint("[Finished]");
+	playSound(700);
+	// noSound();
 	return 0;
 }
