@@ -3,6 +3,8 @@
 #include <lib.h>
 #include <moduleLoader.h>
 #include <naiveConsole.h>
+#include <pcSpeaker.h>
+#include <clock.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -74,6 +76,7 @@ void * initializeKernelBinary()
 	ncPrintHex((uint64_t)&bss);
 	ncNewline();
 
+	setBinaryClockFormat();
 	ncPrint("[Done]");
 	ncNewline();
 	ncNewline();
@@ -98,9 +101,18 @@ int main()
 	ncPrint("  Sample data module contents: ");
 	ncPrint((char*)sampleDataModuleAddress);
 	ncNewline();
-
+	ncPrintDec(getCurrentHours());
+	ncNewline();
+	Time currentTime;
+	getCurrentTime(&currentTime);	
+	ncPrint(currentTime.timeInString);
+	ncNewline();
+	sleep(2);
+	playSoundForCertainSeconds(500, 1);
+	playSoundForCertainSeconds(400, 1);
+	getCurrentTime(&currentTime);	
+	ncPrint(currentTime.timeInString);
+	ncNewline();
 	ncPrint("[Finished]");
-	playSound(700);
-	// noSound();
 	return 0;
 }
