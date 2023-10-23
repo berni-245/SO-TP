@@ -26,19 +26,19 @@ extern irqDispatcher
 irq00Handler:
   irqHandler 0
 irq01Handler:
-  irqHandler 0
+  irqHandler 1
 irq02Handler:
-  irqHandler 0
+  irqHandler 2
 irq03Handler:
-  irqHandler 0
+  irqHandler 3
 irq04Handler:
-  irqHandler 0
+  irqHandler 4
 irq05Handler:
-  irqHandler 0
+  irqHandler 5
 irq06Handler:
-  irqHandler 0
+  irqHandler 6
 irq07Handler:
-  irqHandler 0
+  irqHandler 7
 
 disableInterruptions:
 	cli
