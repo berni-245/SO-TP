@@ -1,6 +1,5 @@
-GLOBAL cpuVendor
-
 section .text
+global cpuVendor
 	
 cpuVendor:
 	push rbp
