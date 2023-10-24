@@ -1,3 +1,5 @@
+#include "timer.h"
+#include <interruptions.h>
 #include <stdint.h>
 #include <string.h>
 #include <lib.h>
@@ -85,6 +87,15 @@ void * initializeKernelBinary()
 
 int main()
 {	
+  load_idt();
+
+  ncPrint("Start: ");
+  ncPrintDec(get_ms());
+  ncPrint("ms");
+	ncNewline();
+
+  while (get_ms() < 1000);
+
 	ncPrint("[Kernel Main]");
 	ncNewline();
 	ncPrint("  Sample code module at 0x");
@@ -100,6 +111,11 @@ int main()
 	ncNewline();
 	ncPrint("  Sample data module contents: ");
 	ncPrint((char*)sampleDataModuleAddress);
+	ncNewline();
+
+  ncPrint("End: ");
+  ncPrintDec(get_ms());
+  ncPrint("ms");
 	ncNewline();
 	ncPrintDec(getCurrentHours());
 	ncNewline();

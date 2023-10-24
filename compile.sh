@@ -4,6 +4,9 @@ container='TPEarqui'
 docker='sudo docker'
 
 $docker start $container
+if [[ $? -ne 0 ]]; then
+  exit $?
+fi
 $docker exec -it $container make clean -C/root/Toolchain/
 $docker exec -it $container make clean -C/root/
 $docker exec -it $container make -C/root/Toolchain/

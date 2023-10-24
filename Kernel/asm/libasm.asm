@@ -7,6 +7,7 @@ GLOBAL getCurrentMinutes
 GLOBAL getCurrentHours 
 
 section .text
+global cpuVendor
 	
 cpuVendor:
 	push rbp
