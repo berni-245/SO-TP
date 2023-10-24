@@ -28,6 +28,7 @@ playSound:
     out 0x61, al           ; Escribir de vuelta al puerto 0x61
 
     pop rdx
+    mov rsp, rbp
     pop rbp
     ret
 
@@ -42,6 +43,7 @@ noSound:
     and al, 0xFC ; Limpiar los dos bits más bajos
     out 0x61, al ; Escribir de vuelta al puerto 0x61 para silenciar el altavoz
 
+    mov rsp, rbp
     pop rbp
     ret
 
