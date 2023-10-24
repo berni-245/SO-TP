@@ -1,4 +1,4 @@
-#include "timer.h"
+#include <timer.h>
 #include <interruptions.h>
 #include <stdint.h>
 #include <string.h>
@@ -87,44 +87,32 @@ void * initializeKernelBinary()
 
 int main()
 {	
-  load_idt();
-
-  ncPrint("Start: ");
-  ncPrintDec(get_ms());
-  ncPrint("ms");
-	ncNewline();
-
-  while (get_ms() < 1000);
+  	load_idt();	
 
 	ncPrint("[Kernel Main]");
 	ncNewline();
-	ncPrint("  Sample code module at 0x");
-	ncPrintHex((uint64_t)sampleCodeModuleAddress);
-	ncNewline();
-	ncPrint("  Calling the sample code module returned: ");
-	ncPrintHex(((EntryPoint)sampleCodeModuleAddress)());
-	ncNewline();
-	ncNewline();
+	// ncPrint("  Sample code module at 0x");
+	// ncPrintHex((uint64_t)sampleCodeModuleAddress);
+	// ncNewline();
+	// ncPrint("  Calling the sample code module returned: ");
+	// ncPrintHex(((EntryPoint)sampleCodeModuleAddress)());
+	// ncNewline();
+	// ncNewline();
 
-	ncPrint("  Sample data module at 0x");
-	ncPrintHex((uint64_t)sampleDataModuleAddress);
-	ncNewline();
-	ncPrint("  Sample data module contents: ");
-	ncPrint((char*)sampleDataModuleAddress);
-	ncNewline();
+	// ncPrint("  Sample data module at 0x");
+	// ncPrintHex((uint64_t)sampleDataModuleAddress);
+	// ncNewline();
+	// ncPrint("  Sample data module contents: ");
+	// ncPrint((char*)sampleDataModuleAddress);
+	// ncNewline();
 
-  ncPrint("End: ");
-  ncPrintDec(get_ms());
-  ncPrint("ms");
-	ncNewline();
-	ncPrintDec(getCurrentHours());
 	ncNewline();
 	Time currentTime;
-	getCurrentTime(&currentTime);	
+	getCurrentTime(&currentTime);
 	ncPrint(currentTime.string);
 	ncNewline();
-	playSoundForCertainSeconds(500, 1);
-	playSoundForCertainSeconds(400, 1);
+	playSoundForCertainMs(300, 50);
+	playSoundForCertainMs(350, 50);
 	getCurrentTime(&currentTime);
 	ncPrint(currentTime.string);
 	ncNewline();

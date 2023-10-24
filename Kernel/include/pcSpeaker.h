@@ -2,13 +2,10 @@
 #define PC_SPEAKER_H
 
 #include <stdint.h>
-#include <clock.h>
+#include <timer.h>
 
-uint8_t inb(uint16_t port);
-void outb(uint16_t port, uint8_t code);
 void playSound(uint32_t nFrequence);
-void playSoundForCertainTime(uint32_t nFrequence, Time time);
-void playSoundForCertainSeconds(uint32_t nFrequence, int seconds);
+void playSoundForCertainMs(uint32_t nFrequence, int ms);
 void noSound();
 
 #endif

@@ -2,7 +2,8 @@
 #define TIMER_H
 
 void timer_tick();
-unsigned long getTicks();
+unsigned long get_ticks();
 unsigned long get_ms();
+void sleep(unsigned long ms);
 
 #endif

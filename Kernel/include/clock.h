@@ -17,8 +17,5 @@ uint8_t getCurrentSeconds();
 uint8_t getCurrentMinutes();
 uint8_t getCurrentHours();
 void getCurrentTime(Time* toReturn);
-void sleep(int seconds);
-void sleepWithTime(Time time);
-void sumTimes(Time * t1, Time t2);
 
 #endif

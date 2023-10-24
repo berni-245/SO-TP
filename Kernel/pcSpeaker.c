@@ -1,36 +1,10 @@
 #include <pcSpeaker.h>
 
-#define baseFrequence 1193180
-
-// este código está sacado de wiki, luego lo mejoraría
-// por ejemplo una función "playSound for x secs"
-
-void playSound(uint32_t nFrequence){
-	uint32_t div = baseFrequence / nFrequence;
-	outb(0x43, 0xb6); // 10110110
-	outb(0x42, (uint8_t) (div));
-	outb(0x42, (uint8_t) (div >> 8));
-
-	uint8_t tmp = inb(0x61);
-	if (tmp != (tmp | 3)){
-		outb(0x61, tmp | 3);
-	}
-}
-
-void noSound(){
-	uint8_t tmp = inb(0x61) & 0xFC; // 11111100
-
-	outb(0x61, tmp);
-}
-
-void playSoundForCertainTime(uint32_t nFrequence, Time time){
+void playSoundForCertainMs(uint32_t nFrequence, int ms){
     playSound(nFrequence);
-    sleepWithTime(time);
+    sleep(ms);
     noSound();
-}
-
-void playSoundForCertainSeconds(uint32_t nFrequence, int seconds){
-    playSound(nFrequence);
-    sleep(seconds);
-    noSound();
+	sleep(56); // Si no hago esto, o pongo un valor menor, no puedo llamar a la función n (n >= 2) veces seguidas, 
+			   // me parece que es porque le tengo que dar un enfriamiento al hardware para que
+			   // se pause completamente el primer sonido, no creo que sea casualidad que es aprox 1 tick
 }
