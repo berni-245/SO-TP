@@ -84,14 +84,14 @@ void * initializeKernelBinary()
 
 int main()
 {	
-  load_idt();
+  loadIdt();
 
   ncPrint("Start: ");
-  ncPrintDec(get_ms());
+  ncPrintDec(getMs());
   ncPrint("ms");
 	ncNewline();
 
-  while (get_ms() < 1000);
+  while (getMs() < 1000);
 
 	ncPrint("[Kernel Main]");
 	ncNewline();
@@ -111,7 +111,7 @@ int main()
 	ncNewline();
 
   ncPrint("End: ");
-  ncPrintDec(get_ms());
+  ncPrintDec(getMs());
   ncPrint("ms");
 	ncNewline();
 
