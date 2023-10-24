@@ -8,7 +8,7 @@ typedef struct Time {
     uint8_t hours;
     uint8_t minutes;
     uint8_t seconds;
-    char timeInString[TIME_STR_LEN];
+    char string[TIME_STR_LEN];
 } Time;
 
 

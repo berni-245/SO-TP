@@ -3,7 +3,7 @@
 // BORRAR ESTO EN CASO DE DEJARLO ASÍ
 // Quería hacer algo similar a un ADT de time pero sin malloc, calloc, está difícil.
 
-// También intenté un struct sin el timeInString y queríendo hacer un método toString donde tenía
+// También intenté un struct sin el string y queríendo hacer un método toString donde tenía
 // de parámetro un Time, peeeero nuevamente sin malloc y calloc no puedo devolver un string, salvo que lo
 // pase de parámetro el string que devuelvo... pero siento que es más engorroso porque el usuario tendría que saber la 
 // dimensión de ese string que pasar de parámetro
@@ -12,15 +12,15 @@ void getCurrentTime(Time* toReturn){
     toReturn->minutes = getCurrentMinutes();
     toReturn->seconds = getCurrentSeconds();
     
-    (toReturn->timeInString)[TIME_STR_LEN-1] = 0;
-    (toReturn->timeInString)[0] = ((toReturn->hours) / 10) + '0';
-    (toReturn->timeInString)[1] = ((toReturn->hours) % 10) + '0';
-    (toReturn->timeInString)[2] = ':';
-    (toReturn->timeInString)[3] = ((toReturn->minutes) / 10) + '0';
-    (toReturn->timeInString)[4] = ((toReturn->minutes) % 10) + '0';
-    (toReturn->timeInString)[5] = ':';
-    (toReturn->timeInString)[6] = ((toReturn->seconds) / 10) + '0';
-    (toReturn->timeInString)[7] = ((toReturn->seconds) % 10) + '0';
+    (toReturn->string)[TIME_STR_LEN-1] = 0;
+    (toReturn->string)[0] = ((toReturn->hours) / 10) + '0';
+    (toReturn->string)[1] = ((toReturn->hours) % 10) + '0';
+    (toReturn->string)[2] = ':';
+    (toReturn->string)[3] = ((toReturn->minutes) / 10) + '0';
+    (toReturn->string)[4] = ((toReturn->minutes) % 10) + '0';
+    (toReturn->string)[5] = ':';
+    (toReturn->string)[6] = ((toReturn->seconds) / 10) + '0';
+    (toReturn->string)[7] = ((toReturn->seconds) % 10) + '0';
 }
 
 int compare(Time t1, Time t2){
@@ -35,13 +35,13 @@ int compare(Time t1, Time t2){
 }
 
 void sleep(int seconds){
-    Time secInTime = {seconds/3600, (seconds/60)%60, seconds%60, ""};
+    Time secInTime = {seconds/3600, (seconds/60)%60, seconds%60};
     sleepWithTime(secInTime);
 }
 
-void sleepWithTime(Time time){
+void sleepWithTime(Time duration){
     Time endTime; getCurrentTime(&endTime);
-    sumTimes(&endTime, time);
+    sumTimes(&endTime, duration);
 
     Time currentTime; getCurrentTime(&currentTime);
     while(compare(currentTime, endTime) < 0){

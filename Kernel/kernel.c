@@ -105,13 +105,12 @@ int main()
 	ncNewline();
 	Time currentTime;
 	getCurrentTime(&currentTime);	
-	ncPrint(currentTime.timeInString);
+	ncPrint(currentTime.string);
 	ncNewline();
-	sleep(2);
 	playSoundForCertainSeconds(500, 1);
 	playSoundForCertainSeconds(400, 1);
-	getCurrentTime(&currentTime);	
-	ncPrint(currentTime.timeInString);
+	getCurrentTime(&currentTime);
+	ncPrint(currentTime.string);
 	ncNewline();
 	ncPrint("[Finished]");
 	return 0;
