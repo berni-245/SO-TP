@@ -1,10 +1,11 @@
-#include "timer.h"
+#include <timer.h>
 #include <interruptions.h>
 #include <stdint.h>
 #include <string.h>
 #include <lib.h>
 #include <moduleLoader.h>
 #include <naiveConsole.h>
+#include <videoDriver.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -86,35 +87,5 @@ int main()
 {	
   load_idt();
 
-  ncPrint("Start: ");
-  ncPrintDec(get_ms());
-  ncPrint("ms");
-	ncNewline();
-
-  while (get_ms() < 1000);
-
-	ncPrint("[Kernel Main]");
-	ncNewline();
-	ncPrint("  Sample code module at 0x");
-	ncPrintHex((uint64_t)sampleCodeModuleAddress);
-	ncNewline();
-	ncPrint("  Calling the sample code module returned: ");
-	ncPrintHex(((EntryPoint)sampleCodeModuleAddress)());
-	ncNewline();
-	ncNewline();
-
-	ncPrint("  Sample data module at 0x");
-	ncPrintHex((uint64_t)sampleDataModuleAddress);
-	ncNewline();
-	ncPrint("  Sample data module contents: ");
-	ncPrint((char*)sampleDataModuleAddress);
-	ncNewline();
-
-  ncPrint("End: ");
-  ncPrintDec(get_ms());
-  ncPrint("ms");
-	ncNewline();
-
-	ncPrint("[Finished]");
 	return 0;
 }
