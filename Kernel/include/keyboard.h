@@ -1,46 +1,39 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
+#include "booleans.h"
 #include <stdint.h>
 
-#define KB_RAW_BUF_SIZE 5
-#define KB_BUF_SIZE 10
+#define KB_BUF_SIZE 5
 
-typedef struct KeyCode {
-  uint8_t row: 3;
-  uint8_t col: 5;
-  uint8_t shiftPressed: 1;
-  uint8_t ctrlPressed: 1;
-  uint8_t altPressed: 1;
-  uint8_t capsLockPressed: 1;
-  uint8_t altGrPressed: 1;
-} KeyCode;
+typedef struct ModifierKeys {
+  boolean shiftPressed: 1;
+  boolean ctrlPressed: 1;
+  boolean altPressed: 1;
+  boolean capsLockPressed: 1;
+  // boolean altGrPressed: 1;
+} ModifierKeys;
 
-// typedef enum ModifierKeys {
-//   
-// } ModifierKeys;
+typedef struct KeyStruct {
+  char code;
+  ModifierKeys md;
+} KeyStruct;
+
+typedef enum QwertyLayout {
+  CAPS_LOCK = 0x3A,
+  SHIFT = 0x2A,
+  CTRL = 0x1D,
+  ALT = 0x38,
+} QwertyLayout;
 
 typedef enum KbLayout {
-  Key_0_0_pressed = 0x1,
-  Key_0_0_released = 0x81,
-  Key_0_1 = 0,
-  Key_0_2 = 0,
-  Key_0_3 = 0,
-  Key_0_4 = 0,
-  Key_0_5 = 0,
-  Key_0_6 = 0,
-  Key_0_7 = 0,
-  Key_0_8 = 0,
-  Key_0_9 = 0,
-  Key_0_10 = 0,
-  Key_0_11 = 0,
-  Key_0_12 = 0,
-  Key_0_13 = 0,
-  Key_0_14 = 0,
+  QWERTY_LATAM = 0,
+  QWERTY_US,
 } KbLayout;
 
 extern uint8_t readKeyCode();
 void readKeyToBuffer();
-uint8_t* getKbBuffer();
+void readKbBuffer(KeyStruct buf[], int len);
+void setLayout(KbLayout layout);
 
 #endif

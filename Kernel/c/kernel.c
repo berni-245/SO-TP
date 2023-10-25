@@ -1,4 +1,5 @@
-#include "timer.h"
+#include "keyboard.h"
+#include <timer.h>
 #include <interruptions.h>
 #include <stdint.h>
 #include <string.h>
@@ -55,6 +56,7 @@ int main()
   loadIdt();
 	ncPrint("Start");
 
+  // setLayout(QWERTY_US);
 	sampleCodeModule();
 
 	return 0;
