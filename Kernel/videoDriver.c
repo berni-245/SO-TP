@@ -38,13 +38,7 @@ struct vbe_mode_info_structure {
 	uint8_t reserved1[206];
 } __attribute__ ((packed));
 
-typedef struct Color{
-	uint8_t red;
-	uint8_t green;
-	uint8_t blue;
-} Color;
-
-static Color defaultColor;
+static uint32_t defaultColor = 0xFFFFFF;
 
 typedef struct vbe_mode_info_structure * VBEInfoPtr;
 
@@ -59,16 +53,22 @@ void printPixel(uint32_t hexColor, uint64_t x, uint64_t y) {
 }
 
 void printPixelDefault(uint64_t x, uint64_t y){
-	uint8_t * framebuffer = (uint8_t *) VBE_mode_info->framebuffer;
-	uint64_t offset = (x * ((VBE_mode_info->bpp)/8)) + (y * VBE_mode_info->pitch);
-	framebuffer[offset] = defaultColor.blue;
-	framebuffer[offset+1] = defaultColor.green;
-	framebuffer[offset+2] = defaultColor.red;
+	printPixel(defaultColor, x, y);
 }
 
 void setDefaultColor(uint32_t hexColor){
-	defaultColor.blue = (hexColor) & 0xFF;
-	defaultColor.green = (hexColor >> 8) & 0xFF; 
-    defaultColor.red = (hexColor >> 16) & 0xFF;
+	defaultColor = hexColor;
 }
 
+void printBitFieldDefault(uint64_t x, uint64_t y, uint8_t * v, uint64_t rows, uint64_t cols){
+	printBitField(defaultColor, x, y, v, rows, cols);
+}
+
+void printBitField(uint32_t hexColor, uint64_t x, uint64_t y, uint8_t * v, uint64_t rows, uint64_t cols){
+	for(int i = x; i < x + rows; i++){
+		for(int j = y; j < y + cols; j++){
+			if(*(v++) != 0)
+				printPixel(hexColor, j, i);
+		}
+	}
+}

@@ -7,6 +7,11 @@
 #include <naiveConsole.h>
 #include <videoDriver.h>
 
+extern uint8_t * ascii_bit_fields;
+extern int ascii_bf_width;
+extern int ascii_bf_height;
+extern int ascii_bf_count;
+
 extern uint8_t text;
 extern uint8_t rodata;
 extern uint8_t data;
@@ -86,6 +91,35 @@ void * initializeKernelBinary()
 int main()
 {	
   load_idt();
+
+  setDefaultColor(0xFFFFFF);
+
+  char test[] = {
+  0,0,0,0,0,0,0,0,0,0,0, 
+0,0,0,0,0,1,0,0,0,0,0, 
+0,0,0,0,1,1,1,0,0,0,0, 
+0,0,0,0,1,1,1,0,0,0,0, 
+0,0,0,0,1,1,1,0,0,0,0, 
+0,0,0,0,1,1,1,0,0,0,0, 
+0,0,0,0,1,1,1,0,0,0,0, 
+0,0,0,0,1,1,1,0,0,0,0, 
+0,0,0,0,0,1,0,0,0,0,0, 
+0,0,0,0,0,1,0,0,0,0,0, 
+0,0,0,0,0,1,0,0,0,0,0, 
+0,0,0,0,0,1,0,0,0,0,0, 
+0,0,0,0,0,1,0,0,0,0,0, 
+0,0,0,0,0,0,0,0,0,0,0, 
+0,0,0,0,0,0,0,0,0,0,0, 
+0,0,0,0,0,1,0,0,0,0,0, 
+0,0,0,0,1,1,1,0,0,0,0, 
+0,0,0,0,0,1,0,0,0,0,0, 
+0,0,0,0,0,0,0,0,0,0,0, 
+0,0,0,0,0,0,0,0,0,0,0, 
+0,0,0,0,0,0,0,0,0,0,0, 
+0,0,0,0,0,0,0,0,0,0,0, 
+0,0,0,0,0,0,0,0,0,0,0};
+  
+  printBitFieldDefault(10, 10, test, 23, 11);
 
 	return 0;
 }
