@@ -15,11 +15,10 @@ extern uint8_t endOfKernel;
 
 static const uint64_t PageSize = 0x1000;
 
-static void * const sampleCodeModuleAddress = (void*)0x400000;
-static void * const sampleDataModuleAddress = (void*)0x500000;
-
 typedef int (*EntryPoint)();
 
+static EntryPoint const sampleCodeModule = (EntryPoint)0x400000;
+static EntryPoint const sampleDataModule = (EntryPoint)0x500000;
 
 void clearBSS(void * bssAddress, uint64_t bssSize)
 {
@@ -37,84 +36,26 @@ void * getStackBase()
 
 void * initializeKernelBinary()
 {
-	char buffer[10];
-
-	ncPrint("[x64BareBones]");
-	ncNewline();
-
-	ncPrint("CPU Vendor:");
-	ncPrint(cpuVendor(buffer));
-	ncNewline();
-
-	ncPrint("[Loading modules]");
-	ncNewline();
 	void * moduleAddresses[] = {
-		sampleCodeModuleAddress,
-		sampleDataModuleAddress
+		sampleCodeModule,
+		sampleDataModule
 	};
 
 	loadModules(&endOfKernelBinary, moduleAddresses);
-	ncPrint("[Done]");
 	ncNewline();
-	ncNewline();
-
-	ncPrint("[Initializing kernel's binary]");
 	ncNewline();
 
 	clearBSS(&bss, &endOfKernel - &bss);
 
-	ncPrint("  text: 0x");
-	ncPrintHex((uint64_t)&text);
-	ncNewline();
-	ncPrint("  rodata: 0x");
-	ncPrintHex((uint64_t)&rodata);
-	ncNewline();
-	ncPrint("  data: 0x");
-	ncPrintHex((uint64_t)&data);
-	ncNewline();
-	ncPrint("  bss: 0x");
-	ncPrintHex((uint64_t)&bss);
-	ncNewline();
-
-	ncPrint("[Done]");
-	ncNewline();
-	ncNewline();
 	return getStackBase();
 }
 
 int main()
 {	
   loadIdt();
+	ncPrint("Start");
 
-  ncPrint("Start: ");
-  ncPrintDec(getMs());
-  ncPrint("ms");
-	ncNewline();
+	sampleCodeModule();
 
-  while (getMs() < 1000);
-
-	ncPrint("[Kernel Main]");
-	ncNewline();
-	ncPrint("  Sample code module at 0x");
-	ncPrintHex((uint64_t)sampleCodeModuleAddress);
-	ncNewline();
-	ncPrint("  Calling the sample code module returned: ");
-	ncPrintHex(((EntryPoint)sampleCodeModuleAddress)());
-	ncNewline();
-	ncNewline();
-
-	ncPrint("  Sample data module at 0x");
-	ncPrintHex((uint64_t)sampleDataModuleAddress);
-	ncNewline();
-	ncPrint("  Sample data module contents: ");
-	ncPrint((char*)sampleDataModuleAddress);
-	ncNewline();
-
-  ncPrint("End: ");
-  ncPrintDec(getMs());
-  ncPrint("ms");
-	ncNewline();
-
-	ncPrint("[Finished]");
 	return 0;
 }

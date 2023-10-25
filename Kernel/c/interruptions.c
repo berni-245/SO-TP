@@ -1,4 +1,5 @@
 #include <interruptions.h>
+#include <keyboard.h>
 #include <stdint.h>
 
 InterruptionDescriptor *idt = (InterruptionDescriptor *)0;
@@ -16,12 +17,14 @@ void setupIdtEntry(int index, InterruptionFunction irqHandler) {
 
 void loadIdt() {
   setupIdtEntry(0x20, irq00Handler);
-  picMask(TIMER_TICK_MASK /* & KEYBOARD_MASK */);
+  setupIdtEntry(0x21, irq01Handler);
+  picMask(0 /* TIMER_TICK_MASK & KEYBOARD_MASK */);
   enableInterruptions();
 }
 
 static InterruptionFunction interruptions[] = {
   timerTick,
+  readKeyToBuffer,
 };
 void irqDispatcher(uint8_t index) {
   interruptions[index]();

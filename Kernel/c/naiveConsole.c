@@ -38,7 +38,9 @@ void ncPrintDec(uint64_t value)
 
 void ncPrintHex(uint64_t value)
 {
+  ncPrint("(0x");
 	ncPrintBase(value, 16);
+  ncPrint(")");
 }
 
 void ncPrintBin(uint64_t value)
