@@ -8,6 +8,8 @@ static uint8_t * currentVideo = (uint8_t*)0xB8000;
 static const uint32_t width = 80;
 static const uint32_t height = 25 ;
 
+static uint8_t* const maxVideo = (uint8_t*)0xb8000 + 2*80*25;
+
 void ncPrint(const char * string)
 {
 	int i;
@@ -20,6 +22,9 @@ void ncPrintChar(char character)
 {
 	*currentVideo = character;
 	currentVideo += 2;
+  if (currentVideo > maxVideo) {
+    ncClear();
+  }
 }
 
 void ncNewline()
@@ -95,3 +100,42 @@ static uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base)
 
 	return digits;
 }
+
+
+
+
+void printBool(boolean b) {
+  if (b) ncPrint("True");
+  else ncPrint("False");
+}
+
+void printKeyStruct(KeyStruct k) {
+  if (k.code == 0) {
+    ncPrint("No key");
+    ncNewline();
+    return;
+  }
+  char c[2] = {k.code, 0};
+  ncPrint(c);
+  ncPrint(": { ");
+  ncPrint("shift: ");
+  printBool(k.md.shiftPressed);
+  ncPrint(", ");
+  ncPrint("ctrl: ");
+  printBool(k.md.ctrlPressed);
+  ncPrint(", ");
+  ncPrint("caps lock: ");
+  printBool(k.md.capsLockPressed);
+  ncPrint(", ");
+  ncPrint("alt: ");
+  printBool(k.md.altPressed);
+  ncPrint(" }");
+  ncNewline();
+}
+
+void printBuffer(KeyStruct buf[], int len) {
+  for (int i = 0; i < len; ++i) {
+    printKeyStruct(buf[i]);
+  }
+}
+

@@ -42,38 +42,10 @@ void setLayout(KbLayout layout) {
   codeMap = layoutMaps[layout];
 }
 
-static int current = 0;
+static int writeIdx = 0;
+static int readIdx = 0;
+boolean canRead = False;
 static KeyStruct buffer[KB_BUF_SIZE];
-
-void printBool(boolean b) {
-  if (b) ncPrint("True");
-  else ncPrint("False");
-}
-
-void printKeyStruct(KeyStruct k) {
-  char c[2] = {k.code, 0};
-  ncPrint(c);
-  ncPrint(": { ");
-  ncPrint("shift: ");
-  printBool(k.md.shiftPressed);
-  ncPrint(", ");
-  ncPrint("ctrl: ");
-  printBool(k.md.ctrlPressed);
-  ncPrint(", ");
-  ncPrint("caps lock: ");
-  printBool(k.md.capsLockPressed);
-  ncPrint(", ");
-  ncPrint("alt: ");
-  printBool(k.md.altPressed);
-  ncPrint(" }");
-  ncNewline();
-}
-
-void printBuffer() {
-  for (int i = 0; i < KB_BUF_SIZE; ++i) {
-    printKeyStruct(buffer[i]);
-  }
-}
 
 static ModifierKeys md = {False};
 void readKeyToBuffer() {
@@ -105,10 +77,14 @@ void readKeyToBuffer() {
     // ncPrintHex(code);
     if (code < 0 || code >= LAYOUT_SIZE) return;
     key.code = codeMap[code];
+    if (key.code == 0) return;
     copyModifierKeys(md, &key.md);
-    printKeyStruct(key);
-    buffer[current++] = key;
-    current %= KB_BUF_SIZE;
+    // printKeyStruct(key);
+    int prevWriteIdx = writeIdx;
+    buffer[writeIdx++] = key;
+    writeIdx %= KB_BUF_SIZE;
+    if (readIdx == prevWriteIdx && canRead) readIdx = writeIdx;
+    canRead = True;
   }
 }
 
@@ -119,8 +95,12 @@ void copyModifierKeys(ModifierKeys src, ModifierKeys* dest) {
   dest->capsLockPressed = src.capsLockPressed;
 }
 
-void readKbBuffer(KeyStruct buf[], int len) {
-  for (int i = 0; i < len; ++i) {
-    buf[i] = buffer[(current + i)%KB_BUF_SIZE];
+int readKbBuffer(KeyStruct buf[], int len) {
+  int i = 0;
+  while (canRead && i < len) {
+    buf[i++] = buffer[readIdx];
+    readIdx = (readIdx + 1) % KB_BUF_SIZE;
+    if (readIdx == writeIdx) canRead = False;
   }
+  return i;
 }
