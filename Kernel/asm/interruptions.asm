@@ -2,6 +2,8 @@ section .text
 
 global disableInterruptions
 global enableInterruptions
+global haltTillNextInterruption
+	
 global picMask
 
 global irq00Handler
@@ -49,6 +51,10 @@ disableInterruptions:
 enableInterruptions:
 	sti
 	ret
+
+haltTillNextInterruption:
+  hlt
+  ret
 
 picMask:
 	; push rbp

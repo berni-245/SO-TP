@@ -43,6 +43,7 @@ typedef void (*InterruptionFunction)();
 
 extern void disableInterruptions();
 extern void enableInterruptions();
+extern void haltTillNextInterruption();
 extern void picMask(uint16_t mask);
 
 void irqDispatcher(uint8_t index);
