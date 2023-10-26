@@ -119,7 +119,7 @@ int main()
 0,0,0,0,0,0,0,0,0,0,0, 
 0,0,0,0,0,0,0,0,0,0,0};
   
-  printBitFieldDefault(10, 10, test, 23, 11);
+  printBitFieldDefault(10, 10, ascii_bit_fields, 23, 11);
 
 	return 0;
 }

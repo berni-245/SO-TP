@@ -5,9 +5,9 @@ global ascii_bf_width
 global ascii_bf_height
 global ascii_bf_count
 
-ascii_bf_width equ 11
-ascii_bf_height equ 23
-ascii_bf_count equ 91
+ascii_bf_width db 11
+ascii_bf_height db 23
+ascii_bf_count db 91
 
 ; Character: `!` - Exclamation mark
 ascii_bit_fields db \
