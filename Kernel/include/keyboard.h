@@ -4,7 +4,7 @@
 #include "booleans.h"
 #include <stdint.h>
 
-#define KB_BUF_SIZE 10
+#define KB_BUF_SIZE 100
 
 typedef struct ModifierKeys {
   boolean shiftPressed: 1;
@@ -15,7 +15,8 @@ typedef struct ModifierKeys {
 } ModifierKeys;
 
 typedef struct KeyStruct {
-  char code;
+  uint8_t code;
+  char key;
   ModifierKeys md;
 } KeyStruct;
 

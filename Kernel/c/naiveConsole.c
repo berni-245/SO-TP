@@ -43,9 +43,8 @@ void ncPrintDec(uint64_t value)
 
 void ncPrintHex(uint64_t value)
 {
-  ncPrint("(0x");
+  ncPrint("0x");
 	ncPrintBase(value, 16);
-  ncPrint(")");
 }
 
 void ncPrintBin(uint64_t value)
@@ -110,13 +109,15 @@ void printBool(boolean b) {
 }
 
 void printKeyStruct(KeyStruct k) {
-  if (k.code == 0) {
+  if (k.key == 0) {
     ncPrint("No key");
     ncNewline();
     return;
   }
-  char c[2] = {k.code, 0};
-  ncPrint(c);
+  char key[2] = {k.key, 0};
+  ncPrint(key);
+  ncPrint(" | ");
+  ncPrintHex(k.code);
   ncPrint(": { ");
   ncPrint("shift: ");
   printBool(k.md.shiftPressed);

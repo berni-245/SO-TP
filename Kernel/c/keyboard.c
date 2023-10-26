@@ -1,42 +1,13 @@
 #include <booleans.h>
 #include <keyboard.h>
+#include <layouts.h>
 #include <naiveConsole.h>
 #include <stdint.h>
 
 void copyModifierKeys(ModifierKeys src, ModifierKeys* dest);
 
-#define LAYOUT_SIZE 0x57
-
-static char layoutMaps[][LAYOUT_SIZE] = {
-  { // QWERTY_LATAM
-    0, 27,
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-    '\'', 0, '\b', '\t',
-    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
-    0, '+', '\n', 0,
-    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
-    0, '{', 0, 0, '}',
-    'z', 'x', 'c', 'v', 'b', 'n', 'm',
-    ',', '.', '-', 0, 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, '<',
-  },
-  { // QWERTY_US
-    0, 27,
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-    '-', '=', '\b', '\t',
-    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
-    '[', ']', '\n', 0,
-    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
-    ';', '\'', 0, 0, 0,
-    'z', 'x', 'c', 'v', 'b', 'n', 'm',
-    ',', '.', '/', 0, 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0,
-  }
-};
-
-static char* codeMap = layoutMaps[0];
+static const char* codeMap = layoutMaps[0];
+static const char* shiftCodeMap = layoutShiftMaps[0];
 
 void setLayout(KbLayout layout) {
   codeMap = layoutMaps[layout];
@@ -76,8 +47,10 @@ void readKeyToBuffer() {
   default:
     // ncPrintHex(code);
     if (code < 0 || code >= LAYOUT_SIZE) return;
-    key.code = codeMap[code];
-    if (key.code == 0) return;
+    key.code = code;
+    if (md.shiftPressed) key.key = shiftCodeMap[code];
+    else key.key = codeMap[code];
+    if (key.key == 0) return;
     copyModifierKeys(md, &key.md);
     // printKeyStruct(key);
     int prevWriteIdx = writeIdx;
