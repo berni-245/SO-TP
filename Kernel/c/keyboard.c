@@ -23,11 +23,17 @@ void readKeyToBuffer() {
   uint8_t code = readKeyCode();
   KeyStruct key;
   switch (code) {
-  case SHIFT:
-    md.shiftPressed = True;
+  case LEFT_SHIFT:
+    md.leftShiftPressed = True;
     break;
-  case SHIFT + 0x80:
-    md.shiftPressed = False;
+  case LEFT_SHIFT + 0x80:
+    md.leftShiftPressed = False;
+    break;
+  case RIGHT_SHIFT:
+    md.rightShiftPressed = True;
+    break;
+  case RIGHT_SHIFT + 0x80:
+    md.rightShiftPressed = False;
     break;
   case CTRL:
     md.ctrlPressed = True;
@@ -45,14 +51,12 @@ void readKeyToBuffer() {
     md.capsLockPressed = !md.capsLockPressed;
     break;
   default:
-    // ncPrintHex(code);
     if (code < 0 || code >= LAYOUT_SIZE) return;
     key.code = code;
-    if (md.shiftPressed) key.key = shiftCodeMap[code];
+    if (md.leftShiftPressed || md.rightShiftPressed) key.key = shiftCodeMap[code];
     else key.key = codeMap[code];
     if (key.key == 0) return;
     copyModifierKeys(md, &key.md);
-    // printKeyStruct(key);
     int prevWriteIdx = writeIdx;
     buffer[writeIdx++] = key;
     writeIdx %= KB_BUF_SIZE;
@@ -62,7 +66,7 @@ void readKeyToBuffer() {
 }
 
 void copyModifierKeys(ModifierKeys src, ModifierKeys* dest) {
-  dest->shiftPressed = src.shiftPressed;
+  dest->rightShiftPressed = src.rightShiftPressed;
   dest->ctrlPressed = src.ctrlPressed;
   dest->altPressed = src.altPressed;
   dest->capsLockPressed = src.capsLockPressed;

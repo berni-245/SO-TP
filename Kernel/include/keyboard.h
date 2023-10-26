@@ -7,7 +7,8 @@
 #define KB_BUF_SIZE 100
 
 typedef struct ModifierKeys {
-  boolean shiftPressed: 1;
+  boolean leftShiftPressed: 1;
+  boolean rightShiftPressed: 1;
   boolean ctrlPressed: 1;
   boolean altPressed: 1;
   boolean capsLockPressed: 1;
@@ -20,12 +21,13 @@ typedef struct KeyStruct {
   ModifierKeys md;
 } KeyStruct;
 
-typedef enum QwertyLayout {
+enum ModKeyCodes {
   CAPS_LOCK = 0x3A,
-  SHIFT = 0x2A,
+  LEFT_SHIFT = 0x2A,
+  RIGHT_SHIFT = 0x36,
   CTRL = 0x1D,
   ALT = 0x38,
-} QwertyLayout;
+};
 
 typedef enum KbLayout {
   QWERTY_LATAM = 0,

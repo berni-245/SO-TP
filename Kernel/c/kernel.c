@@ -51,77 +51,26 @@ void * initializeKernelBinary()
 	return getStackBase();
 }
 
+#define bufSize 10
 int main()
 {	
   loadIdt();
   ncClear();
 	ncPrint("Start");
 
-  KeyStruct buf[4];
+  KeyStruct buf[bufSize];
 
   int read;
   while (1) {
     haltTillNextInterruption();
-    if (getTicks() % 100 == 0) {
-      read = readKbBuffer(buf, 4);
-      ncNewline();
-      ncPrint("Buffer 1:");
-      ncNewline();
-      printBuffer(buf, read);
+    read = readKbBuffer(buf, bufSize);
+    for (int i = 0; i < read; ++i) {
+      ncPrintChar(buf[i].key);
     }
   };
 
   // setLayout(QWERTY_US);
-	sampleCodeModule();
+	// sampleCodeModule();
 
 	return 0;
 }
-
-
-
-
-
-//        write 1234567          
-//  read                read      
-//   v        read 3     v       read = 1234
-//   1234567  ----->  1234567        
-//          ^                ^     
-//        write            write   
-//                               
-//                               
-//           write 890abcde            
-//     read                read      
-//      v         read 8     v           read = de67890a Mal!!! Debería ser 67890abvc
-//   abcde67890   ------>   abcde67890        
-//        ^                      ^ 
-//      write                   write
-//                               
-//                               
-//           write 890abcde            
-//     read                read      
-//      v         read 8     v           read = de67890a Mal!!! Debería ser 67890abvc
-//   abcde67890   ------>   abcde67890        
-//        ^                      ^ 
-//      write                   write
-//                               
-//                               
-//                       v       
-//   1234567  ----->  abcd567890     
-//                               
-//                               
-//                               
-//                               
-//                               
-
-
-
-
-
-
-
-
-
-
-
-
-

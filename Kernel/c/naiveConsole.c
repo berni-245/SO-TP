@@ -119,8 +119,11 @@ void printKeyStruct(KeyStruct k) {
   ncPrint(" | ");
   ncPrintHex(k.code);
   ncPrint(": { ");
-  ncPrint("shift: ");
-  printBool(k.md.shiftPressed);
+  ncPrint("l-shift: ");
+  printBool(k.md.rightShiftPressed);
+  ncPrint(", ");
+  ncPrint("r-shift: ");
+  printBool(k.md.rightShiftPressed);
   ncPrint(", ");
   ncPrint("ctrl: ");
   printBool(k.md.ctrlPressed);
