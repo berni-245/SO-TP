@@ -2,6 +2,8 @@ section .text
 
 global disableInterruptions
 global enableInterruptions
+global haltTillNextInterruption
+	
 global picMask
 
 global irq00Handler
@@ -16,10 +18,12 @@ global irq07Handler
 extern irqDispatcher
 
 %macro irqHandler 1
+  push rax
   mov rdi, %1
   call irqDispatcher
   mov al, 0x20
   out 0x20, al
+  pop rax
   iretq
 %endmacro
 
@@ -47,6 +51,10 @@ disableInterruptions:
 enableInterruptions:
 	sti
 	ret
+
+haltTillNextInterruption:
+  hlt
+  ret
 
 picMask:
 	; push rbp

@@ -1,34 +1,47 @@
 include Makefile.inc
 
-KERNEL=kernel.bin
-KERNEL_DEBUG=$(KERNEL:.bin=.elf)
-SOURCES=$(wildcard *.c)
-SOURCES_ASM=$(wildcard asm/*.asm)
-OBJECTS=$(SOURCES:.c=.o)
-OBJECTS_ASM=$(SOURCES_ASM:.asm=.o)
-LOADERSRC=loader.asm
+OBJDIR := objs
+CDIR := c
+ASMDIR := asm
 
-LOADEROBJECT=$(LOADERSRC:.asm=.o)
-STATICLIBS=
+KERNEL := kernel.bin
+KERNEL_DEBUG := $(KERNEL:.bin=.elf)
 
-LD_OBJECTS=$(LOADEROBJECT) $(OBJECTS) $(OBJECTS_ASM) $(STATICLIBS)
+SOURCES_C := $(wildcard $(CDIR)/*.c)
+OBJECTS_C := $(addprefix $(OBJDIR)/,$(SOURCES_C:%.c=%.o))
+SOURCES_ASM := $(wildcard $(ASMDIR)/*.asm)
+OBJECTS_ASM := $(addprefix $(OBJDIR)/,$(SOURCES_ASM:%.asm=%.o))
+
+LOADERSRC := loader.asm
+LOADEROBJECT := $(addprefix $(OBJDIR)/,$(LOADERSRC:.asm=.o))
+
+LINK_SCRIPT := kernel.ld
+
+STATICLIBS := 
+
+ALL_OBJECTS := $(LOADEROBJECT) $(OBJECTS_C) $(OBJECTS_ASM) $(STATICLIBS)
 
 all: $(KERNEL)
 
-$(KERNEL): $(LOADEROBJECT) $(OBJECTS) $(STATICLIBS) $(OBJECTS_ASM)
-	$(LD) $(LDFLAGS) -T kernel.ld -o $(KERNEL) $(LD_OBJECTS)
-	$(LD) $(LDFLAGS) -T kernel.ld --oformat=elf64-x86-64 -o $(KERNEL_DEBUG) $(LD_OBJECTS)
+$(KERNEL): $(ALL_OBJECTS)
+	$(LD) $(LDFLAGS) -T $(LINK_SCRIPT) -o $(KERNEL) $(ALL_OBJECTS)
+	$(LD) $(LDFLAGS) -T $(LINK_SCRIPT) --oformat=elf64-x86-64 -o $(KERNEL_DEBUG) $(ALL_OBJECTS)
 
-%.o: %.c
+$(OBJECTS_C) $(OBJECTS_ASM) $(LOADEROBJECT): | $(OBJDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)/$(CDIR) $(OBJDIR)/$(ASMDIR)
+
+$(OBJDIR)/%.o : %.c
 	$(GCC) $(GCCFLAGS) -I./include -c $< -o $@
 
-%.o : %.asm
+$(OBJDIR)/%.o : %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 $(LOADEROBJECT):
 	$(ASM) $(ASMFLAGS) $(LOADERSRC) -o $(LOADEROBJECT)
 
 clean:
-	rm -rf asm/*.o *.o *.bin
+	rm -f $(OBJECTS_C) $(OBJECTS_ASM) *.bin *.elf
 
 .PHONY: all clean
