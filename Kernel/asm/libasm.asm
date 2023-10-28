@@ -1,5 +1,3 @@
-GLOBAL cpuVendor
-
 section .text
 global cpuVendor
 	
