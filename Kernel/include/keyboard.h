@@ -4,7 +4,7 @@
 #include "booleans.h"
 #include <stdint.h>
 
-#define KB_BUF_SIZE 100
+#define KB_BUF_SIZE 20
 
 typedef struct ModifierKeys {
   boolean leftShiftPressed: 1;

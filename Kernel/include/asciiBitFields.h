@@ -5,6 +5,8 @@
 
 #define ASCII_BF_WIDTH 11
 #define ASCII_BF_HEIGHT 23
+#define ASCII_BF_MIN ' '
+#define ASCII_BF_MAX '~'
 
 static const uint8_t asciiBitFields[][ASCII_BF_WIDTH * ASCII_BF_HEIGHT] = {
 	{ // Character: ` ` - Space - 32

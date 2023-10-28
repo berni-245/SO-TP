@@ -1,4 +1,5 @@
-#include "keyboard.h"
+#include <asciiBitFields.h>
+#include <keyboard.h>
 #include <timer.h>
 #include <interruptions.h>
 #include <stdint.h>
@@ -57,19 +58,33 @@ void * initializeKernelBinary()
 	return getStackBase();
 }
 
-#define bufSize 10
+#define SCREEN_BUF_SIZE 1000
+static char screenBuf[SCREEN_BUF_SIZE];
 int main()
 {	
   loadIdt();
 
-  KeyStruct buf[bufSize];
+  setColor(0x00FF00);
+  fillRectangle(10, 400, 300, 150);
 
-  int read;
+  KeyStruct buf[KB_BUF_SIZE];
+
+  setColor(0xFFFF00);
+
+  int read, k = 0;
   while (1) {
     haltTillNextInterruption();
-    read = readKbBuffer(buf, bufSize);
-    for (int i = 0; i < read; ++i) {
-      printBitFieldDefault(10, 10, ascii_bit_fields, 23, 11);
+    read = readKbBuffer(buf, KB_BUF_SIZE);
+    for (int i = 0; i < read; ++i, k = (k + 1) % SCREEN_BUF_SIZE) {
+      if (buf[i].key == '+' && buf[i].md.ctrlPressed) {
+        increaseFont();
+      } else if (buf[i].key == '-' && buf[i].md.ctrlPressed) {
+        decreaseFont();
+      } else {
+        clearScreen();
+        screenBuf[k] = buf[i].key;
+        printChar(10, 1, screenBuf[k]);
+      }
     }
   };
 
