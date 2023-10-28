@@ -43,11 +43,12 @@ typedef void (*InterruptionFunction)();
 
 extern void disableInterruptions();
 extern void enableInterruptions();
+extern void haltTillNextInterruption();
 extern void picMask(uint16_t mask);
 
 void irqDispatcher(uint8_t index);
-void setup_IDT_entry(int index, InterruptionFunction irqHandler);
-void load_idt();
+void setupIdtEntry(int index, InterruptionFunction irqHandler);
+void loadIdt();
 
 extern void irq00Handler();
 extern void irq01Handler();

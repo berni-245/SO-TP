@@ -1,9 +1,9 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-void timer_tick();
-unsigned long get_ticks();
-unsigned long get_ms();
+void timerTick();
+unsigned long getTicks();
+unsigned long getMs();
 void sleep(unsigned long ms);
 
 #endif
