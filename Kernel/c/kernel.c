@@ -59,6 +59,7 @@ void * initializeKernelBinary()
 #define SCREEN_BUF_SIZE 1000
 static char screenBuf[SCREEN_BUF_SIZE];
 
+static int nextGridPos = 0;
 // static int cursorX = 0;
 // static int cursorY = 0;
 // void printNextChar(char c) {
@@ -86,12 +87,18 @@ int main()
   setFillColor(0xFF0000);
   setFontColor(0xFFFF00);
 
-  setStrokeWidth(3);
   strokeLine(40, 20, 1200, 700);
+  setStrokeWidth(3);
   strokeRectangle(20, 20, 200, 150);
-  setStrokeWidth(10);
+  setStrokeWidth(50);
   setStrokeColor(0x00FF00);
-  fillRectangle(200, 200, 200, 150);
+  // strokeRectangle(200, 200, 200, 200);
+  fillRectangle(200, 200, 200, 200);
+
+  setStrokeWidth(3);
+  setStrokeColor(0x000000);
+  strokeLine(180, 200, 180, 400);
+  strokeLine(200, 180, 400, 180);
   
   increaseFont();
   printBuffer(0, 0, "Hola Carola", 11);

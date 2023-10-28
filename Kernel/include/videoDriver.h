@@ -11,13 +11,16 @@ void strokeLine(int startX, int startY, int endX, int endY);
 void strokeRectangle(int x, int y, int width, int height);
 void clearScreen();
 
+void strokeHorizontalLine(int x, int y, int length);
+void strokeVerticalLine(int x, int y, int length);
+
+
 void setBgColor(uint32_t hexColor);
 void setStrokeColor(uint32_t hexColor);
 void setFillColor(uint32_t hexColor);
 void setFontColor(uint32_t hexColor);
 void saveColor();
 void restoreColor();
-
 
 void increaseFont();
 void decreaseFont();

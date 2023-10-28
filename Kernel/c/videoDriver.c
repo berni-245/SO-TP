@@ -89,7 +89,7 @@ void strokeLine(int startX, int startY, int endX, int endY) {
   color = strokeColor;
   int vx = endX - startX;
   int vy = endY - startY;
-  for (double a = 0; a <= 1; a += 0.0001) {
+  for (double a = 0; a <= 1; a += 0.001*strokeWidth/2) {
     int x = a * vx + startX;
     int y = a * vy + startY;
     printRectangle(x, y, strokeWidth, strokeWidth);
@@ -97,11 +97,38 @@ void strokeLine(int startX, int startY, int endX, int endY) {
   restoreColor();
 }
 
+void strokeHorizontalLine(int x, int y, int length) {
+  saveColor();
+  color = strokeColor;
+  int i = 0;
+  for (; i < length - strokeWidth; i += strokeWidth) {
+    printRectangle(x + i, y, strokeWidth, strokeWidth);
+  }
+  printRectangle(x + i, y, length - i, strokeWidth);
+  restoreColor();
+}
+void strokeVerticalLine(int x, int y, int length) {
+  saveColor();
+  color = strokeColor;
+  int i = 0;
+  for (; i <= length - strokeWidth; i += strokeWidth) {
+    printRectangle(x, y + i, strokeWidth, strokeWidth);
+  }
+  printRectangle(x, y + i, strokeWidth, length - i);
+  restoreColor();
+}
+
 void strokeRectangle(int x, int y, int width, int height) {
-  strokeLine(x, y, x + width, y);
-  strokeLine(x + width, y, x + width, y + height);
-  strokeLine(x + width, y + height, x, y + height);
-  strokeLine(x, y + height, x, y);
+  // This was too inefficient.
+  // strokeLine(x, y, x + width, y);
+  // strokeLine(x + width, y, x + width, y + height);
+  // strokeLine(x + width, y + height, x, y + height);
+  // strokeLine(x, y + height, x, y);
+
+  strokeHorizontalLine(x, y, width);
+  strokeHorizontalLine(x, y + height - strokeWidth, width);
+  strokeVerticalLine(x, y + strokeWidth, height - strokeWidth);
+  strokeVerticalLine(x + width - strokeWidth, y +strokeWidth, height - strokeWidth);
 }
 
 void fillRectangle(int x, int y, int width, int height) {
