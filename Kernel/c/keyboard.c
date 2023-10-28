@@ -1,7 +1,6 @@
 #include <booleans.h>
 #include <keyboard.h>
 #include <layouts.h>
-#include <naiveConsole.h>
 #include <stdint.h>
 
 void copyModifierKeys(ModifierKeys src, ModifierKeys* dest);

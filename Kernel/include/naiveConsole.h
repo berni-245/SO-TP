@@ -16,6 +16,6 @@ void ncClear();
 
 void printBool(boolean b);
 void printKeyStruct(KeyStruct k);
-void printBuffer(KeyStruct buf[], int len);
+void printBuffer2(KeyStruct buf[], int len);
 
 #endif
