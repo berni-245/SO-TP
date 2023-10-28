@@ -6,6 +6,8 @@
 #include <lib.h>
 #include <moduleLoader.h>
 #include <naiveConsole.h>
+#include <clock.h>
+#include <pcSpeaker.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -47,6 +49,8 @@ void * initializeKernelBinary()
 	ncNewline();
 
 	clearBSS(&bss, &endOfKernel - &bss);
+
+	setBinaryClockFormat();
 
 	return getStackBase();
 }
