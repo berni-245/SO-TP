@@ -52,20 +52,12 @@ typedef struct RGBColor {
   uint8_t red;
 } RGBColor;
 
-static RGBColor bgColor = {0};
 static RGBColor color = {0};
-
-void setBgColor(uint32_t hexColor) {
-  bgColor.blue = hexColor & 0xFF;
-  bgColor.green = (hexColor >> 8) & 0xFF;
-  bgColor.red = (hexColor >> 16) & 0xFF;
-}
-
-void setColor(uint32_t hexColor) {
-  color.blue = hexColor & 0xFF;
-  color.green = (hexColor >> 8) & 0xFF;
-  color.red = (hexColor >> 16) & 0xFF;
-}
+static RGBColor bgColor = {0};
+static RGBColor strokeColor = {0};
+static RGBColor fillColor = {0};
+static RGBColor fontColor = {0};
+static RGBColor savedColor = {0};
 
 typedef struct vbe_mode_info_structure *VBEInfoPtr;
 
@@ -77,7 +69,7 @@ void printPixel(int x, int y) {
   framebuffer[offset] = color;
 }
 
-void fillRectangle(int x, int y, int width, int height) {
+void printRectangle(int x, int y, int width, int height) {
   for (int i = 0; i < height; ++i) {
     for (int j = 0; j < width; ++j) {
       printPixel(x + j, y + i);
@@ -85,11 +77,46 @@ void fillRectangle(int x, int y, int width, int height) {
   }
 }
 
+static int strokeWidth = 1;
+
+void setStrokeWidth(int width) {
+  if (width <= 0) return;
+  strokeWidth = width;
+}
+
+void strokeLine(int startX, int startY, int endX, int endY) {
+  saveColor();
+  color = strokeColor;
+  int vx = endX - startX;
+  int vy = endY - startY;
+  for (double a = 0; a <= 1; a += 0.0001) {
+    int x = a * vx + startX;
+    int y = a * vy + startY;
+    printRectangle(x, y, strokeWidth, strokeWidth);
+  }
+  restoreColor();
+}
+
+void strokeRectangle(int x, int y, int width, int height) {
+  strokeLine(x, y, x + width, y);
+  strokeLine(x + width, y, x + width, y + height);
+  strokeLine(x + width, y + height, x, y + height);
+  strokeLine(x, y + height, x, y);
+}
+
+void fillRectangle(int x, int y, int width, int height) {
+  saveColor();
+  color = fillColor;
+  printRectangle(x, y, width, height);
+  strokeRectangle(x, y, width, height);
+  restoreColor();
+}
+
 void clearScreen() {
-  RGBColor save = color;
+  saveColor();
   color = bgColor;
-  fillRectangle(0, 0, VBE_mode_info->width, VBE_mode_info->height);
-  color = save;
+  printRectangle(0, 0, VBE_mode_info->width, VBE_mode_info->height);
+  restoreColor();
 }
 
 #define MAX_FONT_SIZE 4
@@ -104,28 +131,54 @@ void decreaseFont() {
 }
 
 void printChar(int x, int y, char c) {
-  // if (c < ASCII_BF_MIN || c > ASCII_BF_MAX) return;
+  if (c < ASCII_BF_MIN || c > ASCII_BF_MAX) return;
+  saveColor();
+  color = fontColor;
   c -= ASCII_BF_MIN;
   x *= ASCII_BF_WIDTH * fontSize;
   y *= ASCII_BF_HEIGHT * fontSize;
   for (int i = 0; i < ASCII_BF_HEIGHT; ++i) {
     for (int j = 0; j < ASCII_BF_WIDTH; ++j) {
       if (asciiBitFields[c][i * ASCII_BF_WIDTH + j] != 0) {
-        fillRectangle(x + j*fontSize, y + i*fontSize, fontSize, fontSize);
+        printRectangle(x + j*fontSize, y + i*fontSize, fontSize, fontSize);
       }
     }
   }
+  restoreColor();
 }
 
-// static int cursorX = 0;
-// static int cursorY = 0;
-// void printNextChar(char c) {
-//   printChar(cursorX, cursorY, c);
-//   if (++cursorX >= this.maxPrintCol) {
-//     this.printCol = 0;
-//     if (++this.printRow >= this.maxPrintRow) {
-//       console.warn("No more space in canvas. Resetting");
-//       this.clearTestCanvas()
-//     }
-//   }
-// }
+void printBuffer(int x, int y, char buf[], int size) {
+  for (int i = 0; i < size; ++i) {
+    printChar(x + i, y, buf[i]);
+  }
+}
+
+void setRGBColor(RGBColor* color, uint32_t hexColor) {
+  color->blue = hexColor & 0xFF;
+  color->green = (hexColor >> 8) & 0xFF;
+  color->red = (hexColor >> 16) & 0xFF;
+}
+
+void setBgColor(uint32_t hexColor) {
+  setRGBColor(&bgColor, hexColor);
+}
+
+void setStrokeColor(uint32_t hexColor) {
+  setRGBColor(&strokeColor, hexColor);
+}
+
+void setFillColor(uint32_t hexColor) {
+  setRGBColor(&fillColor, hexColor);
+}
+
+void setFontColor(uint32_t hexColor) {
+  setRGBColor(&fontColor, hexColor);
+}
+
+void saveColor() {
+  savedColor = color;
+}
+
+void restoreColor() {
+  color = savedColor;
+}

@@ -6,7 +6,6 @@
 #include <string.h>
 #include <lib.h>
 #include <moduleLoader.h>
-#include <naiveConsole.h>
 #include <videoDriver.h>
 
 extern uint8_t * ascii_bit_fields;
@@ -50,26 +49,52 @@ void * initializeKernelBinary()
 	};
 
 	loadModules(&endOfKernelBinary, moduleAddresses);
-	ncNewline();
-	ncNewline();
 
 	clearBSS(&bss, &endOfKernel - &bss);
 
 	return getStackBase();
 }
 
+// This should go in userland //////
 #define SCREEN_BUF_SIZE 1000
 static char screenBuf[SCREEN_BUF_SIZE];
+
+// static int cursorX = 0;
+// static int cursorY = 0;
+// void printNextChar(char c) {
+//   printChar(cursorX, cursorY, c);
+//   if (++cursorX >= this.maxPrintCol) {
+//     this.printCol = 0;
+//     if (++this.printRow >= this.maxPrintRow) {
+//       console.warn("No more space in canvas. Resetting");
+//       this.clearTestCanvas()
+//     }
+//   }
+// }
+///////////////////////////////////
+
 int main()
 {	
   loadIdt();
 
-  setColor(0x00FF00);
-  fillRectangle(10, 400, 300, 150);
-
   KeyStruct buf[KB_BUF_SIZE];
 
-  setColor(0xFFFF00);
+  setBgColor(0x444444);
+  clearScreen();
+
+  setStrokeColor(0x0000FF);
+  setFillColor(0xFF0000);
+  setFontColor(0xFFFF00);
+
+  setStrokeWidth(3);
+  strokeLine(40, 20, 1200, 700);
+  strokeRectangle(20, 20, 200, 150);
+  setStrokeWidth(10);
+  setStrokeColor(0x00FF00);
+  fillRectangle(200, 200, 200, 150);
+  
+  increaseFont();
+  printBuffer(0, 0, "Hola Carola", 11);
 
   int read, k = 0;
   while (1) {

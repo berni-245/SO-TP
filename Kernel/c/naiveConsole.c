@@ -137,7 +137,7 @@ void printKeyStruct(KeyStruct k) {
   ncNewline();
 }
 
-void printBuffer(KeyStruct buf[], int len) {
+void printBuffer2(KeyStruct buf[], int len) {
   for (int i = 0; i < len; ++i) {
     printKeyStruct(buf[i]);
   }
