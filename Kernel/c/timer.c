@@ -6,6 +6,6 @@ void timerTick() { ticks++; }
 unsigned long getTicks() { return ticks; }
 unsigned long getMs() { return ticks * 1000 / freq; }
 void sleep(unsigned long ms){
-    unsigned long end = ms + get_ms();
-    while(get_ms() < end);
+    unsigned long end = ms + getMs();
+    while(getMs() < end);
 }

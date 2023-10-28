@@ -8,6 +8,7 @@
 #include <naiveConsole.h>
 #include <clock.h>
 #include <pcSpeaker.h>
+#include <registers.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -63,6 +64,14 @@ int main()
 	ncPrint("Start");
 
   KeyStruct buf[bufSize];
+
+  sleep(1000);
+  Register * registers = getRegisters();
+  ncPrint(registers[0].name);
+  ncPrint(" ");
+  ncPrintHex(registers[0].value);
+  ncNewline();
+
 
   int read;
   while (1) {
