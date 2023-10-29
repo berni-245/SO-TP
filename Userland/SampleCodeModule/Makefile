@@ -1,16 +1,41 @@
 include ../Makefile.inc
 
+OBJDIR := objs
+CDIR := c
+ASMDIR := asm
+
 MODULE=0000-sampleCodeModule.bin
 MODULE_DEBUG=$(MODULE:.bin=.elf)
-SOURCES=$(wildcard [^_]*.c)
+SOURCES_C := $(wildcard $(CDIR)/*.c)
+OBJECTS_C := $(addprefix $(OBJDIR)/,$(SOURCES_C:%.c=%.o))
+SOURCES_ASM := $(wildcard $(ASMDIR)/*.asm)
+OBJECTS_ASM := $(addprefix $(OBJDIR)/,$(SOURCES_ASM:%.asm=%.o))
+
+LOADERSRC := _loader.c
+LOADEROBJECT := $(addprefix $(OBJDIR)/,$(LOADERSRC:.c=.o))
+
+LINK_SCRIPT := sampleCodeModule.ld
+
+ALL_OBJECTS := $(OBJECTS_C) $(OBJECTS_ASM)
 
 all: $(MODULE)
 
-$(MODULE): $(SOURCES)
-	$(GCC) $(GCCFLAGS) -T sampleCodeModule.ld _loader.c $(SOURCES) -o ../$(MODULE)
-	$(GCC) $(GCCFLAGS) -T sampleCodeModule.ld -Wl,--oformat=elf64-x86-64 $(SOURCES) -o ../$(MODULE_DEBUG)
+$(MODULE): $(ALL_OBJECTS)
+	$(GCC) $(GCCFLAGS) -T $(LINK_SCRIPT) $(LOADERSRC) $(ALL_OBJECTS) -o ../$(MODULE)
+	$(GCC) $(GCCFLAGS) -T $(LINK_SCRIPT) -Wl,--oformat=elf64-x86-64 $(LOADERSRC) $(ALL_OBJECTS) -o ../$(MODULE_DEBUG)
+
+$(OBJECTS_C) $(OBJECTS_ASM): | $(OBJDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)/$(CDIR) $(OBJDIR)/$(ASMDIR)
+
+$(OBJDIR)/%.o : %.c
+	$(GCC) $(GCCFLAGS) -I./include -c $< -o $@
+
+$(OBJDIR)/%.o : %.asm
+	$(ASM) $(ASMFLAGS) $< -o $@
 
 clean:
-	rm -rf *.o
+	rm -f $(OBJECTS_C) $(OBJECTS_ASM) *.bin *.elf
 
-.PHONY: all clean print
+.PHONY: all clean

@@ -9,6 +9,7 @@
 #include <clock.h>
 #include <pcSpeaker.h>
 #include <videoDriver.h>
+#include <syscalls.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -54,75 +55,13 @@ void * initializeKernelBinary()
 	return getStackBase();
 }
 
-//// This should go in userland ////
-#define SCREEN_BUF_SIZE 1000
-static char screenBuf[SCREEN_BUF_SIZE];
-
-static int nextGridPos = 0;
-// static int cursorX = 0;
-// static int cursorY = 0;
-// void printNextChar(char c) {
-//   printChar(cursorX, cursorY, c);
-//   if (++cursorX >= this.maxPrintCol) {
-//     this.printCol = 0;
-//     if (++this.printRow >= this.maxPrintRow) {
-//       console.warn("No more space in canvas. Resetting");
-//       this.clearTestCanvas()
-//     }
-//   }
-// }
-///////////////////////////////////
-
 int main()
 {	
   loadIdt();
   setFontGridValues();
 
-  KeyStruct buf[KB_BUF_SIZE];
-
-  setBgColor(0x444444);
-  clearScreen();
-
-  setStrokeColor(0x0000FF);
-  setFillColor(0xFF0000);
-  setFontColor(0xFFFF00);
-
-  strokeLine(40, 20, 1200, 700);
-  setStrokeWidth(3);
-  strokeRectangle(20, 20, 200, 150);
-  setStrokeWidth(50);
-  setStrokeColor(0x00FF00);
-  // strokeRectangle(200, 200, 200, 200);
-  fillRectangle(200, 200, 200, 200);
-
-  setStrokeWidth(3);
-  setStrokeColor(0x000000);
-  strokeLine(180, 200, 180, 400);
-  strokeLine(200, 180, 400, 180);
-  
-  char s[82] = "> Esto es un texto de prueba muuuuuuuuuuuuy laaaaaaaaaaaaaaaargoooooooooooooo.....";
-  increaseFont();
-  printBuffer(0, 15, s, 82);
-
-  int read, k = 0;
-  while (1) {
-    haltTillNextInterruption();
-    read = readKbBuffer(buf, KB_BUF_SIZE);
-    for (int i = 0; i < read; ++i, k = (k + 1) % SCREEN_BUF_SIZE) {
-      if (buf[i].key == '+' && buf[i].md.ctrlPressed) {
-        increaseFont();
-      } else if (buf[i].key == '-' && buf[i].md.ctrlPressed) {
-        decreaseFont();
-      } else {
-        clearScreen();
-        screenBuf[k] = buf[i].key;
-        printChar(10, 1, screenBuf[k]);
-      }
-    }
-  };
-
-  // setLayout(QWERTY_US);
-	// sampleCodeModule();
+  setLayout(QWERTY_US);
+	sampleCodeModule();
 
 	return 0;
 }
