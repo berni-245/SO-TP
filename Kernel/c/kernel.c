@@ -54,7 +54,7 @@ void * initializeKernelBinary()
 	return getStackBase();
 }
 
-// This should go in userland //////
+//// This should go in userland ////
 #define SCREEN_BUF_SIZE 1000
 static char screenBuf[SCREEN_BUF_SIZE];
 
@@ -76,6 +76,7 @@ static int nextGridPos = 0;
 int main()
 {	
   loadIdt();
+  setFontGridValues();
 
   KeyStruct buf[KB_BUF_SIZE];
 
@@ -99,8 +100,9 @@ int main()
   strokeLine(180, 200, 180, 400);
   strokeLine(200, 180, 400, 180);
   
+  char s[82] = "> Esto es un texto de prueba muuuuuuuuuuuuy laaaaaaaaaaaaaaaargoooooooooooooo.....";
   increaseFont();
-  printBuffer(0, 0, "Hola Carola", 11);
+  printBuffer(0, 15, s, 82);
 
   int read, k = 0;
   while (1) {

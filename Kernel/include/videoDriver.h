@@ -22,9 +22,10 @@ void setFontColor(uint32_t hexColor);
 void saveColor();
 void restoreColor();
 
+void setFontGridValues();
 void increaseFont();
 void decreaseFont();
 void printChar(int x, int y, char c);
-void printBuffer(int x, int y, char buf[], int size);
+void printBuffer(int x, int y, const char buf[], int size);
 
 #endif

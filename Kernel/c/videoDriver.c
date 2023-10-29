@@ -148,13 +148,20 @@ void clearScreen() {
 
 #define MAX_FONT_SIZE 4
 static int fontSize = 1;
+static int fontCols, fontRows;
+void setFontGridValues() {
+  fontCols = VBE_mode_info->width / (ASCII_BF_WIDTH * fontSize);
+  fontRows = VBE_mode_info->height / (ASCII_BF_HEIGHT * fontSize);
+}
 void increaseFont() {
-  if (fontSize < MAX_FONT_SIZE)
-    ++fontSize;
+  if (fontSize == MAX_FONT_SIZE) return;
+  ++fontSize;
+  setFontGridValues();
 }
 void decreaseFont() {
-  if (fontSize > 1)
-    --fontSize;
+  if (fontSize == 1) return;
+  --fontSize;
+  setFontGridValues();
 }
 
 void printChar(int x, int y, char c) {
@@ -174,11 +181,29 @@ void printChar(int x, int y, char c) {
   restoreColor();
 }
 
-void printBuffer(int x, int y, char buf[], int size) {
+void printBuffer(int x, int y, const char buf[], int size) {
   for (int i = 0; i < size; ++i) {
-    printChar(x + i, y, buf[i]);
+    printChar(x, y, buf[i]);
+    if (++x >= fontCols) {
+      x = 0;
+      if (++y >= fontRows) {
+        // move everything one row up
+        return;
+      }
+    }
   }
 }
+
+// void printNextChar(char c) {
+//   printChar(cursorX, cursorY, c);
+//   if (++cursorX >= this.maxPrintCol) {
+//     this.printCol = 0;
+//     if (++this.printRow >= this.maxPrintRow) {
+//       console.warn("No more space in canvas. Resetting");
+//       this.clearTestCanvas()
+//     }
+//   }
+// }
 
 void setRGBColor(RGBColor* color, uint32_t hexColor) {
   color->blue = hexColor & 0xFF;
