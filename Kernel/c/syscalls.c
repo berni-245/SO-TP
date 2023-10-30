@@ -1,13 +1,18 @@
+#include <interruptions.h>
+#include <keyboard.h>
 #include <syscalls.h>
-
-void test(char c) {
-  char c2 = c;
-};
+#include <timer.h>
+#include <videoDriver.h>
 
 static SyscallFunction syscalls[] = {
-  (SyscallFunction)test
+  (SyscallFunction)haltTillNextInterruption,
+  (SyscallFunction)getMs,
+  (SyscallFunction)setLayout,
+  (SyscallFunction)getVideoInfo,
+  (SyscallFunction)readKbBuffer,
+  (SyscallFunction)printChar,
 };
 
-void syscallDispatcher(uint64_t a, uint64_t b, uint64_t c, uint64_t d, int idx) {
-  syscalls[idx](a, b, c, d);
+SyscallFunction* getSyscallsArray() {
+  return syscalls;
 }

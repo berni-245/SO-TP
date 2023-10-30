@@ -1,21 +1,21 @@
 section .text
 
-extern syscallDispatcher
+extern getSyscallsArray
 
-global syscallHandler
+global syscallDispatcher
 
 ; -------------------------     FUNCTION     ----------------------------
 ; Arguments
+;  r8: syscall index
 ;  rdi: first syscall arg   (optoinal)
 ;  rsi: second syscall arg  (optoinal)
 ;  rdx: third syscall arg   (optoinal)
 ;  rcx: fourth syscall arg   (optoinal)
-;  r8: syscall index
+; Return:
+;  rax (optional)
 ; -----------------------------------------------------------------------
-syscallHandler:
-  push rax
-  call syscallDispatcher
-  ; mov al, 0x20
-  ; out 0x20, al
-  pop rax
+syscallDispatcher:
+  call getSyscallsArray
+  lea rax, [rax + r8*8]
+  call [rax]
   iretq

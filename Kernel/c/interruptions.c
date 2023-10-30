@@ -19,8 +19,8 @@ void setupIdtEntry(int index, void* irqHandler) {
 void loadIdt() {
   setupIdtEntry(0x20, irq00Handler);
   setupIdtEntry(0x21, irq01Handler);
-  setupIdtEntry(0x80, syscallHandler);
-  picMask(TIMER_TICK_MASK & KEYBOARD_MASK);
+  setupIdtEntry(0x80, syscallDispatcher);
+  picMask(/* TIMER_TICK_MASK & */ KEYBOARD_MASK);
   enableInterruptions();
 }
 

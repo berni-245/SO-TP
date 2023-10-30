@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 
-extern void syscallHandler();
+extern uint64_t syscallDispatcher(uint64_t a, uint64_t b, uint64_t c, uint64_t d, int idx);
 
-typedef void (*SyscallFunction)(uint64_t a, uint64_t b, uint64_t c, uint64_t d);
+typedef uint64_t (*SyscallFunction)(uint64_t a, uint64_t b, uint64_t c, uint64_t d);
 
-void syscallDispatcher(uint64_t a, uint64_t b, uint64_t c, uint64_t d, int idx);
+SyscallFunction* getSyscallsArray();
 
 #endif
