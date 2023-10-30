@@ -7,10 +7,10 @@ global syscallDispatcher
 ; -------------------------     FUNCTION     ----------------------------
 ; Arguments
 ;  r8: syscall index
-;  rdi: first syscall arg   (optoinal)
-;  rsi: second syscall arg  (optoinal)
-;  rdx: third syscall arg   (optoinal)
-;  rcx: fourth syscall arg   (optoinal)
+;  rdi: first syscall arg   (optional)
+;  rsi: second syscall arg  (optional)
+;  rdx: third syscall arg   (optional)
+;  rcx: fourth syscall arg   (optional)
 ; Return:
 ;  rax (optional)
 ; -----------------------------------------------------------------------
