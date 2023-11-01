@@ -4,7 +4,7 @@ OBJDIR := objs
 CDIR := c
 ASMDIR := asm
 
-MODULE=0000-sampleCodeModule.bin
+MODULE=0000-userModule.bin
 MODULE_DEBUG=$(MODULE:.bin=.elf)
 SOURCES_C := $(wildcard $(CDIR)/*.c)
 OBJECTS_C := $(addprefix $(OBJDIR)/,$(SOURCES_C:%.c=%.o))
@@ -14,7 +14,7 @@ OBJECTS_ASM := $(addprefix $(OBJDIR)/,$(SOURCES_ASM:%.asm=%.o))
 LOADERSRC := _loader.c
 LOADEROBJECT := $(addprefix $(OBJDIR)/,$(LOADERSRC:.c=.o))
 
-LINK_SCRIPT := sampleCodeModule.ld
+LINK_SCRIPT := linker.ld
 
 ALL_OBJECTS := $(OBJECTS_C) $(OBJECTS_ASM)
 
@@ -36,6 +36,6 @@ $(OBJDIR)/%.o : %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 clean:
-	rm -f $(OBJECTS_C) $(OBJECTS_ASM) *.bin *.elf
+	rm -f $(OBJDIR)/*.o $(OBJDIR)/*/*.o *.bin *.elf
 
 .PHONY: all clean

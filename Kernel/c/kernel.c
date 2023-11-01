@@ -22,7 +22,7 @@ static const uint64_t PageSize = 0x1000;
 
 typedef int (*EntryPoint)();
 
-static EntryPoint const sampleCodeModule = (EntryPoint)0x400000;
+static EntryPoint const userModule = (EntryPoint)0x400000;
 static EntryPoint const sampleDataModule = (EntryPoint)0x500000;
 
 void clearBSS(void * bssAddress, uint64_t bssSize)
@@ -42,7 +42,7 @@ void * getStackBase()
 void * initializeKernelBinary()
 {
 	void * moduleAddresses[] = {
-		sampleCodeModule,
+		userModule,
 		sampleDataModule
 	};
 
@@ -60,8 +60,29 @@ int main()
   loadIdt();
   setFontGridValues();
 
-  setLayout(QWERTY_US);
-	sampleCodeModule();
+  setBgColor(0x1A1B26);
+  setFontColor(0xC0CAF5);
+  clearScreen();
+  // setLayout(QWERTY_US);
+	userModule();
+
+  // printCharXY(500, 500, 'X', 8);
+
+  // KeyStruct buf[20];
+  // int read;
+  // while (1) {
+  //   haltTillNextInterruption();
+  //   read = readKbBuffer(buf, 20);
+  //   for (int i = 0; i < read; ++i) {
+  //     if (buf[i].key == '+' && buf[i].md.ctrlPressed) {
+  //       increaseFont(); 
+  //     } else if (buf[i].key == '-' && buf[i].md.ctrlPressed) {
+  //       decreaseFont();
+  //     } else {
+  //       printNextChar(buf[i].key);
+  //     }
+  //   }
+  // };
 
 	return 0;
 }

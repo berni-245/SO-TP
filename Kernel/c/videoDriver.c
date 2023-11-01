@@ -46,12 +46,6 @@ struct vbe_mode_info_structure {
   uint8_t reserved1[206];
 } __attribute__((packed));
 
-typedef struct RGBColor {
-  uint8_t blue;
-  uint8_t green;
-  uint8_t red;
-} RGBColor;
-
 static RGBColor color = {0};
 static RGBColor bgColor = {0};
 static RGBColor strokeColor = {0};
@@ -62,6 +56,24 @@ static RGBColor savedColor = {0};
 typedef struct vbe_mode_info_structure *VBEInfoPtr;
 
 VBEInfoPtr VBE_mode_info = (VBEInfoPtr)0x0000000000005C00;
+
+#define MAX_FONT_SIZE 4
+static int fontSize = 1;
+static int fontCols, fontRows;
+void setFontGridValues() {
+  fontCols = VBE_mode_info->width / (ASCII_BF_WIDTH * fontSize);
+  fontRows = VBE_mode_info->height / (ASCII_BF_HEIGHT * fontSize);
+}
+int getFontSize() {
+  return fontSize;
+}
+
+int getScreenWidth() {
+  return VBE_mode_info->width;
+}
+int getScreenHeight() {
+  return VBE_mode_info->height;
+}
 
 void printPixel(int x, int y) {
   RGBColor *framebuffer = (RGBColor *)VBE_mode_info->framebuffer;
@@ -85,8 +97,7 @@ void setStrokeWidth(int width) {
 }
 
 void strokeLine(int startX, int startY, int endX, int endY) {
-  saveColor();
-  color = strokeColor;
+  saveColorAndSet(strokeColor);
   int vx = endX - startX;
   int vy = endY - startY;
   for (double a = 0; a <= 1; a += 0.001*strokeWidth/2) {
@@ -98,8 +109,7 @@ void strokeLine(int startX, int startY, int endX, int endY) {
 }
 
 void strokeHorizontalLine(int x, int y, int length) {
-  saveColor();
-  color = strokeColor;
+  saveColorAndSet(strokeColor);
   int i = 0;
   for (; i < length - strokeWidth; i += strokeWidth) {
     printRectangle(x + i, y, strokeWidth, strokeWidth);
@@ -108,8 +118,7 @@ void strokeHorizontalLine(int x, int y, int length) {
   restoreColor();
 }
 void strokeVerticalLine(int x, int y, int length) {
-  saveColor();
-  color = strokeColor;
+  saveColorAndSet(strokeColor);
   int i = 0;
   for (; i <= length - strokeWidth; i += strokeWidth) {
     printRectangle(x, y + i, strokeWidth, strokeWidth);
@@ -119,12 +128,6 @@ void strokeVerticalLine(int x, int y, int length) {
 }
 
 void strokeRectangle(int x, int y, int width, int height) {
-  // This was too inefficient.
-  // strokeLine(x, y, x + width, y);
-  // strokeLine(x + width, y, x + width, y + height);
-  // strokeLine(x + width, y + height, x, y + height);
-  // strokeLine(x, y + height, x, y);
-
   strokeHorizontalLine(x, y, width);
   strokeHorizontalLine(x, y + height - strokeWidth, width);
   strokeVerticalLine(x, y + strokeWidth, height - strokeWidth);
@@ -132,45 +135,16 @@ void strokeRectangle(int x, int y, int width, int height) {
 }
 
 void fillRectangle(int x, int y, int width, int height) {
-  saveColor();
-  color = fillColor;
+  saveColorAndSet(fillColor);
   printRectangle(x, y, width, height);
   strokeRectangle(x, y, width, height);
   restoreColor();
 }
 
-void clearScreen() {
-  saveColor();
-  color = bgColor;
-  printRectangle(0, 0, VBE_mode_info->width, VBE_mode_info->height);
-  restoreColor();
-}
-
-#define MAX_FONT_SIZE 4
-static int fontSize = 1;
-static int fontCols, fontRows;
-void setFontGridValues() {
-  fontCols = VBE_mode_info->width / (ASCII_BF_WIDTH * fontSize);
-  fontRows = VBE_mode_info->height / (ASCII_BF_HEIGHT * fontSize);
-}
-void increaseFont() {
-  if (fontSize == MAX_FONT_SIZE) return;
-  ++fontSize;
-  setFontGridValues();
-}
-void decreaseFont() {
-  if (fontSize == 1) return;
-  --fontSize;
-  setFontGridValues();
-}
-
-void printChar(int x, int y, char c) {
+void printCharXY(int x, int y, char c, int fontSize) {
   if (c < ASCII_BF_MIN || c > ASCII_BF_MAX) return;
-  saveColor();
-  color = fontColor;
+  saveColorAndSet(fontColor);
   c -= ASCII_BF_MIN;
-  x *= ASCII_BF_WIDTH * fontSize;
-  y *= ASCII_BF_HEIGHT * fontSize;
   for (int i = 0; i < ASCII_BF_HEIGHT; ++i) {
     for (int j = 0; j < ASCII_BF_WIDTH; ++j) {
       if (asciiBitFields[c][i * ASCII_BF_WIDTH + j] != 0) {
@@ -181,12 +155,40 @@ void printChar(int x, int y, char c) {
   restoreColor();
 }
 
-void printBuffer(int x, int y, const char buf[], int size) {
+void clearScreen() {
+  saveColorAndSet(bgColor);
+  printRectangle(0, 0, VBE_mode_info->width, VBE_mode_info->height);
+  restoreColor();
+}
+
+void setFontSize(int fs) {
+  if (fs < 1 && fs > MAX_FONT_SIZE) return;
+  fontSize = fs;
+  setFontGridValues();
+}
+
+void printChar(int col, int row, char c) {
+  if (c < ASCII_BF_MIN || c > ASCII_BF_MAX) return;
+  saveColorAndSet(fontColor);
+  c -= ASCII_BF_MIN;
+  col *= ASCII_BF_WIDTH * fontSize;
+  row *= ASCII_BF_HEIGHT * fontSize;
+  for (int i = 0; i < ASCII_BF_HEIGHT; ++i) {
+    for (int j = 0; j < ASCII_BF_WIDTH; ++j) {
+      if (asciiBitFields[c][i * ASCII_BF_WIDTH + j] != 0) {
+        printRectangle(col + j*fontSize, row + i*fontSize, fontSize, fontSize);
+      }
+    }
+  }
+  restoreColor();
+}
+
+void printBuffer(int col, int row, const char buf[], int size) {
   for (int i = 0; i < size; ++i) {
-    printChar(x, y, buf[i]);
-    if (++x >= fontCols) {
-      x = 0;
-      if (++y >= fontRows) {
+    printChar(col, row, buf[i]);
+    if (++col >= fontCols) {
+      col = 0;
+      if (++row >= fontRows) {
         // move everything one row up
         return;
       }
@@ -194,16 +196,61 @@ void printBuffer(int x, int y, const char buf[], int size) {
   }
 }
 
-// void printNextChar(char c) {
-//   printChar(cursorX, cursorY, c);
-//   if (++cursorX >= this.maxPrintCol) {
-//     this.printCol = 0;
-//     if (++this.printRow >= this.maxPrintRow) {
-//       console.warn("No more space in canvas. Resetting");
-//       this.clearTestCanvas()
-//     }
-//   }
-// }
+
+static int cursorCol = 0;
+static int cursorRow = 0;
+void eraseChar() {
+  saveColorAndSet(bgColor);
+  if (--cursorCol < 0) {
+    cursorCol = 0;
+    if (--cursorRow < 0) {
+      cursorRow = 0;
+      return;
+    }
+  }
+  int col = cursorCol * ASCII_BF_WIDTH * fontSize;
+  int row = cursorRow * ASCII_BF_HEIGHT * fontSize;
+  for (int i = 0; i < ASCII_BF_HEIGHT; ++i) {
+    for (int j = 0; j < ASCII_BF_WIDTH; ++j) {
+      printRectangle(col + j*fontSize, row + i*fontSize, fontSize, fontSize);
+    }
+  }
+  restoreColor();
+  return;
+}
+// 0 if was able to print char, 1 othwerwise (if cursor reached end of screen).
+int printNextChar(char c) {
+  if (c == '\b') {
+    eraseChar();
+  } else {
+    printChar(cursorCol, cursorRow, c);
+    if (++cursorCol >= fontCols) {
+      cursorCol = 0;
+      if (++cursorRow >= fontRows) {
+        // move everything one row up
+        --cursorRow;
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+void moveCursor(int col, int row) {
+  cursorCol = col;
+  cursorRow = row;
+}
+
+void cursorNext() {
+  if (++cursorCol >= fontCols) {
+    cursorCol = 0;
+    if (++cursorRow >= fontRows) {
+      // move everything one row up
+      --cursorRow;
+      // return 1;
+    }
+  }
+}
 
 void setRGBColor(RGBColor* color, uint32_t hexColor) {
   color->blue = hexColor & 0xFF;
@@ -227,8 +274,9 @@ void setFontColor(uint32_t hexColor) {
   setRGBColor(&fontColor, hexColor);
 }
 
-void saveColor() {
+void saveColorAndSet(RGBColor newColor) {
   savedColor = color;
+  color = newColor;
 }
 
 void restoreColor() {

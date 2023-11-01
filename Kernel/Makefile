@@ -42,6 +42,6 @@ $(LOADEROBJECT):
 	$(ASM) $(ASMFLAGS) $(LOADERSRC) -o $(LOADEROBJECT)
 
 clean:
-	rm -f $(OBJECTS_C) $(OBJECTS_ASM) *.bin *.elf
+	rm -f $(OBJDIR)/*.o $(OBJDIR)/*/*.o *.bin *.elf
 
 .PHONY: all clean
