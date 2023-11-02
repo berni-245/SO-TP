@@ -12,9 +12,9 @@ Register * getRegisters(){
     
     for(int i = 0; i < REGISTER_QUANTITY; i++){
         for(int j = 0; j < STR_LEN; j++){
-            registers[i].name[j] = registersNames[i][j]; // debería almacenar el null, hago esto porque no me deja hacer
+            registers[i].name[j] = registersNames[i][j]; // debería almacenar el 0/, hago esto porque no me deja hacer
         }                                                // asignación directa, así que hago un strCopy manual
         registers[i].value = registersValues[i];
     }
-
+    return registers;
 }

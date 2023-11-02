@@ -56,6 +56,21 @@ void * initializeKernelBinary()
 	return getStackBase();
 }
 
+void test() {
+	sleep(1000);
+	Register * registers = getRegisters();
+	for(int i = 1; i <= REGISTER_QUANTITY; i++){
+		ncPrint(" ");
+		ncPrint(registers[i-1].name);
+		ncPrint(" ");
+		ncPrintHex(registers[i-1].value);
+		ncPrint(" ");
+		if(i%4 == 0)
+			ncNewline();
+	}
+	test();
+}
+
 #define bufSize 10
 int main()
 {	
@@ -65,24 +80,59 @@ int main()
 
   KeyStruct buf[bufSize];
 
-  sleep(1000);
-  Register * registers = getRegisters();
-  ncPrint(registers[0].name);
-  ncPrint(" ");
-  ncPrintHex(registers[0].value);
-  ncNewline();
+  setLayout(QWERTY_US);
 
+  test();
 
   int read;
-  while (1) {
+  while (getCurrentMinutes() < 50) {
+	int t = getMs();
     haltTillNextInterruption();
     read = readKbBuffer(buf, bufSize);
     for (int i = 0; i < read; ++i) {
-      ncPrintChar(buf[i].key);
+		ncNewline();
+		ncNewline();
+	  if(buf->code == 0x26){
+		Register * registers = getRegisters();
+		for(int i = 1; i <= REGISTER_QUANTITY; i++){
+			ncPrint(" ");
+			ncPrint(registers[i-1].name);
+			ncPrint(" ");
+			ncPrintHex(registers[i-1].value);
+			ncPrint(" ");
+			if(i%4 == 0)
+				ncNewline();
+		}
+	  }
+    //   ncPrintChar(buf[i].key);
     }
   };
 
-  // setLayout(QWERTY_US);
+  sleep(1000);
+
+  while (1) {
+	int t = getMs();
+    haltTillNextInterruption();
+    read = readKbBuffer(buf, bufSize);
+    for (int i = 0; i < read; ++i) {
+		ncNewline();
+		ncNewline();
+	  if(buf->code == 0x26){
+		Register * registers = getRegisters();
+		for(int i = 1; i <= REGISTER_QUANTITY; i++){
+			ncPrint(" ");
+			ncPrint(registers[i-1].name);
+			ncPrint(" ");
+			ncPrintHex(registers[i-1].value);
+			ncPrint(" ");
+			if(i%4 == 0)
+				ncNewline();
+		}
+	  }
+    //   ncPrintChar(buf[i].key);
+    }
+  };
+
 	// sampleCodeModule();
 
 	return 0;

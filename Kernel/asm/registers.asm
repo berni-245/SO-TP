@@ -1,8 +1,15 @@
+section .bss
+registers resq 16
+
+section .data
+registersQuantity equ 16
+
 global saveRegisters
 global getRegistersValues
 
 section .text
 
+; paso los registros por stack
 saveRegisters:
     push rbp
     mov rbp, rsp
@@ -16,8 +23,8 @@ saveRegisters:
     xor rcx, rcx            ; seteo el contador en 0
 
 .loop:
-    cmp cl, [registersQuantity]
-    jnl .end                ; saltar si cl no es < que 16, que es la cantidad de registros a almacenar
+    cmp cl, registersQuantity
+    jge .end                ; saltar si cl es >= que 16, que es la cantidad de registros a almacenar
 
     mov rdx, [rax]          ; desreferencio rax para conseguir el argumento
     mov qword [rbx], rdx    ; lo guardo en registers para usarlo después
@@ -37,19 +44,14 @@ saveRegisters:
     pop rbp
     ret
 
+; uint64_t * getRegistersValues()
 getRegistersValues:
     push rbp
     mov rbp, rsp
 
     mov rax, registers
 
-    pop rbp
     mov rsp, rbp
+    pop rbp
     ret
     
-
-section .bss
-registers resq 16
-
-section .data
-registersQuantity: db 16

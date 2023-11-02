@@ -21,6 +21,7 @@ extern saveRegisters
 
 %macro pushState 0
 	push r15
+  lea r15, [rsp + 8] ; me guardo el stack pointer
 	push r14
 	push r13
 	push r12
@@ -30,7 +31,7 @@ extern saveRegisters
 	push r8
 	push rsi
 	push rdi
-  push rsp
+  push r15 ; que realmente es el rsp
 	push rbp
 	push rdx
 	push rcx
@@ -44,7 +45,7 @@ extern saveRegisters
 	pop rcx
 	pop rdx
 	pop rbp
-  pop rsp
+  pop r15 ; será sobrescribido
 	pop rdi
 	pop rsi
 	pop r8
@@ -74,7 +75,7 @@ irq00Handler:
 irq01Handler:
   push rax
   call readKeyCode
-  cmp al, 0x3b
+  cmp al, 0x27
   pop rax
   jne .skip
   pushState
