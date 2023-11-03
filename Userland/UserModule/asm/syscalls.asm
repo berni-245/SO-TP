@@ -9,7 +9,7 @@ global sysRead
 global sysWrite
 global sysWriteCharXY
 global sysWriteCharNext
-global sysWriteBuffer
+global sysMoveCursor
 
 %macro syscall 1
   mov r8, %1
@@ -33,5 +33,5 @@ sysWriteCharXY:
   syscall 6
 sysWriteCharNext:
   syscall 7
-sysWriteBuffer:
+sysMoveCursor:
   syscall 8

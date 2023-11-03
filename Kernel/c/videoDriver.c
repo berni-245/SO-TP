@@ -60,9 +60,10 @@ VBEInfoPtr VBE_mode_info = (VBEInfoPtr)0x0000000000005C00;
 #define MAX_FONT_SIZE 4
 static int fontSize = 1;
 static int fontCols, fontRows;
+static int charSeparation = 3;
 void setFontGridValues() {
-  fontCols = VBE_mode_info->width / (ASCII_BF_WIDTH * fontSize);
-  fontRows = VBE_mode_info->height / (ASCII_BF_HEIGHT * fontSize);
+  fontCols = VBE_mode_info->width / (ASCII_BF_WIDTH * fontSize + charSeparation);
+  fontRows = VBE_mode_info->height / (ASCII_BF_HEIGHT * fontSize + charSeparation);
 }
 int getFontSize() {
   return fontSize;
@@ -162,94 +163,123 @@ void clearScreen() {
 }
 
 void setFontSize(int fs) {
-  if (fs < 1 && fs > MAX_FONT_SIZE) return;
+  if (fs < 1 || fs > MAX_FONT_SIZE) return;
   fontSize = fs;
   setFontGridValues();
+}
+
+void colRowToXY(int* col, int* row) {
+  *col *= ASCII_BF_WIDTH * fontSize + charSeparation;
+  *row *= ASCII_BF_HEIGHT * fontSize;
 }
 
 void printChar(int col, int row, char c) {
   if (c < ASCII_BF_MIN || c > ASCII_BF_MAX) return;
   saveColorAndSet(fontColor);
   c -= ASCII_BF_MIN;
-  col *= ASCII_BF_WIDTH * fontSize;
-  row *= ASCII_BF_HEIGHT * fontSize;
+  int x = col;
+  int y = row;
+  colRowToXY(&x, &y);
   for (int i = 0; i < ASCII_BF_HEIGHT; ++i) {
     for (int j = 0; j < ASCII_BF_WIDTH; ++j) {
       if (asciiBitFields[c][i * ASCII_BF_WIDTH + j] != 0) {
-        printRectangle(col + j*fontSize, row + i*fontSize, fontSize, fontSize);
+        printRectangle(x + j*fontSize, y + i*fontSize, fontSize, fontSize);
       }
     }
   }
   restoreColor();
 }
-
-void printBuffer(int col, int row, const char buf[], int size) {
-  for (int i = 0; i < size; ++i) {
-    printChar(col, row, buf[i]);
-    if (++col >= fontCols) {
-      col = 0;
-      if (++row >= fontRows) {
-        // move everything one row up
-        return;
-      }
-    }
-  }
-}
-
 
 static int cursorCol = 0;
 static int cursorRow = 0;
+
 void eraseChar() {
+  if (cursorPrev() != 0) return;
   saveColorAndSet(bgColor);
-  if (--cursorCol < 0) {
-    cursorCol = 0;
-    if (--cursorRow < 0) {
-      cursorRow = 0;
-      return;
-    }
-  }
-  int col = cursorCol * ASCII_BF_WIDTH * fontSize;
-  int row = cursorRow * ASCII_BF_HEIGHT * fontSize;
+  int x = cursorCol;
+  int y = cursorRow;
+  colRowToXY(&x, &y);
   for (int i = 0; i < ASCII_BF_HEIGHT; ++i) {
     for (int j = 0; j < ASCII_BF_WIDTH; ++j) {
-      printRectangle(col + j*fontSize, row + i*fontSize, fontSize, fontSize);
+      printRectangle(x + j*fontSize, y + i*fontSize, fontSize, fontSize);
     }
   }
   restoreColor();
-  return;
 }
+
 // 0 if was able to print char, 1 othwerwise (if cursor reached end of screen).
 int printNextChar(char c) {
   if (c == '\b') {
     eraseChar();
+  } else if (c == '\n') {
+    eraseCursor();
+    ++cursorRow;
+    cursorCol = 0;
   } else {
+    if (!cursorHasNext()) return 1;
     printChar(cursorCol, cursorRow, c);
-    if (++cursorCol >= fontCols) {
-      cursorCol = 0;
-      if (++cursorRow >= fontRows) {
-        // move everything one row up
-        --cursorRow;
-        return 1;
-      }
-    }
+    int endOfScreen = cursorNext();
+    if (endOfScreen) return endOfScreen;
   }
   return 0;
 }
 
 void moveCursor(int col, int row) {
+  if (col < 0 || row < 0 || col >= fontCols || row >= fontRows) return;
   cursorCol = col;
   cursorRow = row;
 }
 
-void cursorNext() {
+int cursorHasNext() {
+  return (cursorCol < fontCols) && (cursorRow < fontRows);
+}
+
+// Return 0 if cursor moved normally, 1 if end of screen (and cursor is reset so start of last line).
+int cursorNext() {
+  eraseCursor();
   if (++cursorCol >= fontCols) {
-    cursorCol = 0;
     if (++cursorRow >= fontRows) {
-      // move everything one row up
-      --cursorRow;
-      // return 1;
+      cursorRow = fontRows - 1;
+      cursorCol = fontCols;
+      return 1;
     }
+    cursorCol = 0;
   }
+  printCursor();
+  return 0;
+}
+
+// Return 0 if cursor moved normally, 1 if start of screen.
+int cursorPrev() {
+  eraseCursor();
+  if (--cursorCol < 0) {
+    if (--cursorRow < 0) {
+      cursorRow = 0;
+      cursorCol = 0;
+      return 1;
+    }
+    cursorCol = fontCols - 1;
+  }
+  printCursor();
+  return 0;
+}
+
+RGBColor cursorColor = { .red = 0xFF, .green = 0xFF, .blue = 0};
+void printCursorOfColor(RGBColor color) {
+  if (cursorCol <= 0) return;
+  int x = cursorCol;
+  int y = cursorRow;
+  colRowToXY(&x, &y);
+  savedColor = strokeColor;
+  strokeColor = color;
+  strokeVerticalLine(x - 2, y, (ASCII_BF_HEIGHT - 3) * fontSize);
+  strokeColor = savedColor;
+}
+void printCursor() {
+  printCursorOfColor(cursorColor);
+}
+void eraseCursor() {
+  printCursorOfColor(bgColor);
 }
 
 void setRGBColor(RGBColor* color, uint32_t hexColor) {

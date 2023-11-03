@@ -18,7 +18,7 @@ static SyscallFunction syscalls[] = {
   (SyscallFunction)readKbBuffer,
   (SyscallFunction)printCharXY,
   (SyscallFunction)printNextChar,
-  (SyscallFunction)printBuffer,
+  (SyscallFunction)moveCursor,
 };
 
 SyscallFunction* getSyscallsArray() {

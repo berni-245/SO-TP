@@ -34,10 +34,13 @@ void setFontGridValues();
 void setFontSize(int fs);
 void printCharXY(int x, int y, char c, int fontSize);
 void printChar(int col, int row, char c);
-void printBuffer(int col, int row, const char buf[], int size);
+void printBuffer(const char buf[], int size);
 int printNextChar(char c);
 void moveCursor(int col, int row);
-void cursorNext();
-void cursorPrev();
+int cursorHasNext();
+int cursorNext();
+int cursorPrev();
+void printCursor();
+void eraseCursor();
 
 #endif
