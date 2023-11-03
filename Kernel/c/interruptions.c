@@ -1,10 +1,11 @@
 #include <interruptions.h>
 #include <keyboard.h>
 #include <stdint.h>
+#include <syscalls.h>
 
 InterruptionDescriptor *idt = (InterruptionDescriptor *)0;
 
-void setupIdtEntry(int index, InterruptionFunction irqHandler) {
+void setupIdtEntry(int index, void* irqHandler) {
   uint64_t offset = (uint64_t)irqHandler;
   idt[index].offset_0_15 = offset & 0xFFFF;
   idt[index].offset_16_31 = (offset >> 16) & 0xFFFF;
@@ -18,14 +19,16 @@ void setupIdtEntry(int index, InterruptionFunction irqHandler) {
 void loadIdt() {
   setupIdtEntry(0x20, irq00Handler);
   setupIdtEntry(0x21, irq01Handler);
-  picMask(0 /* TIMER_TICK_MASK & KEYBOARD_MASK */);
+  setupIdtEntry(0x80, syscallDispatcher);
+  picMask(/* TIMER_TICK_MASK & */ KEYBOARD_MASK);
   enableInterruptions();
 }
 
-static InterruptionFunction interruptions[] = {
+static InterruptionFunction interruptions[255] = {
   timerTick,
   readKeyToBuffer,
 };
+
 void irqDispatcher(uint8_t index) {
   interruptions[index]();
 }

@@ -4,7 +4,7 @@
 #include "booleans.h"
 #include <stdint.h>
 
-#define KB_BUF_SIZE 100
+#define KB_BUF_SIZE 20
 
 typedef struct ModifierKeys {
   boolean leftShiftPressed: 1;
@@ -38,5 +38,6 @@ extern uint8_t readKeyCode();
 void readKeyToBuffer();
 int readKbBuffer(KeyStruct buf[], int len);
 void setLayout(KbLayout layout);
+KbLayout getLayout();
 
 #endif

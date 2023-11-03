@@ -105,6 +105,7 @@ enableInterruptions:
 	ret
 
 haltTillNextInterruption:
+  sti
   hlt
   ret
 
