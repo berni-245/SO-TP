@@ -11,7 +11,7 @@ typedef struct ModifierKeys {
   boolean rightShiftPressed: 1;
   boolean ctrlPressed: 1;
   boolean altPressed: 1;
-  boolean capsLockPressed: 1;
+  boolean capsLockActive: 1;
   // boolean altGrPressed: 1;
 } ModifierKeys;
 

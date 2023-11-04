@@ -10,4 +10,11 @@ typedef struct SystemInfo {
   int fontSize;
 } SystemInfo;
 
+typedef enum {
+  BACKGROUND = 0,
+  STROKE,
+  FILL,
+  FONT,
+} ColorType;
+
 #endif

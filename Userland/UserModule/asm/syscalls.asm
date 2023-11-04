@@ -5,6 +5,7 @@ global sysMs
 global sysInfo
 global sysSetLayout
 global sysSetFontSize
+global sysSetColor
 global sysRead
 global sysWrite
 global sysWriteCharXY
@@ -27,11 +28,13 @@ sysSetLayout:
   syscall 3
 sysSetFontSize:
   syscall 4
-sysRead:
+sysSetColor:
   syscall 5
-sysWriteCharXY:
+sysRead:
   syscall 6
-sysWriteCharNext:
+sysWriteCharXY:
   syscall 7
-sysMoveCursor:
+sysWriteCharNext:
   syscall 8
+sysMoveCursor:
+  syscall 9

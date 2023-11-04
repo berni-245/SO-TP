@@ -15,6 +15,7 @@ static SyscallFunction syscalls[] = {
   (SyscallFunction)getSysInfo,
   (SyscallFunction)setLayout,
   (SyscallFunction)setFontSize,
+  (SyscallFunction)setColor,
   (SyscallFunction)readKbBuffer,
   (SyscallFunction)printCharXY,
   (SyscallFunction)printNextChar,

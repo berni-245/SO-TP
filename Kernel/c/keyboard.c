@@ -50,12 +50,17 @@ void readKeyToBuffer() {
     md.altPressed = False;
     break;
   case CAPS_LOCK:
-    md.capsLockPressed = !md.capsLockPressed;
+    md.capsLockActive = !md.capsLockActive;
     break;
   default:
     if (code < 0 || code >= LAYOUT_SIZE) return;
     key.code = code;
-    if (md.leftShiftPressed || md.rightShiftPressed) key.key = layoutShiftMaps[kbLayout][code];
+    // This makes capslock virtually equivalent to shift, meaning all symbols will get 
+    // converted, not only letters. That's not the standard behaviour but I actually like it.
+    if (
+      md.capsLockActive && !(md.leftShiftPressed || md.rightShiftPressed) ||
+      !md.capsLockActive && (md.leftShiftPressed || md.rightShiftPressed)
+    ) key.key = layoutShiftMaps[kbLayout][code];
     else key.key = layoutMaps[kbLayout][code];
     if (key.key == 0) return;
     copyModifierKeys(md, &key.md);
@@ -71,7 +76,7 @@ void copyModifierKeys(ModifierKeys src, ModifierKeys* dest) {
   dest->rightShiftPressed = src.rightShiftPressed;
   dest->ctrlPressed = src.ctrlPressed;
   dest->altPressed = src.altPressed;
-  dest->capsLockPressed = src.capsLockPressed;
+  dest->capsLockActive = src.capsLockActive;
 }
 
 int readKbBuffer(KeyStruct buf[], int len) {

@@ -170,7 +170,7 @@ void setFontSize(int fs) {
 
 void colRowToXY(int* col, int* row) {
   *col *= ASCII_BF_WIDTH * fontSize + charSeparation;
-  *row *= ASCII_BF_HEIGHT * fontSize;
+  *row *= ASCII_BF_HEIGHT * fontSize + charSeparation;
 }
 
 void printChar(int col, int row, char c) {
@@ -288,20 +288,21 @@ void setRGBColor(RGBColor* color, uint32_t hexColor) {
   color->red = (hexColor >> 16) & 0xFF;
 }
 
-void setBgColor(uint32_t hexColor) {
-  setRGBColor(&bgColor, hexColor);
-}
-
-void setStrokeColor(uint32_t hexColor) {
-  setRGBColor(&strokeColor, hexColor);
-}
-
-void setFillColor(uint32_t hexColor) {
-  setRGBColor(&fillColor, hexColor);
-}
-
-void setFontColor(uint32_t hexColor) {
-  setRGBColor(&fontColor, hexColor);
+void setColor(ColorType c, uint32_t hexColor) {
+  switch (c) {
+    case BACKGROUND:
+      setRGBColor(&bgColor, hexColor);
+      break;
+    case STROKE:
+      setRGBColor(&strokeColor, hexColor);
+      break;
+    case FILL:
+      setRGBColor(&fillColor, hexColor);
+      break;
+    case FONT:
+      setRGBColor(&fontColor, hexColor);
+      break;
+  }
 }
 
 void saveColorAndSet(RGBColor newColor) {

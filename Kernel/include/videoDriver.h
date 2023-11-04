@@ -18,15 +18,18 @@ int getFontSize();
 int getScreenWidth();
 int getScreenHeight();
 
-typedef struct RGBColor {
+typedef struct {
   uint8_t blue;
   uint8_t green;
   uint8_t red;
 } RGBColor;
-void setBgColor(uint32_t hexColor);
-void setStrokeColor(uint32_t hexColor);
-void setFillColor(uint32_t hexColor);
-void setFontColor(uint32_t hexColor);
+typedef enum {
+  BACKGROUND = 0,
+  STROKE,
+  FILL,
+  FONT,
+} ColorType;
+void setColor(ColorType c, uint32_t hexColor);
 void saveColorAndSet(RGBColor newColor);
 void restoreColor();
 
