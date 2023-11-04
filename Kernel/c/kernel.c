@@ -7,6 +7,7 @@
 #include <lib.h>
 #include <moduleLoader.h>
 #include <videoDriver.h>
+#include <snake.h>
 
 extern uint8_t * ascii_bit_fields;
 extern int ascii_bf_width;
@@ -77,33 +78,12 @@ static int nextGridPos = 0;
 int main()
 {	
   loadIdt();
-
-  KeyStruct buf[KB_BUF_SIZE];
-
-  setBgColor(0x444444);
-  clearScreen();
-
-  setStrokeColor(0x0000FF);
-  setFillColor(0xFF0000);
-  setFontColor(0xFFFF00);
-
-  strokeLine(40, 20, 1200, 700);
-  setStrokeWidth(3);
-  strokeRectangle(20, 20, 200, 150);
-  setStrokeWidth(50);
-  setStrokeColor(0x00FF00);
-  // strokeRectangle(200, 200, 200, 200);
-  fillRectangle(200, 200, 200, 200);
-
-  setStrokeWidth(3);
-  setStrokeColor(0x000000);
-  strokeLine(180, 200, 180, 400);
-  strokeLine(200, 180, 400, 180);
   
-  increaseFont();
-  printBuffer(0, 0, "Hola Carola", 11);
-
-  int read, k = 0;
+  snake_main2();
+  
+  
+  
+  /*int read, k = 0;
   while (1) {
     haltTillNextInterruption();
     read = readKbBuffer(buf, KB_BUF_SIZE);
@@ -116,9 +96,11 @@ int main()
         clearScreen();
         screenBuf[k] = buf[i].key;
         printChar(10, 1, screenBuf[k]);
+        
       }
     }
-  };
+  };*/
+  
 
   // setLayout(QWERTY_US);
 	// sampleCodeModule();
