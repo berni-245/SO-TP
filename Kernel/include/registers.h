@@ -2,7 +2,7 @@
 #define REGISTERS_H
 
 #include <stdint.h>
-#define REGISTER_QUANTITY 16
+#define REGISTER_QUANTITY 17
 #define STR_LEN 4
 
 typedef struct Register{
@@ -12,8 +12,11 @@ typedef struct Register{
 
 uint64_t * getRegistersValues();
 
+uint64_t * getExceptionRegistersValues();
+
 Register * getRegisters();
 
+Register * getExceptionRegisters();
 
 
 #endif

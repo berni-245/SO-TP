@@ -21,7 +21,7 @@ extern saveRegisters
 
 %macro pushState 0
 	push r15
-  lea r15, [rsp + 8] ; me guardo el stack pointer
+  lea r15, [rsp + 8] ; me guardo el stack pointer al entrar a la interrupción
 	push r14
 	push r13
 	push r12
@@ -31,21 +31,23 @@ extern saveRegisters
 	push r8
 	push rsi
 	push rdi
-  push r15 ; que realmente es el rsp
+  push qword [r15 + 24] ; el rsp del contexto anterior (que se encuentra en el interrupt stack)
 	push rbp
 	push rdx
 	push rcx
 	push rbx
 	push rax
+  push qword [r15] ; el rip
 %endmacro
 
 %macro popState 0
+  pop r15 ; será sobreescrito
 	pop rax
 	pop rbx
 	pop rcx
 	pop rdx
 	pop rbp
-  pop r15 ; será sobrescribido
+  pop r15 ; será sobreescrito
 	pop rdi
 	pop rsi
 	pop r8
@@ -79,7 +81,9 @@ irq01Handler:
   pop rax
   jne .skip
   pushState
+  push qword normalRegistersCode
   call saveRegisters
+  pop rax
   popState
 .skip:
   irqHandler 1
@@ -124,3 +128,8 @@ picMask:
         ; retf -> return far: can change code segment. Not used in
         ; modern systems as they use a single code segment.
         ; ret: compiler decides which of the above should be used. Basically same as retn
+
+
+section .data
+  normalRegistersCode equ 1
+  exceptionRegistersCode equ 0

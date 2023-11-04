@@ -1,15 +1,18 @@
-section .bss
-registers resq 16
-
 section .data
-registersQuantity equ 16
+registersQuantity equ 17
+
+section .bss
+registers resq registersQuantity
+exceptionRegisters resq registersQuantity
 
 global saveRegisters
 global getRegistersValues
+global getExceptionRegistersValues
 
 section .text
 
 ; paso los registros por stack
+; el primer argumento es para ver en que array guardo los registros, 0 = exceptionRegisters, != 0 registers
 saveRegisters:
     push rbp
     mov rbp, rsp
@@ -18,13 +21,22 @@ saveRegisters:
     push rcx
     push rdx
 
-    lea rax, [rbp + 16]     ; guardo en rax la dirección del primer argumento, es decir el rax pusheado anteriormente
-    mov rbx, registers      ; guardo la dirección donde almacenaré los registros
+    lea rax, [rbp + 24]     ; guardo en rax la dirección del segundo argumento, es decir el rax pusheado anteriormente
     xor rcx, rcx            ; seteo el contador en 0
+
+    cmp qword [rbp + 16], 0 ; veo en que array lo guardaré
+    jz .exception
+    jmp .noException
+
+.exception:
+    mov rbx, exceptionRegisters
+    jmp .loop
+.noException:
+    mov rbx, registers      ; guardo la dirección donde almacenaré los registros    
 
 .loop:
     cmp cl, registersQuantity
-    jge .end                ; saltar si cl es >= que 16, que es la cantidad de registros a almacenar
+    jge .end                ; saltar si cl es >= que 17, que es la cantidad de registros a almacenar
 
     mov rdx, [rax]          ; desreferencio rax para conseguir el argumento
     mov qword [rbx], rdx    ; lo guardo en registers para usarlo después
@@ -50,6 +62,17 @@ getRegistersValues:
     mov rbp, rsp
 
     mov rax, registers
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+; uint64_t * getExceptionRegistersValues()
+getExceptionRegistersValues:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, exceptionRegisters
 
     mov rsp, rbp
     pop rbp

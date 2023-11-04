@@ -9,6 +9,8 @@
 #include <clock.h>
 #include <pcSpeaker.h>
 #include <videoDriver.h>
+#include <naiveConsole.h>
+#include <registers.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -57,13 +59,21 @@ void * initializeKernelBinary()
 int main()
 {	
   loadIdt();
-  setFontGridValues();
+//   setFontGridValues();
 
-  setBgColor(0x1A1B26);
-  setFontColor(0xC0CAF5);
-  clearScreen();
-  // setLayout(QWERTY_US);
-	userModule();
+//   setBgColor(0x1A1B26);
+//   setFontColor(0xC0CAF5);
+//   clearScreen();
+  setLayout(QWERTY_US);
+// 	userModule();
+	while(1){
+		haltTillNextInterruption();
+		Register * registers = getRegisters();
+		Register * exceptionRegisters = getExceptionRegisters();
+		ncPrint(registers[0].name); ncPrint(" "); ncPrintHex(registers[0].value);
+		ncPrint(exceptionRegisters[0].name); ncPrint(" "); ncPrintHex(exceptionRegisters[0].value);
+		ncNewline();
+	}
 
   // printCharXY(500, 500, 'X', 8);
 
