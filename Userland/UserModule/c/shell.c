@@ -11,7 +11,8 @@
 
 // The output of the commands should also be written to the screen buffer!!!
 char screenBuffer[3000];
-int screenBufIdx = 0;
+int screenBufWriteIdx = 0;
+int screenBufReadIdx = 0;
 static int currentCommandIdx = 0;
 
 // static char stdin[300];
@@ -60,9 +61,9 @@ int shell() {
           commandReturnCode = parseCommand();
           newPrompt();
         } else if (key.character == '\b') {
-          if (screenBufIdx > currentCommandIdx) {
+          if (screenBufWriteIdx > currentCommandIdx) {
             sysWriteCharNext(key.character);
-            screenBufIdx--;
+            screenBufWriteIdx--;
           }
         } else {
           printChar(key.character);
@@ -79,7 +80,7 @@ static char* errorPrompt = " >! ";
 void newPrompt() {
   char* currentPrompt = (commandReturnCode == 0) ? prompt : errorPrompt;
   printString(currentPrompt);
-  currentCommandIdx = screenBufIdx;
+  currentCommandIdx = screenBufWriteIdx;
 }
 
 static ShellCommand commands[50];

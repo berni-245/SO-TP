@@ -5,7 +5,7 @@
 #define MAX_ARG_LEN 50 + 1
 
 extern char screenBuffer[3000];
-extern int screenBufIdx;
+extern int screenBufWriteIdx;
 typedef enum {
   SUCCESS = 0,
   TOO_MANY_ARGUMENTS,

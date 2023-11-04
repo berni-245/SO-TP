@@ -17,7 +17,7 @@ char getChar() {
 
 void printChar(char c) {
   sysWriteCharNext(c);
-  screenBuffer[screenBufIdx++] = c;
+  screenBuffer[screenBufWriteIdx++] = c;
 }
 
 void printBuffer(const char buf[], int size) {
