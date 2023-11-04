@@ -5,11 +5,14 @@
 
 void copyModifierKeys(ModifierKeys src, ModifierKeys* dest);
 
-static const char* codeMap = layoutMaps[0];
-static const char* shiftCodeMap = layoutShiftMaps[0];
+static KbLayout kbLayout = 0;
 
 void setLayout(KbLayout layout) {
-  codeMap = layoutMaps[layout];
+  kbLayout = layout;
+}
+
+KbLayout getLayout() {
+  return kbLayout;
 }
 
 static int writeIdx = 0;
@@ -52,8 +55,8 @@ void readKeyToBuffer() {
   default:
     if (code < 0 || code >= LAYOUT_SIZE) return;
     key.code = code;
-    if (md.leftShiftPressed || md.rightShiftPressed) key.key = shiftCodeMap[code];
-    else key.key = codeMap[code];
+    if (md.leftShiftPressed || md.rightShiftPressed) key.key = layoutShiftMaps[kbLayout][code];
+    else key.key = layoutMaps[kbLayout][code];
     if (key.key == 0) return;
     copyModifierKeys(md, &key.md);
     int prevWriteIdx = writeIdx;

@@ -14,17 +14,33 @@ void clearScreen();
 void strokeHorizontalLine(int x, int y, int length);
 void strokeVerticalLine(int x, int y, int length);
 
+int getFontSize();
+int getScreenWidth();
+int getScreenHeight();
 
+typedef struct RGBColor {
+  uint8_t blue;
+  uint8_t green;
+  uint8_t red;
+} RGBColor;
 void setBgColor(uint32_t hexColor);
 void setStrokeColor(uint32_t hexColor);
 void setFillColor(uint32_t hexColor);
 void setFontColor(uint32_t hexColor);
-void saveColor();
+void saveColorAndSet(RGBColor newColor);
 void restoreColor();
 
-void increaseFont();
-void decreaseFont();
-void printChar(int x, int y, char c);
-void printBuffer(int x, int y, char buf[], int size);
+void setFontGridValues();
+void setFontSize(int fs);
+void printCharXY(int x, int y, char c, int fontSize);
+void printChar(int col, int row, char c);
+void printBuffer(const char buf[], int size);
+int printNextChar(char c);
+void moveCursor(int col, int row);
+int cursorHasNext();
+int cursorNext();
+int cursorPrev();
+void printCursor();
+void eraseCursor();
 
 #endif

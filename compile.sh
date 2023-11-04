@@ -1,6 +1,6 @@
 #!/bin/sh
 
-container='arqui_builder'
+container='TPEarqui'
 docker='sudo docker'
 
 $docker start $container
@@ -14,8 +14,14 @@ $docker exec -it $container  make -C/root/
 $docker stop $container
 sudo chown $USER:$USER ./Image/x64BareBonesImage.qcow2
 
-cat <<EOF > .clangd
+cat <<EOF > Kernel/.clangd
 CompileFlags:
   Add:
   - --include-directory=$(pwd)/Kernel/include/
+EOF
+
+cat <<EOF > Userland/UserModule/.clangd
+CompileFlags:
+  Add:
+  - --include-directory=$(pwd)/Userland/UserModule/include/
 EOF

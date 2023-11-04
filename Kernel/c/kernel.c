@@ -6,13 +6,9 @@
 #include <string.h>
 #include <lib.h>
 #include <moduleLoader.h>
+#include <clock.h>
+#include <pcSpeaker.h>
 #include <videoDriver.h>
-#include <snake.h>
-
-extern uint8_t * ascii_bit_fields;
-extern int ascii_bf_width;
-extern int ascii_bf_height;
-extern int ascii_bf_count;
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -25,7 +21,7 @@ static const uint64_t PageSize = 0x1000;
 
 typedef int (*EntryPoint)();
 
-static EntryPoint const sampleCodeModule = (EntryPoint)0x400000;
+static EntryPoint const userModule = (EntryPoint)0x400000;
 static EntryPoint const sampleDataModule = (EntryPoint)0x500000;
 
 void clearBSS(void * bssAddress, uint64_t bssSize)
@@ -45,7 +41,7 @@ void * getStackBase()
 void * initializeKernelBinary()
 {
 	void * moduleAddresses[] = {
-		sampleCodeModule,
+		userModule,
 		sampleDataModule
 	};
 
@@ -53,57 +49,39 @@ void * initializeKernelBinary()
 
 	clearBSS(&bss, &endOfKernel - &bss);
 
+	setBinaryClockFormat();
+
 	return getStackBase();
 }
-
-// This should go in userland //////
-#define SCREEN_BUF_SIZE 1000
-static char screenBuf[SCREEN_BUF_SIZE];
-
-static int nextGridPos = 0;
-// static int cursorX = 0;
-// static int cursorY = 0;
-// void printNextChar(char c) {
-//   printChar(cursorX, cursorY, c);
-//   if (++cursorX >= this.maxPrintCol) {
-//     this.printCol = 0;
-//     if (++this.printRow >= this.maxPrintRow) {
-//       console.warn("No more space in canvas. Resetting");
-//       this.clearTestCanvas()
-//     }
-//   }
-// }
-///////////////////////////////////
 
 int main()
 {	
   loadIdt();
-  
-  snake_main2();
-  
-  
-  
-  /*int read, k = 0;
-  while (1) {
-    haltTillNextInterruption();
-    read = readKbBuffer(buf, KB_BUF_SIZE);
-    for (int i = 0; i < read; ++i, k = (k + 1) % SCREEN_BUF_SIZE) {
-      if (buf[i].key == '+' && buf[i].md.ctrlPressed) {
-        increaseFont();
-      } else if (buf[i].key == '-' && buf[i].md.ctrlPressed) {
-        decreaseFont();
-      } else {
-        clearScreen();
-        screenBuf[k] = buf[i].key;
-        printChar(10, 1, screenBuf[k]);
-        
-      }
-    }
-  };*/
-  
+  setFontGridValues();
 
+  setBgColor(0x1A1B26);
+  setFontColor(0xC0CAF5);
+  clearScreen();
   // setLayout(QWERTY_US);
-	// sampleCodeModule();
+	userModule();
+
+  // printCharXY(500, 500, 'X', 8);
+
+  // KeyStruct buf[20];
+  // int read;
+  // while (1) {
+  //   haltTillNextInterruption();
+  //   read = readKbBuffer(buf, 20);
+  //   for (int i = 0; i < read; ++i) {
+  //     if (buf[i].key == '+' && buf[i].md.ctrlPressed) {
+  //       increaseFont(); 
+  //     } else if (buf[i].key == '-' && buf[i].md.ctrlPressed) {
+  //       decreaseFont();
+  //     } else {
+  //       printNextChar(buf[i].key);
+  //     }
+  //   }
+  // };
 
 	return 0;
 }

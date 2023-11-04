@@ -38,5 +38,6 @@ extern uint8_t readKeyCode();
 void readKeyToBuffer();
 int readKbBuffer(KeyStruct buf[], int len);
 void setLayout(KbLayout layout);
+KbLayout getLayout();
 
 #endif
