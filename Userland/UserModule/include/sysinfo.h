@@ -1,6 +1,11 @@
 #ifndef SYSINFO_H
 #define SYSINFO_H
 
+typedef enum KbLayout {
+  QWERTY_LATAM = 0,
+  QWERTY_US,
+} KbLayout;
+
 typedef struct SystemInfo {
   int screenWidth;
   int screenHeight;
@@ -16,5 +21,12 @@ typedef enum {
   FILL,
   FONT,
 } ColorType;
+
+extern SystemInfo systemInfo;
+
+void incFont();
+void decFont();
+void setLayout(KbLayout code);
+char* getLayoutName(KbLayout code);
 
 #endif

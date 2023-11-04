@@ -1,18 +1,19 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-#include "booleans.h"
+#include <layouts.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #define KB_BUF_SIZE 20
 
 typedef struct ModifierKeys {
-  boolean leftShiftPressed: 1;
-  boolean rightShiftPressed: 1;
-  boolean ctrlPressed: 1;
-  boolean altPressed: 1;
-  boolean capsLockActive: 1;
-  // boolean altGrPressed: 1;
+  bool leftShiftPressed: 1;
+  bool rightShiftPressed: 1;
+  bool ctrlPressed: 1;
+  bool altPressed: 1;
+  bool capsLockActive: 1;
+  // bool altGrPressed: 1;
 } ModifierKeys;
 
 typedef struct KeyStruct {
@@ -28,11 +29,6 @@ enum ModKeyCodes {
   CTRL = 0x1D,
   ALT = 0x38,
 };
-
-typedef enum KbLayout {
-  QWERTY_LATAM = 0,
-  QWERTY_US,
-} KbLayout;
 
 extern uint8_t readKeyCode();
 void readKeyToBuffer();

@@ -1,10 +1,9 @@
 #ifndef SHELL_COMMANDS_H
 #define SHELL_COMMANDS_H
 
-#include <errors.h>
 #include <shell.h>
 
-typedef ResultCode (*ShellFunction)(int argc, char[argc][MAX_ARG_LEN + 1]);
+typedef CommandResult (*ShellFunction)(int argc, char[argc][MAX_ARG_LEN]);
 
 typedef struct ShellCommand {
   char* name;
@@ -12,9 +11,11 @@ typedef struct ShellCommand {
   ShellFunction function;
 } ShellCommand;
 
-ResultCode echo(int argc, char argv[argc][MAX_ARG_LEN + 1]);
-ResultCode getCommandReturnCode();
-ResultCode help();
-ResultCode getKeyInfo();
+CommandResult commandEcho(int argc, char argv[argc][MAX_ARG_LEN]);
+CommandResult commandGetReturnCode();
+CommandResult commandHelp();
+CommandResult commandGetKeyInfo();
+CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]);
+CommandResult commandLayout(int argc, char argv[argc][MAX_ARG_LEN]);
 
 #endif

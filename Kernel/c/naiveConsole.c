@@ -103,7 +103,7 @@ static uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base)
 
 
 
-void printBool(boolean b) {
+void printBool(bool b) {
   if (b) ncPrint("True");
   else ncPrint("False");
 }

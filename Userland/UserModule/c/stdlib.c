@@ -1,28 +1,36 @@
+#include <shell.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <syscalls.h>
 
-KeyStruct getKey() {
-  KeyStruct key;
-  int read = sysRead(&key, 1);
-  return key;
+int getKey(KeyStruct* key) {
+  int read = sysRead(key, 1);
+  return (read == 0) ? EOF : read;
 }
 
 char getChar() {
-  KeyStruct key = getKey();
-  if (key.key == 0) return EOF;
-  else return key.key;
+  KeyStruct key;
+  int read = getKey(&key);
+  if (read == 0) return EOF;
+  else return key.character;
+}
+
+void printChar(char c) {
+  sysWriteCharNext(c);
+  screenBuffer[screenBufIdx++] = c;
 }
 
 void printBuffer(const char buf[], int size) {
   for (int i = 0; i < size; ++i) {
-    sysWriteCharNext(buf[i]);
+    // sysWriteCharNext(buf[i]);
+    printChar(buf[i]);
   }
 }
 
 void printString(const char *s) {
   for (int i = 0; s[i] != 0; ++i) {
-    sysWriteCharNext(s[i]);
+    // sysWriteCharNext(s[i]);
+    printChar(s[i]);
   }
 }
 
@@ -35,6 +43,12 @@ int strcmp(const char* s1, const char* s2) {
   if (s1[i] != 0) return 1;
   else if (s2[i] != 0) return -1;
   else return 0;
+}
+
+unsigned int strlen(char* s) {
+  int len = 0;
+  while (s[len++] != 0);
+  return len - 1;
 }
 
 static uint32_t intToBase(long value, char* buffer, uint32_t base) {
@@ -79,11 +93,13 @@ int printf(const char* fmt, ...) {
 
   for (int i = 0; fmt[i] != 0; ++i) {
     if (fmt[i] != '%') {
-      sysWriteCharNext(fmt[i]);
+      // sysWriteCharNext(fmt[i]);
+      printChar(fmt[i]);
     } else {
       switch (fmt[++i]) {
         case '%':
-          sysWriteCharNext('%');
+          // sysWriteCharNext('%');
+          printChar('%');
           break;
         case 'd': 
           printAsBase(va_arg(p, int), 10);
@@ -106,7 +122,8 @@ int printf(const char* fmt, ...) {
           printString(va_arg(p, char*));
           break;
         case 'c':
-          sysWriteCharNext(va_arg(p, int));
+          // sysWriteCharNext(va_arg(p, int));
+          printChar(va_arg(p, int));
           break;
         default:
           printf("\nUnkown option: %%%c\n", fmt[i]);
@@ -115,6 +132,21 @@ int printf(const char* fmt, ...) {
     }
   }
   return 0;
+}
+
+int strToInt(char* s) {
+  int multiplier = 1;
+  if (s[0] == '-') {
+    multiplier = -1;
+    ++s;
+  }
+  int j = strlen(s) - 1;
+  int n = 0, k = 1;
+  while (j >= 0 && '0' <= s[j] && s[j] <= '9') {
+    n += (s[j] - '0')*k;
+    --j; k *= 10;
+  }
+  return n * multiplier;
 }
 
 void setBgColor(uint32_t hexColor) {
@@ -130,15 +162,48 @@ void setFontColor(uint32_t hexColor) {
   sysSetColor(FONT, hexColor);
 }
 
-void printKey(KeyStruct key) {
+void printKey(KeyStruct* key) {
+  // printf(
+  //   "{char: %c, code: %d, ctrl: %d, lShift: %d, rShift: %d, capsLock: %d, alt: %d}\n",
+  //   key->character,
+  //   key->code,
+  //   key->md.ctrlPressed,
+  //   key->md.leftShiftPressed,
+  //   key->md.rightShiftPressed,
+  //   key->md.capsLockActive,
+  //   key->md.altPressed
+  // );
   printf(
-    "{ key: %c, code: %d, ctrl: %d, l-shift: %d, r-shift: %d, capsLock: %d, alt: %d }\n",
-    key.key,
-    key.code,
-    key.md.ctrlPressed,
-    key.md.leftShiftPressed,
-    key.md.rightShiftPressed,
-    key.md.capsLockActive,
-    key.md.altPressed
+    "('%c' | %x)%s%s%s%s%s\n",
+    key->character,
+    key->code,
+    key->md.ctrlPressed ? " + ctrl" : "",
+    key->md.leftShiftPressed ? " + l-shift" : "",
+    key->md.rightShiftPressed ? " + r-shift" : "",
+    key->md.capsLockActive ? " + capsLock" : "",
+    key->md.altPressed ? " + alt" : ""
   );
+}
+
+static unsigned int srand = 0;
+void setSrand(unsigned int seed) {
+  srand = seed;
+}
+// Return number between 0 and 1073741823 (0x3FFFFFFF).
+unsigned int rand() {
+  // Using Borland parameters from https://en.wikipedia.org/wiki/Linear_congruential_generator
+  // Seems to always alternate between even and odd numbers which kinda sucks but oh well...
+  return srand = ((22695477l*srand + 1) % (2l << 31)) & 0x3FFFFFFF;
+}
+// Apparently returning floating point values is not allowed, I get a compilation error.
+// double normalizedRand() {
+//   return (double)rand() / 0x3FFFFFFF;
+// }
+// unsigned int randBetween(int min, int max) {
+//   double nrand = normalizedRand();
+//   if (nrand >= 1.0) return max;
+//   else return (max - min + 1) * nrand + min;
+// }
+unsigned int randBetween(int min, int max) {
+  return rand() % (max - min + 1) + min;
 }

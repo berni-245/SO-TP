@@ -1,6 +1,6 @@
 /* sampleCodeModule.c */
 
-#include <errors.h>
+#include <utils.h>
 #include <shell.h>
 #include <shellCommands.h>
 #include <stdarg.h>
@@ -9,8 +9,9 @@
 #include <sysinfo.h>
 #include <syscalls.h>
 
-static char screenBuffer[3000];
-static int screenBufIdx = 0;
+// The output of the commands should also be written to the screen buffer!!!
+char screenBuffer[3000];
+int screenBufIdx = 0;
 static int currentCommandIdx = 0;
 
 // static char stdin[300];
@@ -21,58 +22,54 @@ static int commandReturnCode = 0;
 
 void newPrompt();
 void addCommand(char* name, char* description, ShellFunction function);
-ResultCode parseCommand();
+CommandResult parseCommand();
 
 int shell() {
-  SystemInfo si;
-  sysInfo(&si);
-
-  // setBgColor(0x1A1B26);
-  // setFontColor(0xC0CAF5);
+  setBgColor(0x1A1B26);
+  setFontColor(0xC0CAF5);
   // clearScreen();
 
-  KeyStruct buf[20];
-
-  addCommand("help", "List all commands", help);
-  addCommand("echo", "Print all arguments", echo);
-  addCommand("$?", "Print previous command return code", getCommandReturnCode);
-  addCommand("keyInfo", "Get pressed key info. Exit with ctrl+c", getKeyInfo);
-  help();
+  addCommand("help", "List all commands and their descriptions.", commandHelp);
+  addCommand("echo", "Print all arguments.", commandEcho);
+  addCommand("$?", "Print previous command return code.", commandGetReturnCode);
+  addCommand("keyInfo", "Get pressed key info. Exit with ctrl+c.", commandGetKeyInfo);
+  addCommand("rand", "Generate random numbers.", commandRand);
+  addCommand("layout", "Get or set current layout.", commandLayout);
+  commandHelp();
   newPrompt();
 
-  int read;
+  KeyStruct key;
   while (1) {
     sysHalt();
-    read = sysRead(buf, 20);
-    for (int i = 0; i < read; ++i) {
-      if (buf[i].md.ctrlPressed) {
-        switch (buf[i].key) {
+    if (getKey(&key) != EOF) {
+      if (key.md.ctrlPressed) {
+        switch (key.character) {
           case '+':
-            sysSetFontSize(++si.fontSize);
+            incFont();
             break;
           case '-':
-            sysSetFontSize(--si.fontSize);
+            decFont();
             break;
           case 'l':
-            
+
             break;
         }
       } else {
-        char key = buf[i].key;
-        if (key == '\n') {
-          screenBuffer[screenBufIdx++] = key;
-          sysWriteCharNext(key);
+        if (key.character == '\n') {
+          // screenBuffer[screenBufIdx++] = key.character;
+          // sysWriteCharNext(key.character);
+          printChar(key.character);
           commandReturnCode = parseCommand();
           newPrompt();
-        } else if (key == '\b') {
+        } else if (key.character == '\b') {
           if (screenBufIdx > currentCommandIdx) {
-            sysWriteCharNext(key);
+            sysWriteCharNext(key.character);
             screenBufIdx--;
           }
         } else {
-          screenBuffer[screenBufIdx++] = key;
-          // stdin[stdinIdx++] = key;
-          sysWriteCharNext(key);
+          // screenBuffer[screenBufIdx++] = key.character;
+          // sysWriteCharNext(key.character);
+          printChar(key.character);
         }
       }
     }
@@ -85,11 +82,11 @@ static char* prompt = " > ";
 static char* errorPrompt = " >! ";
 void newPrompt() {
   char* currentPrompt = (commandReturnCode == 0) ? prompt : errorPrompt;
-  for (int i = 0; currentPrompt[i] != 0; ++i) {
-    screenBuffer[screenBufIdx++] = currentPrompt[i];
-  }
-  currentCommandIdx = screenBufIdx;
+  // for (int i = 0; currentPrompt[i] != 0; ++i) {
+  //   screenBuffer[screenBufIdx++] = currentPrompt[i];
+  // }
   printString(currentPrompt);
+  currentCommandIdx = screenBufIdx;
 }
 
 static ShellCommand commands[50];
@@ -105,10 +102,10 @@ ShellFunction getCommand(char* name) {
   return NULL;
 }
 
-ResultCode parseCommand() {
+CommandResult parseCommand() {
   // Upto MAX_ARG_COUNT arguments (including the actual command)
   // of MAX_COMMAND_LEN characters each (+1 for null termination).
-  char argv[MAX_ARG_COUNT][MAX_ARG_LEN + 1];
+  char argv[MAX_ARG_COUNT][MAX_ARG_LEN];
   int i = currentCommandIdx;
   int len = 0;
   int argc = 0;
@@ -142,21 +139,22 @@ ResultCode parseCommand() {
   return TOO_MANY_ARGUMENTS;
 }
 
-ResultCode echo(int argc, char argv[argc][MAX_ARG_LEN + 1]) {
+CommandResult commandEcho(int argc, char argv[argc][MAX_ARG_LEN]) {
   // Starts at 1 because first arg is the command name
   for (int i = 1; i < argc; ++i) {
     printf("%s ", argv[i]);
   }
-  sysWriteCharNext('\n');
+  // sysWriteCharNext('\n');
+  printChar('\n');
   return SUCCESS;
 }
 
-ResultCode getCommandReturnCode() {
+CommandResult commandGetReturnCode() {
   printf("%d\n", commandReturnCode);
   return SUCCESS;
 }
 
-ResultCode help() {
+CommandResult commandHelp() {
   printString("Available commands:\n");
   for (int i = 0; i < commandCount; ++i) {
     printf("\t- %s: %s\n", commands[i].name, commands[i].description);
@@ -164,25 +162,70 @@ ResultCode help() {
   return SUCCESS;
 }
 
-// ResultCode getKeyInfo() {
-//   KeyStruct buf[20];
-//   int read;
-//   while (1) {
-//     sysHalt();
-//     read = sysRead(buf, 20);
-//     if (buf[i].md.ctrlPressed) {
-//       switch (buf[i].key) {
-//         case '+':
-//           sysSetFontSize(++si.fontSize);
-//           break;
-//         case '-':
-//           sysSetFontSize(--si.fontSize);
-//           break;
-//         case 'l':
-//           
-//           break;
-//       }
-//     }
-//   }
-//   return SUCCESS;
-// }
+CommandResult commandGetKeyInfo() {
+  KeyStruct key;
+  while (1) {
+    sysHalt();
+    if (getKey(&key) != EOF) {
+      if (justCtrlMod(&key) && key.character == 'c') return SUCCESS;
+      else {
+        printKey(&key);
+      }
+    }
+  }
+  return SUCCESS;
+}
+
+CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
+  static bool randInitialized = false;
+  if (!randInitialized) {
+    setSrand(sysMs());
+    randInitialized = true;
+  }
+  if (argc < 3) {
+    printf("Usage:\n");
+    printf("\t\t%s <min> <max> [count]\n", argv[0]);
+    printf("Where all arguments are integers and count is optional.\n");
+    return MISSING_ARGUMENTS;
+  }
+  int min = strToInt(argv[1]);
+  int max = strToInt(argv[2]);
+  if (max < min) {
+    printf("Error: min can't be greater than max\n");
+    return ILLEGAL_ARGUMENT;
+  }
+  int count = (argc > 3) ? strToInt(argv[3]) : 1;
+  while (count--) {
+    printf("%d%s", randBetween(min, max), (count == 0) ? "" : ", ");
+  }
+  printf("\n");
+  return SUCCESS;
+}
+
+CommandResult commandLayout(int argc, char (*argv)[MAX_ARG_LEN]) {
+  if (argc == 1) {
+    printf("Current layout: %s - %d\n", getLayoutName(systemInfo.layout), systemInfo.layout);
+    return SUCCESS;
+  }
+  if (strcmp(argv[1], "--help") == 0) {
+    printf("Usage\n");
+    printf("\t\t%s [option] [layout]\n", argv[0]);
+    printf("Options:\n");
+    printf("\t\t--help    print this help message.\n");
+    printf("\t\t--list    list all available layouts.\n");
+    printf("If `layout` is not included then get current layout. If `layout` included then set system layout.\n");
+    printf("`layout` should be a valid code. To see valid values for the"
+           "`layout` argument use the --list option\n");
+  } else if (strcmp(argv[1], "--list") == 0) {
+    printf("- %s: %d\n", getLayoutName(QWERTY_LATAM), QWERTY_LATAM);
+    printf("- %s: %d\n", getLayoutName(QWERTY_US), QWERTY_US);
+  } else {
+    int code = strToInt(argv[1]);
+    if (code != QWERTY_LATAM && code != QWERTY_US) {
+      printf("Layout not available: %s\n", argv[1]);
+      return ILLEGAL_ARGUMENT;
+    }
+    setLayout(code);
+  }
+  return SUCCESS;
+}
