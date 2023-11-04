@@ -27,11 +27,16 @@ void printBuffer(const char buf[], int size) {
   }
 }
 
-void printString(const char *s) {
+void printString(const char* s) {
   for (int i = 0; s[i] != 0; ++i) {
     // sysWriteCharNext(s[i]);
     printChar(s[i]);
   }
+}
+
+void puts(const char* s) {
+  printString(s);
+  sysWriteCharNext('\n');
 }
 
 int strcmp(const char* s1, const char* s2) {

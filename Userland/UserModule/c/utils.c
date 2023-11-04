@@ -1,4 +1,6 @@
 #include <utils.h>
+#include <shell.h>
+#include <stdlib.h>
 
 bool justCtrlMod(KeyStruct* key) {
   return 

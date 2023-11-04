@@ -12,6 +12,7 @@ int getKey(KeyStruct* key);
 char getChar();
 void printChar(char c);
 void printString(const char* s);
+void puts(const char* s);
 void printBuffer(const char buf[], int size);
 int strcmp(const char*, const char*);
 unsigned int strlen(char* s);

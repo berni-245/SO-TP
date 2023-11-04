@@ -15,6 +15,16 @@ typedef enum {
   ILLEGAL_ARGUMENT,
   OUT_OF_BOUNDS,
 } CommandResult;
+static const char* const CommandResultStrings[] = {
+  [SUCCESS] = "Success",
+  [TOO_MANY_ARGUMENTS] = "Too many arguments",
+  [ARGUMENT_TOO_LONG]  = "Argument too long",
+  [COMMAND_NOT_FOUND]  = "Command not found",
+  [MISSING_ARGUMENTS]  = "Missing arguments",
+  [ILLEGAL_ARGUMENT]  = "Illegal argument",
+  [OUT_OF_BOUNDS]  = "Argument of bounds",
+};
+
 int shell();
 
 #endif

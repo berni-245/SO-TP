@@ -56,8 +56,6 @@ int shell() {
         }
       } else {
         if (key.character == '\n') {
-          // screenBuffer[screenBufIdx++] = key.character;
-          // sysWriteCharNext(key.character);
           printChar(key.character);
           commandReturnCode = parseCommand();
           newPrompt();
@@ -67,8 +65,6 @@ int shell() {
             screenBufIdx--;
           }
         } else {
-          // screenBuffer[screenBufIdx++] = key.character;
-          // sysWriteCharNext(key.character);
           printChar(key.character);
         }
       }
@@ -82,9 +78,6 @@ static char* prompt = " > ";
 static char* errorPrompt = " >! ";
 void newPrompt() {
   char* currentPrompt = (commandReturnCode == 0) ? prompt : errorPrompt;
-  // for (int i = 0; currentPrompt[i] != 0; ++i) {
-  //   screenBuffer[screenBufIdx++] = currentPrompt[i];
-  // }
   printString(currentPrompt);
   currentCommandIdx = screenBufIdx;
 }
@@ -116,14 +109,14 @@ CommandResult parseCommand() {
     } else {
       argv[argc][len] = 0;
       if (len == MAX_ARG_LEN) {
-        printf("Argument too long: %s...\n", argv[argc]);
+        printf("%s: %s...\n", CommandResultStrings[ARGUMENT_TOO_LONG], argv[argc]);
         return ARGUMENT_TOO_LONG;
       }
       if (argc == 0) {
         if (argv[0][0] == 0) return 0;
         command = getCommand(argv[0]);
         if (command == NULL) {
-          printf("Command not found: %s\n", argv[0]);
+          printf("%s: %s\n", CommandResultStrings[COMMAND_NOT_FOUND], argv[0]);
           return COMMAND_NOT_FOUND;
         }
       }
@@ -135,7 +128,7 @@ CommandResult parseCommand() {
       while (screenBuffer[++i] == ' ');
     }
   }
-  printString("Too many arguments\n");
+  puts(CommandResultStrings[TOO_MANY_ARGUMENTS]);
   return TOO_MANY_ARGUMENTS;
 }
 
@@ -144,13 +137,12 @@ CommandResult commandEcho(int argc, char argv[argc][MAX_ARG_LEN]) {
   for (int i = 1; i < argc; ++i) {
     printf("%s ", argv[i]);
   }
-  // sysWriteCharNext('\n');
   printChar('\n');
   return SUCCESS;
 }
 
 CommandResult commandGetReturnCode() {
-  printf("%d\n", commandReturnCode);
+  printf("%s: %d\n", CommandResultStrings[commandReturnCode], commandReturnCode);
   return SUCCESS;
 }
 
@@ -183,7 +175,7 @@ CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
     randInitialized = true;
   }
   if (argc < 3) {
-    printf("Usage:\n");
+    puts("Usage:");
     printf("\t\t%s <min> <max> [count]\n", argv[0]);
     printf("Where all arguments are integers and count is optional.\n");
     return MISSING_ARGUMENTS;
@@ -191,7 +183,7 @@ CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
   int min = strToInt(argv[1]);
   int max = strToInt(argv[2]);
   if (max < min) {
-    printf("Error: min can't be greater than max\n");
+    puts("Error: min can't be greater than max");
     return ILLEGAL_ARGUMENT;
   }
   int count = (argc > 3) ? strToInt(argv[3]) : 1;
@@ -204,7 +196,7 @@ CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
 
 CommandResult commandLayout(int argc, char (*argv)[MAX_ARG_LEN]) {
   if (argc == 1) {
-    printf("Current layout: %s - %d\n", getLayoutName(systemInfo.layout), systemInfo.layout);
+    printf("Current layout: %s - %d\n", LayoutStrings[systemInfo.layout], systemInfo.layout);
     return SUCCESS;
   }
   if (strcmp(argv[1], "--help") == 0) {
@@ -217,8 +209,8 @@ CommandResult commandLayout(int argc, char (*argv)[MAX_ARG_LEN]) {
     printf("`layout` should be a valid code. To see valid values for the"
            "`layout` argument use the --list option\n");
   } else if (strcmp(argv[1], "--list") == 0) {
-    printf("- %s: %d\n", getLayoutName(QWERTY_LATAM), QWERTY_LATAM);
-    printf("- %s: %d\n", getLayoutName(QWERTY_US), QWERTY_US);
+    printf("- %s: %d\n", LayoutStrings[QWERTY_LATAM], QWERTY_LATAM);
+    printf("- %s: %d\n", LayoutStrings[QWERTY_US], QWERTY_US);
   } else {
     int code = strToInt(argv[1]);
     if (code != QWERTY_LATAM && code != QWERTY_US) {
@@ -226,6 +218,7 @@ CommandResult commandLayout(int argc, char (*argv)[MAX_ARG_LEN]) {
       return ILLEGAL_ARGUMENT;
     }
     setLayout(code);
+    printf("Layout set to %s\n", LayoutStrings[code]);
   }
   return SUCCESS;
 }
