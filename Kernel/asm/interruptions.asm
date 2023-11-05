@@ -15,9 +15,14 @@ global irq05Handler
 global irq06Handler
 global irq07Handler
 
+global exception00Handler
+global exception01Handler
+
 extern irqDispatcher
 extern readKeyCode
 extern saveRegisters
+extern exceptionDispatcher
+extern getStackBase
 
 %macro pushState 0
 	push r15
@@ -60,8 +65,6 @@ extern saveRegisters
 	pop r15
 %endmacro
 
-
-
 %macro irqHandler 1
   push rax
   mov rdi, %1
@@ -77,7 +80,7 @@ irq00Handler:
 irq01Handler:
   push rax
   call readKeyCode
-  cmp al, 0x27
+  cmp al, 0x3b ; f1 para sacar captura de los registros
   pop rax
   jne .skip
   pushState
@@ -99,6 +102,30 @@ irq06Handler:
   irqHandler 6
 irq07Handler:
   irqHandler 7
+
+%macro exceptionHandler 1
+  pushState
+  push qword exceptionRegistersCode ; código para guardarlos en el arreglo de registros para excepciones, no el de hotkey
+  call saveRegisters
+  pop rax
+  popState
+  push rax
+  mov rdi, %1
+  call exceptionDispatcher
+  mov al, 0x20
+  out 0x20, al
+  pop rax
+  call getStackBase
+  mov [rsp+24], rax
+  mov rax, userland
+  mov [rsp], rax
+  iretq
+%endmacro
+
+exception00Handler:
+  exceptionHandler 0
+exception01Handler:
+  exceptionHandler 1
 
 disableInterruptions:
 	cli
@@ -130,6 +157,7 @@ picMask:
         ; ret: compiler decides which of the above should be used. Basically same as retn
 
 
-section .data
+section .rodata
   normalRegistersCode equ 1
   exceptionRegistersCode equ 0
+  userland equ 0x400000

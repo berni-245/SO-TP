@@ -11,6 +11,7 @@
 #include <videoDriver.h>
 #include <naiveConsole.h>
 #include <registers.h>
+#include <exceptions.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -59,22 +60,28 @@ void * initializeKernelBinary()
 int main()
 {	
   loadIdt();
-//   setFontGridValues();
+  setFontGridValues();
 
-//   setBgColor(0x1A1B26);
-//   setFontColor(0xC0CAF5);
-//   clearScreen();
+  setBgColor(0x1A1B26);
+  setFontColor(0xC0CAF5);
+  clearScreen();
   setLayout(QWERTY_US);
-// 	userModule();
-	while(1){
-		haltTillNextInterruption();
-		Register * registers = getRegisters();
-		Register * exceptionRegisters = getExceptionRegisters();
-		ncPrint(registers[0].name); ncPrint(" "); ncPrintHex(registers[0].value);
-		ncPrint(exceptionRegisters[0].name); ncPrint(" "); ncPrintHex(exceptionRegisters[0].value);
-		ncNewline();
-	}
+  sleep(2000);
+  Register * registers = getRegisters();
+  for(int i = 0; i < REGISTER_QUANTITY; i++){
+    printNextString(registers[i].name); printNextChar(' '); printNextHexWithPadding(registers[i].value); printNextChar(' ');
+    if(i%4 == 0)
+      printNextChar('\n');
+  }
+  sleep(1000);
+  zeroDivisionException();
+  sleep(1000);
+  invalidOpcodeException();
 
+  // int test = 3/0; // zeroDivision Error
+  //__asm__ ("ud2"); // invalidOpcode Error
+  userModule();
+  
   // printCharXY(500, 500, 'X', 8);
 
   // KeyStruct buf[20];
