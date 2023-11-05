@@ -34,8 +34,13 @@ void setFontGridValues();
 void setFontSize(int fs);
 void printCharXY(int x, int y, char c, int fontSize);
 void printChar(int col, int row, char c);
-void printBuffer(const char buf[], int size);
+// void printBuffer(const char buf[], int size); nota de berni: no está definido en ningún lado
 int printNextChar(char c);
+void printNextString(const char * str);
+void printNextBase(uint64_t value, uint32_t base);
+void printNextDec(uint64_t value);
+void printNextHex(uint64_t value);
+void printNextHexWithPadding(uint64_t value);
 void moveCursor(int col, int row);
 int cursorHasNext();
 int cursorNext();
