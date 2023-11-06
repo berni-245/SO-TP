@@ -4,6 +4,7 @@
 #include <videoDriver.h>
 #include <timer.h>
 #include <keyboard.h>
+#include <interruptions.h>
 #define S_HEIGHT 30
 #define S_WIDTH 30
 #define MAX_LEN 20
@@ -15,7 +16,7 @@
 
 typedef struct bodyT{
     int x, y, len, score, dirx, diry, tail_x, tail_y;
-    uint32_t color;
+    int color;
     //struct bodyT * tail;
 }bodyT;
 
@@ -30,7 +31,7 @@ void snake_input();
 void draw();
 void moveSnake(snakeT s);
 void collision();
-void appleGen();
+void appleGen(snakeT s);
 int eaten(snakeT s);
 void displayScore();
 void reset();

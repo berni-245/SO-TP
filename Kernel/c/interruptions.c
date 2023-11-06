@@ -20,7 +20,7 @@ void loadIdt() {
   setupIdtEntry(0x20, irq00Handler);
   setupIdtEntry(0x21, irq01Handler);
   setupIdtEntry(0x80, syscallDispatcher);
-  picMask(/* TIMER_TICK_MASK & */ KEYBOARD_MASK);
+  picMask( TIMER_TICK_MASK &  KEYBOARD_MASK);
   enableInterruptions();
 }
 

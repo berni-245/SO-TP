@@ -1,3 +1,4 @@
+
 #include <snake.h>
 
 //S_WIDTH = S_HEIGHT
@@ -9,7 +10,7 @@ KeyStruct buf[1];
 snakeT s1;
 snakeT s2;
 
-int apple[2]={3, 4};
+int apple[2]={0, 0};
 
 void printSq(int x, int y, uint32_t hexColor){
     setStrokeWidth(0);
@@ -47,8 +48,6 @@ void createSnake(){
         s2[0].y = S_HEIGHT/2+3;
         s2[0].len=1;
         s2[0].color=S2;
-        s2[0].score=0;
-
     }
 }
 
@@ -70,16 +69,16 @@ void snake_input(){
         case 'd': s1[0].diry=0; s1[0].dirx=1; break;
         case 'x': gameover=1;
         case 'p': s1[0].diry=0; s1[0].dirx=0; break;
-        
         case 'r': reset(); break;
-
-        case 'o': createSnake(); break;
+        //case 'o': playertwo=1; createSnake(0x00FFFF); break;
+        
         case 'i': s2[0].diry=-1; s2[0].dirx=0; break;
         case 'j': s2[0].diry=0; s2[0].dirx=-1; break;
         case 'k': s2[0].diry=1; s2[0].dirx=0; break;
         case 'l': s2[0].diry=0; s2[0].dirx=1; break;
-        default: break;
+        
         case ESC: exit=1; break;
+        default: break;
     }
     /*if ((*s2)!=0){
         switch(input){
@@ -132,17 +131,11 @@ void moveSnake(snakeT s){
 
 
 void collision(){
-    if(s1[0].x == S_WIDTH-1 || s1[0].x==0 || s1[0].y==S_HEIGHT-1 || s1[0].y==0 
-        || s2[0].x == S_WIDTH-1 || s2[0].x==0 || s2[0].y==S_HEIGHT-1 || s2[0].y==0){
+    if(s1[0].x == S_WIDTH-1 || s1[0].x==0 || s1[0].y==S_HEIGHT-1 || s1[0].y==0){
         gameover=1;
     }
     for(int i=s1[0].len; i>1; i--){
         if(s1[0].x==s1[i-1].x && s1[0].y==s1[i-1].y){
-            gameover=1;
-        }
-    }
-    for(int i=s2[0].len; i>1; i--){
-        if(s2[0].x==s2[i-1].x && s2[0].y==s2[i-1].y){
             gameover=1;
         }
     }
@@ -156,8 +149,9 @@ unsigned rand(){
     return lfsr =  (lfsr >> 1) | (bit << 15); 
 }
 
-void appleGen(){
+void appleGen(snakeT s){
     do{
+        grid[s[0].x][s[0].y]=s[0].color;
         apple[0]=rand()%(S_WIDTH-1);
         apple[1]=rand()%(S_HEIGHT-1);
     } while (apple[0]==0 || apple[1]==0);
@@ -167,8 +161,8 @@ void appleGen(){
 int eaten(snakeT s){
     if (s[0].x==apple[0] && s[0].y==apple[1]){
         s[0].score++;
-        grid[apple[0]][apple[1]]=s[0].color;
         int len=s[0].len;
+        appleGen(s);
         growSnake(s[len-1].x, s[len-1].y,  s);
         return 1;
     }
@@ -206,17 +200,16 @@ void snake_main2(){
     exit=0;
     startGrid();
     createSnake();
-    appleGen();
+    appleGen(s1);
     snake_input();
     while(!gameover){
         haltTillNextInterruption();
         haltTillNextInterruption();
         snake_input();
         moveSnake(s1);
-        moveSnake(s2);
+        //moveSnake(s2);
         draw();
         if(eaten(s1) || eaten(s2)){
-            appleGen();
             displayScore();
         }
         collision();
