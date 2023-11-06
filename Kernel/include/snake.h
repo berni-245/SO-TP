@@ -1,9 +1,9 @@
 #ifndef _SNAKE2_H
 #define _SNAKE2_H
 
-#include "videoDriver.h"
-#include "timer.h"
-#include "keyboard.h"
+#include <videoDriver.h>
+#include <timer.h>
+#include <keyboard.h>
 #define S_HEIGHT 30
 #define S_WIDTH 30
 #define MAX_LEN 20

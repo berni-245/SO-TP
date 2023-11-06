@@ -9,6 +9,7 @@
 #include <clock.h>
 #include <pcSpeaker.h>
 #include <videoDriver.h>
+#include <snake.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -57,11 +58,12 @@ void * initializeKernelBinary()
 int main()
 {	
   loadIdt();
-  setFontGridValues();
+  snake_main2();
+  /*setFontGridValues();
 
   setBgColor(0x1A1B26);
   setFontColor(0xC0CAF5);
-  clearScreen();
+  clearScreen();*/
   // setLayout(QWERTY_US);
 	userModule();
 
