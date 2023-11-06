@@ -25,7 +25,7 @@ typedef bodyT snakeT[MAX_LEN];
 
 void snake_main2();
 void startGrid();
-void createSnake();
+void createSnake(int player);
 void growSnake(int x, int y, snakeT s);
 void snake_input();
 void draw();

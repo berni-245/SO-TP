@@ -4,7 +4,7 @@
 //S_WIDTH = S_HEIGHT
 int grid[S_WIDTH][S_HEIGHT];
 
-static int gameover, read, playertwo, exit;
+static int gameover, read, exit;
 static char input;
 KeyStruct buf[1];
 snakeT s1;
@@ -33,21 +33,23 @@ void startGrid(){
 }
 
 
-void createSnake(){
-    if(!playertwo){
+void createSnake(int player){
+    if(player ==1){
         s1[0].x = S_WIDTH/2-3;
         s1[0].y = S_HEIGHT/2-3;
         s1[0].len=1;
         s1[0].color=S1;
         s1[0].score=0;
-        playertwo=1;
+        //playertwo=1;
         growSnake(s1[0].x, s1[0].y, s1);
     }
     else{
         s2[0].x = S_WIDTH/2+3;
         s2[0].y = S_HEIGHT/2+3;
         s2[0].len=1;
+        s2[0].score=0;
         s2[0].color=S2;
+        growSnake(s2[0].x, s2[0].y, s2);
     }
 }
 
@@ -78,7 +80,7 @@ void snake_input(){
         case 'k': s2[0].diry=1; s2[0].dirx=0; break;
         case 'l': s2[0].diry=0; s2[0].dirx=1; break;
         
-        case ESC: exit=1; break;
+        case ESC: gameover=1; exit=1; break;
         default: break;
     }
     /*if ((*s2)!=0){
@@ -137,6 +139,15 @@ void collision(){
     }
     for(int i=s1[0].len; i>1; i--){
         if(s1[0].x==s1[i-1].x && s1[0].y==s1[i-1].y){
+            gameover=1;
+        }
+    }
+
+    if(s2[0].x == S_WIDTH-1 || s2[0].x==0 || s2[0].y==S_HEIGHT-1 || s2[0].y==0){
+        gameover=1;
+    }
+    for(int i=s2[0].len; i>1; i--){
+        if(s2[0].x==s2[i-1].x && s2[0].y==s2[i-1].y){
             gameover=1;
         }
     }
@@ -208,19 +219,18 @@ void displayScore(){
 }
 
 void snake_main2(){
-    playertwo=0;
     gameover=0;
     exit=0;
     startGrid();
-    createSnake();
-    createSnake();
+    createSnake(1);
+    createSnake(2);
     appleGen(s1);
     snake_input();
     while(!gameover){
         sleep(50);
         snake_input();
         moveSnake(s1);
-        //moveSnake(s2);
+        moveSnake(s2);
         draw();
         if(eaten(s1) || eaten(s2)){
             displayScore();
@@ -234,7 +244,6 @@ void snake_main2(){
 
 void reset(){
     gameover=0;
-    playertwo=0;
     clearScreen();
     snake_main2();
 }
