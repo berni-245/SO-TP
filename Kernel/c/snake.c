@@ -97,7 +97,8 @@ void snake_input(){
                 s1[0].dirx=DERECHA;
             }
             break;
-        case 'x': gameover=1;
+            
+        case 'x': gameover=1; break;
 
         case 'r': reset(); break;
         
