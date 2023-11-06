@@ -15,10 +15,13 @@ static SyscallFunction syscalls[] = {
   (SyscallFunction)getSysInfo,
   (SyscallFunction)setLayout,
   (SyscallFunction)setFontSize,
+  (SyscallFunction)setColor,
   (SyscallFunction)readKbBuffer,
   (SyscallFunction)printCharXY,
   (SyscallFunction)printNextChar,
   (SyscallFunction)moveCursor,
+  (SyscallFunction)printPixel,
+  (SyscallFunction)fillRectangle,
 };
 
 SyscallFunction* getSyscallsArray() {

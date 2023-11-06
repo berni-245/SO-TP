@@ -10,4 +10,5 @@ void getSysInfo(SystemInfo* si) {
   si->charHeight = ASCII_BF_HEIGHT;
   si->layout = getLayout();
   si->fontSize = getFontSize();
+  si->charSeparation = getCharSeparation();
 }

@@ -103,7 +103,7 @@ static uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base)
 
 
 
-void printBool(boolean b) {
+void printBool(bool b) {
   if (b) ncPrint("True");
   else ncPrint("False");
 }
@@ -129,7 +129,7 @@ void printKeyStruct(KeyStruct k) {
   printBool(k.md.ctrlPressed);
   ncPrint(", ");
   ncPrint("caps lock: ");
-  printBool(k.md.capsLockPressed);
+  printBool(k.md.capsLockActive);
   ncPrint(", ");
   ncPrint("alt: ");
   printBool(k.md.altPressed);
