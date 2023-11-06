@@ -1,7 +1,7 @@
 section .text
 
 global sysHalt
-global sysMs
+global sysGetTicks
 global sysInfo
 global sysSetLayout
 global sysSetFontSize
@@ -22,7 +22,7 @@ global sysFillRectangle
 
 sysHalt:
   syscall 0
-sysMs:
+sysGetTicks:
   syscall 1
 sysInfo:
   syscall 2

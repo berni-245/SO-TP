@@ -5,6 +5,8 @@
 #include <syscalls.h>
 #include <sysinfo.h>
 
+#include <snake.h>
+
 int main() {
   getSysInfo();
 

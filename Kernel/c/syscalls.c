@@ -11,7 +11,7 @@
 
 static SyscallFunction syscalls[] = {
   (SyscallFunction)haltTillNextInterruption,
-  (SyscallFunction)getMs,
+  (SyscallFunction)getTicks,
   (SyscallFunction)getSysInfo,
   (SyscallFunction)setLayout,
   (SyscallFunction)setFontSize,

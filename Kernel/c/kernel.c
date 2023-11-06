@@ -9,7 +9,6 @@
 #include <clock.h>
 #include <pcSpeaker.h>
 #include <videoDriver.h>
-#include <snake.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -59,9 +58,8 @@ int main()
 {	
   loadIdt();
   setFontGridValues();
-  snake_main2();
 
-	// userModule();
+	userModule();
 
 	return 0;
 }

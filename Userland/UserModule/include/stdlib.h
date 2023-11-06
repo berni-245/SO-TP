@@ -22,6 +22,7 @@ void clearScreen();
 void repaint();
 void printString(const char* s);
 void puts(const char* s);
+uint32_t intToBase(long value, char* buffer, uint32_t base);
 int strcmp(const char*, const char*);
 int strFindChar(const char* s, char c);
 unsigned int strlen(char* s);
@@ -32,5 +33,6 @@ void setSrand(unsigned int seed);
 unsigned int rand();
 // double normalizedRand();
 unsigned int randBetween(int min, int max);
+void printStringXY(int x, int y, char* s, int fontSize, int charsPerRow);
 
 #endif

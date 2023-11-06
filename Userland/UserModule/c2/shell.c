@@ -5,6 +5,7 @@
 #include <utils.h>
 #include <shell.h>
 #include <shellCommands.h>
+#include <snake.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -24,12 +25,11 @@ void newPrompt();
 void incFont();
 void decFont();
 void addCommand(char* name, char* description, ShellFunction function);
+void setShellColor();
 CommandResult parseCommand();
 
 int shell() {
-  setBgColor(0x1A1B26);
-  setFontColor(0xC0CAF5);
-  setCursorColor(0xFFFF11);
+  setShellColor();
   clearScreen();
 
   addCommand("help", "List all commands and their descriptions.", commandHelp);
@@ -40,8 +40,9 @@ int shell() {
   addCommand("layout", "Get or set current layout.", commandLayout);
   addCommand("setColors", "Set font and background colors.", commandSetColors);
   addCommand("sysInfo", "Get some system information.", commandSysInfo);
+  addCommand("snake", "Play snake.", commandSnake);
   addCommand("test", "Test.", commandTest);
-  // commandHelp();
+  commandHelp();
   newPrompt();
 
   KeyStruct key;
@@ -81,6 +82,12 @@ int shell() {
   };
 
   return 1;
+}
+
+void setShellColor() {
+  setBgColor(0x1A1B26);
+  setFontColor(0xC0CAF5);
+  setCursorColor(0xFFFF11);
 }
 
 void incFont() {
@@ -162,7 +169,7 @@ CommandResult commandEcho(int argc, char argv[argc][MAX_ARG_LEN]) {
 }
 
 CommandResult commandGetReturnCode() {
-  printf("%s: %d\n", CommandResultStrings[commandReturnCode], commandReturnCode);
+  printf("%s - Code: %d\n", CommandResultStrings[commandReturnCode], commandReturnCode);
   return SUCCESS;
 }
 
@@ -191,7 +198,7 @@ CommandResult commandGetKeyInfo() {
 CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
   static bool randInitialized = false;
   if (!randInitialized) {
-    setSrand(sysMs());
+    setSrand(sysGetTicks());
     randInitialized = true;
   }
   if (argc < 3) {
@@ -290,5 +297,23 @@ CommandResult commandTest() {
     printf("|");
   }
   printf("\n");
+  return SUCCESS;
+}
+
+CommandResult commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
+  if (argc < 3) {
+    puts("Usage:");
+    printf("\t\t%s <playerCount> <player1Name> [player2Name]\n", argv[0]);
+    printf("Where playerCount can be 1 or 2.\n");
+    return MISSING_ARGUMENTS;
+  }
+  int playerCount = strToInt(argv[1]);
+  if (playerCount > 1 && argc < 4) {
+    printf("Player 2 name missing\n");
+    return MISSING_ARGUMENTS;
+  }
+  snake(playerCount > 1, argv[2], argv[3]);
+  setShellColor();
+  repaint();
   return SUCCESS;
 }

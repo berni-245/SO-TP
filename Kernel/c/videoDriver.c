@@ -98,7 +98,7 @@ int setFontSize(int fs) {
   return fontSize;
 }
 
-void printCharXY(int x, int y, char c) {
+void printCharXY(int x, int y, char c, int fontSize) {
   if (c < ASCII_BF_MIN || c > ASCII_BF_MAX) return;
   c -= ASCII_BF_MIN;
   for (int i = 0; i < ASCII_BF_HEIGHT; ++i) {
@@ -119,7 +119,7 @@ void printChar(int col, int row, char c) {
   int x = col;
   int y = row;
   colRowToXY(&x, &y);
-  printCharXY(x, y, c);
+  printCharXY(x, y, c, fontSize);
 }
 
 static int cursorCol = 0;

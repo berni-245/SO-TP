@@ -1,3 +1,4 @@
+#include <draw.h>
 #include <shell.h>
 #include <stdarg.h>
 #include <syscalls.h>
@@ -32,7 +33,7 @@ void incReadIdxBy(int val) {
 
 void clearScreen() {
   sysMoveCursor(0, 0);
-  sysFillRectangle(0, 0, systemInfo.screenWidth, systemInfo.screenHeight, bgColor);
+  clearRectangle(0, 0, systemInfo.screenWidth, systemInfo.screenHeight);
 }
 
 void jumpLine() {
@@ -106,7 +107,7 @@ unsigned int strlen(char* s) {
   return len - 1;
 }
 
-static uint32_t intToBase(long value, char* buffer, uint32_t base) {
+uint32_t intToBase(long value, char* buffer, uint32_t base) {
 	char* p = buffer;
 	char* p1 = buffer;
   char* p2;
@@ -141,6 +142,7 @@ void printAsBase(int n, int base) {
   intToBase(n, buf, base);
   printString(buf);
 }
+
 // Return 0 on successful print, non 0 on error.
 int printf(const char* fmt, ...) {
   va_list p;
@@ -148,12 +150,10 @@ int printf(const char* fmt, ...) {
 
   for (int i = 0; fmt[i] != 0; ++i) {
     if (fmt[i] != '%') {
-      // sysWriteCharNext(fmt[i]);
       printChar(fmt[i]);
     } else {
       switch (fmt[++i]) {
         case '%':
-          // sysWriteCharNext('%');
           printChar('%');
           break;
         case 'd': 
@@ -248,4 +248,20 @@ unsigned int rand() {
 // }
 unsigned int randBetween(int min, int max) {
   return rand() % (max - min + 1) + min;
+}
+
+void printStringXY(int x, int y, char* s, int fontSize, int charsPerRow) {
+  int col = 0;
+  for (int i = 0; s[i] != 0; ++i) {
+    sysWriteCharXY(
+      x + i*systemInfo.charWidth*fontSize + systemInfo.charSeparation,
+      y, s[i], fontSize
+    );
+    if (charsPerRow && col > charsPerRow) {
+      y += systemInfo.charHeight*fontSize + systemInfo.charSeparation;
+      col = 0;
+      x = 0;
+    }
+    ++col;
+  }
 }

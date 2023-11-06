@@ -27,7 +27,7 @@ void setColor(ColorType c, uint32_t hexColor);
 
 void setFontGridValues();
 int setFontSize(int fs);
-void printCharXY(int x, int y, char c);
+void printCharXY(int x, int y, char c, int fontSize);
 void printChar(int col, int row, char c);
 void printBuffer(const char buf[], int size);
 int printNextChar(char c);

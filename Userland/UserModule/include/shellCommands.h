@@ -19,6 +19,7 @@ CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]);
 CommandResult commandLayout(int argc, char argv[argc][MAX_ARG_LEN]);
 CommandResult commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]);
 CommandResult commandSysInfo();
+CommandResult commandSnake(int argc, char argv[argc][MAX_ARG_LEN]);
 CommandResult commandTest();
 
 #endif
