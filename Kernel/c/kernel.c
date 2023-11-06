@@ -59,9 +59,9 @@ int main()
   loadIdt();
   setFontGridValues();
 
-  setColor(BACKGROUND, 0x1A1B26);
-  setColor(FONT, 0xC0CAF5);
-  clearScreen();
+  // setColor(BACKGROUND, 0x1A1B26);
+  // setColor(FONT, 0xC0CAF5);
+  // clearScreen();
 
   // setLayout(QWERTY_US);
 	userModule();

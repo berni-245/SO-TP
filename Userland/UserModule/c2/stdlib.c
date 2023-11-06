@@ -1,7 +1,8 @@
 #include <shell.h>
 #include <stdarg.h>
-#include <stdlib.h>
 #include <syscalls.h>
+#include <stdlib.h>
+#include <sysinfo.h>
 
 int getKey(KeyStruct* key) {
   int read = sysRead(key, 1);
@@ -15,21 +16,63 @@ char getChar() {
   else return key.character;
 }
 
-void printChar(char c) {
-  sysWriteCharNext(c);
-  screenBuffer[screenBufWriteIdx++] = c;
+char screenBuffer[SCREEN_BUFFER_SIZE];
+int screenBufWriteIdx = 0;
+int screenBufReadIdx = 0;
+
+void incWriteIdx() {
+  screenBufWriteIdx = (screenBufWriteIdx + 1) % SCREEN_BUFFER_SIZE;
+}
+void decWriteIdx() {
+  if (--screenBufWriteIdx < 0) screenBufWriteIdx = SCREEN_BUFFER_SIZE - 1;
+}
+void incReadIdxBy(int val) {
+  screenBufReadIdx = (screenBufReadIdx + val) % SCREEN_BUFFER_SIZE;
 }
 
-void printBuffer(const char buf[], int size) {
-  for (int i = 0; i < size; ++i) {
-    // sysWriteCharNext(buf[i]);
-    printChar(buf[i]);
+void clearScreen() {
+  sysMoveCursor(0, 0);
+  sysFillRectangle(0, 0, systemInfo.screenWidth, systemInfo.screenHeight, bgColor);
+}
+
+void jumpLine() {
+  int i = screenBufReadIdx;
+  int length = 0;
+  while (/* i != screenBufWriteIdx --> this should always be the case &&  */
+    screenBuffer[i] != '\n' && length < systemInfo.fontCols) {
+    i = (i + 1) % SCREEN_BUFFER_SIZE;
+    ++length;
   }
+  if (screenBuffer[i] == '\n') ++length;
+  incReadIdxBy(length);
+  repaint();
+}
+
+void printScreenBuffer() {
+  for (int i = screenBufReadIdx; i != screenBufWriteIdx; i = (i + 1) % SCREEN_BUFFER_SIZE) {
+    int endOfScreen = sysWriteCharNext(screenBuffer[i]);
+    // if (endOfScreen) jumpLine();
+  }
+}
+
+void repaint() {
+  clearScreen();
+  printScreenBuffer();
+}
+
+void printChar(char c) {
+  int endOfScreen = sysWriteCharNext(c);
+  if (c == '\b') {
+    decWriteIdx();
+  } else {
+    screenBuffer[screenBufWriteIdx] = c;
+    incWriteIdx();
+  }
+  if (endOfScreen) jumpLine();
 }
 
 void printString(const char* s) {
   for (int i = 0; s[i] != 0; ++i) {
-    // sysWriteCharNext(s[i]);
     printChar(s[i]);
   }
 }
@@ -48,6 +91,13 @@ int strcmp(const char* s1, const char* s2) {
   if (s1[i] != 0) return 1;
   else if (s2[i] != 0) return -1;
   else return 0;
+}
+
+int strFindChar(const char* s, char c) {
+  for (int i = 0; s[i] != 0; ++i) {
+    if (s[i] == c) return i;
+  }
+  return -1;
 }
 
 unsigned int strlen(char* s) {
@@ -152,19 +202,6 @@ int strToInt(char* s) {
     --j; k *= 10;
   }
   return n * multiplier;
-}
-
-void setBgColor(uint32_t hexColor) {
-  sysSetColor(BACKGROUND, hexColor);
-}
-void setStrokeColor(uint32_t hexColor) {
-  sysSetColor(STROKE, hexColor);
-}
-void setFillColor(uint32_t hexColor) {
-  sysSetColor(FILL, hexColor);
-}
-void setFontColor(uint32_t hexColor) {
-  sysSetColor(FONT, hexColor);
 }
 
 void printKey(KeyStruct* key) {

@@ -17,19 +17,15 @@ typedef struct SystemInfo {
   int charHeight;
   int layout;
   int fontSize;
+  int charSeparation;
+  int fontCols;
+  int fontRows;
 } SystemInfo;
-
-typedef enum {
-  BACKGROUND = 0,
-  STROKE,
-  FILL,
-  FONT,
-} ColorType;
 
 extern SystemInfo systemInfo;
 
-void incFont();
-void decFont();
+void getSysInfo();
+void setFontSize(int size);
 void setLayout(KbLayout code);
 
 #endif

@@ -11,9 +11,11 @@ global sysWrite
 global sysWriteCharXY
 global sysWriteCharNext
 global sysMoveCursor
+global sysPrintPixel
+global sysFillRectangle
 
 %macro syscall 1
-  mov r8, %1
+  mov r9, %1
   int 0x80
   ret
 %endmacro
@@ -38,3 +40,7 @@ sysWriteCharNext:
   syscall 8
 sysMoveCursor:
   syscall 9
+sysPrintPixel:
+  syscall 10
+sysFillRectangle:
+  syscall 11

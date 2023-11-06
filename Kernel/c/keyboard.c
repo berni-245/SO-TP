@@ -62,8 +62,8 @@ void readKeyToBuffer() {
     // This makes capslock virtually equivalent to shift, meaning all symbols will get 
     // converted, not only letters. That's not the standard behaviour but I actually like it.
     if (
-      md.capsLockActive && !(md.leftShiftPressed || md.rightShiftPressed) ||
-      !md.capsLockActive && (md.leftShiftPressed || md.rightShiftPressed)
+      (md.capsLockActive && !(md.leftShiftPressed || md.rightShiftPressed)) ||
+      (!md.capsLockActive && (md.leftShiftPressed || md.rightShiftPressed))
     ) key.key = layoutShiftMaps[kbLayout][code];
     else key.key = layoutMaps[kbLayout][code];
     if (key.key == 0) return;

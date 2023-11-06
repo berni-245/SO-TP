@@ -1,5 +1,7 @@
 /* sampleCodeModule.c */
 
+#include <colors.h>
+#include <draw.h>
 #include <utils.h>
 #include <shell.h>
 #include <shellCommands.h>
@@ -10,25 +12,25 @@
 #include <syscalls.h>
 
 // The output of the commands should also be written to the screen buffer!!!
-char screenBuffer[3000];
-int screenBufWriteIdx = 0;
-int screenBufReadIdx = 0;
-static int currentCommandIdx = 0;
+int currentCommandIdx = 0;
 
 // static char stdin[300];
 // static int stdinIdx = 0;
-static char stdout[300];
+// static char stdout[300];
 
 static int commandReturnCode = 0;
 
 void newPrompt();
+void incFont();
+void decFont();
 void addCommand(char* name, char* description, ShellFunction function);
 CommandResult parseCommand();
 
 int shell() {
   setBgColor(0x1A1B26);
   setFontColor(0xC0CAF5);
-  // clearScreen();
+  setCursorColor(0xFFFF11);
+  clearScreen();
 
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
@@ -36,7 +38,10 @@ int shell() {
   addCommand("keyInfo", "Get pressed key info. Exit with ctrl+c.", commandGetKeyInfo);
   addCommand("rand", "Generate random numbers.", commandRand);
   addCommand("layout", "Get or set current layout.", commandLayout);
-  commandHelp();
+  addCommand("setColors", "Set font and background colors.", commandSetColors);
+  addCommand("sysInfo", "Get some system information.", commandSysInfo);
+  addCommand("test", "Test.", commandTest);
+  // commandHelp();
   newPrompt();
 
   KeyStruct key;
@@ -52,7 +57,11 @@ int shell() {
             decFont();
             break;
           case 'l':
-
+            clearScreen();
+            screenBufWriteIdx = 0;
+            screenBufReadIdx = 0;
+            currentCommandIdx = 0;
+            newPrompt();
             break;
         }
       } else {
@@ -61,9 +70,8 @@ int shell() {
           commandReturnCode = parseCommand();
           newPrompt();
         } else if (key.character == '\b') {
-          if (screenBufWriteIdx > currentCommandIdx) {
-            sysWriteCharNext(key.character);
-            screenBufWriteIdx--;
+          if (screenBufWriteIdx != currentCommandIdx) {
+            printChar(key.character);
           }
         } else {
           printChar(key.character);
@@ -73,6 +81,15 @@ int shell() {
   };
 
   return 1;
+}
+
+void incFont() {
+  setFontSize(systemInfo.fontSize + 1);
+  repaint();
+}
+void decFont() {
+  setFontSize(systemInfo.fontSize - 1);
+  repaint();
 }
 
 static char* prompt = " > ";
@@ -106,7 +123,8 @@ CommandResult parseCommand() {
   ShellFunction command;
   while (argc < MAX_ARG_COUNT) {
     if (screenBuffer[i] != ' ' && screenBuffer[i] != '\n' && len < MAX_ARG_LEN) {
-      argv[argc][len++] = screenBuffer[i++];
+      argv[argc][len++] = screenBuffer[i];
+      i = (i + 1) % SCREEN_BUFFER_SIZE;
     } else {
       argv[argc][len] = 0;
       if (len == MAX_ARG_LEN) {
@@ -126,7 +144,8 @@ CommandResult parseCommand() {
       if (screenBuffer[i] == '\n') {
         return command(argc, argv);
       }
-      while (screenBuffer[++i] == ' ');
+      i = (i + 1) % SCREEN_BUFFER_SIZE;
+      while (screenBuffer[i] == ' ');
     }
   }
   puts(CommandResultStrings[TOO_MANY_ARGUMENTS]);
@@ -221,5 +240,55 @@ CommandResult commandLayout(int argc, char (*argv)[MAX_ARG_LEN]) {
     setLayout(code);
     printf("Layout set to %s\n", LayoutStrings[code]);
   }
+  return SUCCESS;
+}
+
+CommandResult commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]) {
+  setFontColor(0x010101);
+  setBgColor(0xDDDDDD);
+  setCursorColor(0xFF0000);
+  // if (argc < 3) {
+  //   puts("Usage:");
+  //   printf("\t\t%s <min> <max> [count]\n", argv[0]);
+  //   printf("Where all arguments are integers and count is optional.\n");
+  //   return MISSING_ARGUMENTS;
+  // }
+  // int min = strToInt(argv[1]);
+  // int max = strToInt(argv[2]);
+  // if (max < min) {
+  //   puts("Error: min can't be greater than max");
+  //   return ILLEGAL_ARGUMENT;
+  // }
+  // int count = (argc > 3) ? strToInt(argv[3]) : 1;
+  // while (count--) {
+  //   printf("%d%s", randBetween(min, max), (count == 0) ? "" : ", ");
+  // }
+  // printf("\n");
+  repaint();
+  return SUCCESS;
+}
+
+CommandResult commandSysInfo() {
+  printf("screenWidth: %d\n", systemInfo.screenWidth);
+  printf("screenHeight: %d\n", systemInfo.screenHeight);
+  printf("charWidth: %d\n", systemInfo.charWidth);
+  printf("charHeight: %d\n", systemInfo.charHeight);
+  printf("layout: %d\n", systemInfo.layout);
+  printf("fontSize: %d\n", systemInfo.fontSize);
+  printf("charSeparation: %d\n", systemInfo.charSeparation);
+  printf("fontCols: %d\n", systemInfo.fontCols);
+  printf("fontRows: %d\n", systemInfo.fontRows);
+  return SUCCESS;
+}
+
+CommandResult commandTest() {
+  for (int i = 0; i < 5; ++i) {
+    printf("|");
+    for (int i = 0; i < 98; ++i) {
+      printf("x");
+    }
+    printf("|");
+  }
+  printf("\n");
   return SUCCESS;
 }

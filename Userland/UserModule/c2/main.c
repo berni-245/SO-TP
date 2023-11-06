@@ -6,7 +6,7 @@
 #include <sysinfo.h>
 
 int main() {
-  sysInfo(&systemInfo);
+  getSysInfo();
 
   shell();
 

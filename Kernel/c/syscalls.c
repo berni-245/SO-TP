@@ -20,6 +20,8 @@ static SyscallFunction syscalls[] = {
   (SyscallFunction)printCharXY,
   (SyscallFunction)printNextChar,
   (SyscallFunction)moveCursor,
+  (SyscallFunction)printPixel,
+  (SyscallFunction)fillRectangle,
 };
 
 SyscallFunction* getSyscallsArray() {

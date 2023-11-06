@@ -8,20 +8,25 @@
 #define NULL (void*)0
 #define EOF -1
 
+// Should be larger than the real max amount of characters
+// of fontCols*fontRows = 2117 for smallest font size.
+#define SCREEN_BUFFER_SIZE 3000
+extern char screenBuffer[SCREEN_BUFFER_SIZE];
+extern int screenBufWriteIdx;
+extern int screenBufReadIdx;
+
 int getKey(KeyStruct* key);
 char getChar();
 void printChar(char c);
+void clearScreen();
+void repaint();
 void printString(const char* s);
 void puts(const char* s);
-void printBuffer(const char buf[], int size);
 int strcmp(const char*, const char*);
+int strFindChar(const char* s, char c);
 unsigned int strlen(char* s);
 int printf(const char* fmt, ...);
 int strToInt(char* s);
-void setBgColor(uint32_t hexColor);
-void setStrokeColor(uint32_t hexColor);
-void setFillColor(uint32_t hexColor);
-void setFontColor(uint32_t hexColor);
 void printKey(KeyStruct* key);
 void setSrand(unsigned int seed);
 unsigned int rand();

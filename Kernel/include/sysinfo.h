@@ -8,6 +8,7 @@ typedef struct SystemInfo {
   int charHeight;
   int layout;
   int fontSize;
+  int charSeparation;
 } SystemInfo;
 
 void getSysInfo(SystemInfo* si);
