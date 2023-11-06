@@ -4,7 +4,7 @@
 //S_WIDTH = S_HEIGHT
 int grid[S_WIDTH][S_HEIGHT];
 
-static int gameover, read, exit;
+static int gameover, read, exit, playertwo=0;
 static char input;
 KeyStruct buf[1];
 snakeT s1;
@@ -36,20 +36,22 @@ void startGrid(){
 void createSnake(int player){
     if(player ==1){
         s1[0].x = S_WIDTH/2-3;
-        s1[0].y = S_HEIGHT/2-3;
-        s1[0].len=1;
+        s1[0].y = S_HEIGHT/2;
+        s1[0].dirx=0;
+        s1[0].diry=0;
+        s1[0].len=2;
         s1[0].color=S1;
         s1[0].score=0;
-        //playertwo=1;
-        growSnake(s1[0].x, s1[0].y, s1);
     }
     else{
         s2[0].x = S_WIDTH/2+3;
-        s2[0].y = S_HEIGHT/2+3;
-        s2[0].len=1;
+        s2[0].y = S_HEIGHT/2;
+        s2[0].len=2;
+        s2[0].dirx=0;
+        s2[0].diry=0;
         s2[0].score=0;
         s2[0].color=S2;
-        growSnake(s2[0].x, s2[0].y, s2);
+        playertwo=1;    
     }
 }
 
@@ -62,42 +64,78 @@ void growSnake(int x, int y, snakeT s){
 }
 
 void snake_input(){
-    read = readKbBuffer(buf, 1);        
-    input = buf[0].key;                                
+
+    read = readKbBuffer(buf, 1);
+    char prev_input = input;
+    input = buf[0].key;
+    if(input==prev_input)
+        return;
+
     switch(input){
-        case 'w': s1[0].diry=-1; s1[0].dirx=0; break;
-        case 'a': s1[0].diry=0; s1[0].dirx=-1; break;
-        case 's': s1[0].diry=1; s1[0].dirx=0; break;
-        case 'd': s1[0].diry=0; s1[0].dirx=1; break;
+        case 'w': 
+            if(s1[0].diry==QUIETO){
+                s1[0].diry=ARRIBA;
+                s1[0].dirx=QUIETO;
+            }
+            break;
+
+        case 'a':
+            if(s1[0].dirx==QUIETO){
+                s1[0].diry=QUIETO;
+                s1[0].dirx=IZQUIERDA;
+            } 
+            break;
+        case 's': 
+            if(s1[0].diry==QUIETO){
+                s1[0].diry=ABAJO;
+                s1[0].dirx=QUIETO;
+            }
+            break;
+        case 'd': 
+            if(s1[0].dirx==QUIETO){
+                s1[0].diry=QUIETO;
+                s1[0].dirx=DERECHA;
+            }
+            break;
         case 'x': gameover=1;
-        case 'p': s1[0].diry=0; s1[0].dirx=0; break;
+
         case 'r': reset(); break;
         
-        //case 'o': createSnake(0x00FFFF); break;
+        case 'o': createSnake(2); break;
         
-        case 'i': s2[0].diry=-1; s2[0].dirx=0; break;
-        case 'j': s2[0].diry=0; s2[0].dirx=-1; break;
-        case 'k': s2[0].diry=1; s2[0].dirx=0; break;
-        case 'l': s2[0].diry=0; s2[0].dirx=1; break;
+        case 'i':
+            if(s2[0].diry==QUIETO){
+                s2[0].diry=ARRIBA;
+                s2[0].dirx=QUIETO;
+            }
+            break;
+        case 'j': 
+            if(s2[0].dirx==QUIETO){
+                s2[0].diry=QUIETO;
+                s2[0].dirx=IZQUIERDA;
+            } 
+            break;
+        case 'k': 
+            if(s2[0].diry==QUIETO){
+                s2[0].diry=ABAJO;
+                s2[0].dirx=QUIETO;
+            } 
+            break;
+        case 'l': 
+            if(s2[0].dirx==QUIETO){
+                s2[0].diry=QUIETO;
+                s2[0].dirx=DERECHA;
+            }
+            break;
         
         case ESC: gameover=1; exit=1; break;
         default: break;
     }
-    /*if ((*s2)!=0){
-        switch(input){
-        case 'i': s2[0].diry=-1; s2[0].dirx=0; break;
-        case 'j': s2[0].diry=0; s2[0].dirx=-1; break;
-        case 'k': s2[0].diry=1; s2[0].dirx=0; break;
-        case 'l': s2[0].diry=0; s2[0].dirx=1; break;
-        default: break;
-        }
-    }*/
 }
 
 void draw(){
-    int i;
-    for(int j=0; j<S_HEIGHT; j++){
-        for (i=0; i<S_WIDTH; i++){
+    for(int j=1; j<S_HEIGHT; j++){
+        for (int i=1; i<S_WIDTH; i++){
             if(grid[i][j]==S1){
                 printSq(i, j, 0xFFFFFF);
             }
@@ -111,6 +149,10 @@ void draw(){
                 printSq(i, j, 0x000000);
             }
         }
+    }
+    for (int i=0; i<S_WIDTH; i++){
+        printSq(i, 0, 0xFFFFFF);
+        printSq(0, i, 0xFFFFFF);
     }
 }
 
@@ -138,16 +180,21 @@ void collision(){
         gameover=1;
     }
     for(int i=s1[0].len; i>1; i--){
-        if(s1[0].x==s1[i-1].x && s1[0].y==s1[i-1].y){
+        if(s1[0].x==s1[i].x && s1[0].y==s1[i].y){
             gameover=1;
         }
     }
-
-    if(s2[0].x == S_WIDTH-1 || s2[0].x==0 || s2[0].y==S_HEIGHT-1 || s2[0].y==0){
-        gameover=1;
-    }
-    for(int i=s2[0].len; i>1; i--){
-        if(s2[0].x==s2[i-1].x && s2[0].y==s2[i-1].y){
+    if(playertwo){
+        if(s2[0].x == S_WIDTH-1 || s2[0].x==0 || s2[0].y==S_HEIGHT-1 || s2[0].y==0){
+            gameover=1;
+        }
+        for(int i=s2[0].len; i>1; i--){
+            if(s2[0].x==s2[i].x && s2[0].y==s2[i].y){
+                gameover=1;
+            }
+        }
+        //check if collision between snakes
+        if(OnSnake(s2[0].x, s2[0].y, s1) || OnSnake(s1[0].x, s1[0].y, s2)){
             gameover=1;
         }
     }
@@ -166,20 +213,19 @@ void appleGen(snakeT s){
         grid[s[0].x][s[0].y]=s[0].color;
         apple[0]=rand()%(S_WIDTH-1);
         apple[1]=rand()%(S_HEIGHT-1);
-    } while (apple[0]==0 || apple[1]==0 && notOnSnake(apple[0], apple[1]));
+    } while (apple[0]==0 || apple[1]==0 || OnSnake(apple[0], apple[1], s1) 
+                || OnSnake(apple[0], apple[1], s2));
     grid[apple[0]][apple[1]]=APPLE;
 }
 
 //0 if on snake | 1 if not
-int notOnSnake(int x, int y){
-    if(x==s1[0].tail_x && y==s1[0].tail_y)
-        return 0;
+int OnSnake(int x, int y, snakeT s){
 
-    for (int i=0; i<s1[0].len; i++){
-        if (x==s1[i].x && y==s1[i].y)
-            return 0;
+    for (int i=0; i<s[0].len; i++){
+        if (x==s[i].x && y==s[i].y)
+            return 1;
     }
-    return 1;
+    return 0;
 }
 
 int eaten(snakeT s){
@@ -197,24 +243,27 @@ int eaten(snakeT s){
 
 void displayScore(){
     setFontColor(0x000000);
-    printChar((S_WIDTH-2)*SQUARE, 0, s1[0].score+'0'-1);
+    /*printChar((S_WIDTH-2)*SQUARE, 0, s1[0].score+'0'-1);
     printChar((S_WIDTH-2)*SQUARE, 0, s1[0].score/10+'0'-1);
     printChar((S_WIDTH-2)*SQUARE+1, 0, s1[0].score-10+'0'-1);
-    
+    */
+    printSq(S_WIDTH, 0, 0x000000);
+
     setFontColor(0xFFFFFF);
     if(s1[0].score<10){
-        printChar((S_WIDTH-2)*SQUARE, 0, s1[0].score+'0');
+        printChar(50, 0, s1[0].score+'0');
     }
     else{
-        printChar((S_WIDTH-2)*SQUARE, 0, s1[0].score/10+'0');
-        printChar((S_WIDTH-2)*SQUARE+1, 0, s1[0].score-10+'0');
+        printChar(50, 0, s1[0].score/10+'0');
+        printChar(50, 0, s1[0].score-10+'0');
     }
+    
     /*if(s2[0].score<10){
-        printChar((S_WIDTH)*SQUARE, 1, s2[0].score+'0');
+        printChar((S_WIDTH-2)*SQUARE, 1, s2[0].score+'0');
     }
     else{
-        printChar((S_WIDTH)*SQUARE, 1, s2[0].score/10+'0');
-        printChar((S_WIDTH)*SQUARE+1, 1, s2[0].score-10+'0');
+        printChar((S_WIDTH-2)*SQUARE, 1, s2[0].score/10+'0');
+        printChar((S_WIDTH-2)*SQUARE+1, 1, s2[0].score-10+'0');
     }*/
 }
 
@@ -223,11 +272,12 @@ void snake_main2(){
     exit=0;
     startGrid();
     createSnake(1);
-    createSnake(2);
+    if(playertwo)
+        createSnake(2);
     appleGen(s1);
     snake_input();
     while(!gameover){
-        sleep(50);
+        sleep(75);
         snake_input();
         moveSnake(s1);
         moveSnake(s2);
@@ -243,7 +293,6 @@ void snake_main2(){
 }
 
 void reset(){
-    gameover=0;
     clearScreen();
     snake_main2();
 }

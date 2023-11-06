@@ -13,15 +13,18 @@
 #define S2 2
 #define APPLE 3
 #define ESC 27
+#define ARRIBA -1
+#define ABAJO 1
+#define IZQUIERDA -1
+#define DERECHA 1
+#define QUIETO 0
 
 typedef struct bodyT{
     int x, y, len, score, dirx, diry, tail_x, tail_y;
     int color;
-    //struct bodyT * tail;
 }bodyT;
 
 typedef bodyT snakeT[MAX_LEN];
-
 
 void snake_main2();
 void startGrid();
