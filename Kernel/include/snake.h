@@ -1,12 +1,12 @@
-#ifndef _SNAKE2_H
-#define _SNAKE2_H
+#ifndef _SNAKE_H
+#define _SNAKE_H
 
 #include <videoDriver.h>
 #include <timer.h>
 #include <keyboard.h>
 #include <interruptions.h>
-#define S_HEIGHT 30
-#define S_WIDTH 30
+#define S_HEIGHT 50
+#define S_WIDTH 50
 #define MAX_LEN 20
 #define SQUARE 15
 #define S1 1

@@ -1,6 +1,7 @@
 
 #include <snake.h>
 
+
 //S_WIDTH = S_HEIGHT
 int grid[S_WIDTH][S_HEIGHT];
 
@@ -97,7 +98,7 @@ void snake_input(){
                 s1[0].dirx=DERECHA;
             }
             break;
-            
+
         case 'x': gameover=1; break;
 
         case 'r': reset(); break;
@@ -244,28 +245,38 @@ int eaten(snakeT s){
 
 void displayScore(){
     setFontColor(0x000000);
-    /*printChar((S_WIDTH-2)*SQUARE, 0, s1[0].score+'0'-1);
-    printChar((S_WIDTH-2)*SQUARE, 0, s1[0].score/10+'0'-1);
-    printChar((S_WIDTH-2)*SQUARE+1, 0, s1[0].score-10+'0'-1);
-    */
-    printSq(S_WIDTH, 0, 0x000000);
+    if(s1[0].score<10){
+        printChar(55, 0, s1[0].score+'0'-1);
+    }
+    else{
+        printChar(55, 0, s1[0].score/10+'0'-1);
+        printChar(55, 0, s1[0].score-10+'0'-1);
+    }
+    
+    if(s2[0].score<10){
+        printChar(55, 1, s2[0].score+'0'-1);
+    }
+    else{
+        printChar(55, 1, s2[0].score/10+'0'-1);
+        printChar(55, 1, s2[0].score-10+'0'-1);
+    }
 
     setFontColor(0xFFFFFF);
     if(s1[0].score<10){
-        printChar(50, 0, s1[0].score+'0');
+        printChar(55, 0, s1[0].score+'0');
     }
     else{
-        printChar(50, 0, s1[0].score/10+'0');
-        printChar(50, 0, s1[0].score-10+'0');
+        printChar(55, 0, s1[0].score/10+'0');
+        printChar(55, 0, s1[0].score-10+'0');
     }
     
-    /*if(s2[0].score<10){
-        printChar((S_WIDTH-2)*SQUARE, 1, s2[0].score+'0');
+    if(s2[0].score<10){
+        printChar(55, 1, s2[0].score+'0');
     }
     else{
-        printChar((S_WIDTH-2)*SQUARE, 1, s2[0].score/10+'0');
-        printChar((S_WIDTH-2)*SQUARE+1, 1, s2[0].score-10+'0');
-    }*/
+        printChar(55, 1, s2[0].score/10+'0');
+        printChar(55, 1, s2[0].score-10+'0');
+    }
 }
 
 void snake_main2(){
