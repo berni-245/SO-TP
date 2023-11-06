@@ -70,7 +70,8 @@ void snake_input(){
         case 'x': gameover=1;
         case 'p': s1[0].diry=0; s1[0].dirx=0; break;
         case 'r': reset(); break;
-        //case 'o': playertwo=1; createSnake(0x00FFFF); break;
+        
+        //case 'o': createSnake(0x00FFFF); break;
         
         case 'i': s2[0].diry=-1; s2[0].dirx=0; break;
         case 'j': s2[0].diry=0; s2[0].dirx=-1; break;
@@ -154,8 +155,20 @@ void appleGen(snakeT s){
         grid[s[0].x][s[0].y]=s[0].color;
         apple[0]=rand()%(S_WIDTH-1);
         apple[1]=rand()%(S_HEIGHT-1);
-    } while (apple[0]==0 || apple[1]==0);
+    } while (apple[0]==0 || apple[1]==0 && notOnSnake(apple[0], apple[1]));
     grid[apple[0]][apple[1]]=APPLE;
+}
+
+//0 if on snake | 1 if not
+int notOnSnake(int x, int y){
+    if(x==s1[0].tail_x && y==s1[0].tail_y)
+        return 0;
+
+    for (int i=0; i<s1[0].len; i++){
+        if (x==s1[i].x && y==s1[i].y)
+            return 0;
+    }
+    return 1;
 }
 
 int eaten(snakeT s){
@@ -200,11 +213,11 @@ void snake_main2(){
     exit=0;
     startGrid();
     createSnake();
+    createSnake();
     appleGen(s1);
     snake_input();
     while(!gameover){
-        haltTillNextInterruption();
-        haltTillNextInterruption();
+        sleep(50);
         snake_input();
         moveSnake(s1);
         //moveSnake(s2);
