@@ -305,10 +305,17 @@ CommandResult commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
     puts("Usage:");
     printf("\t\t%s <playerCount> <player1Name> [player2Name]\n", argv[0]);
     printf("Where playerCount can be 1 or 2.\n");
+    printf("Player 1 moves with wasd, player 2 with ijkl. Other keybinds are:\n");
+    printf(" ctrl + r: reset game\n");
+    printf(" ctrl + x: lose game\n");
+    printf(" ctrl + c: exit game\n");
     return MISSING_ARGUMENTS;
   }
   int playerCount = strToInt(argv[1]);
-  if (playerCount > 1 && argc < 4) {
+  if (playerCount != 1 && playerCount != 2) {
+    printf("Invalid player count: %s\n", argv[1]);
+    return ILLEGAL_ARGUMENT;
+  } else if (playerCount == 2 && argc < 4) {
     printf("Player 2 name missing\n");
     return MISSING_ARGUMENTS;
   }
