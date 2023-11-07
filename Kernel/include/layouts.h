@@ -1,6 +1,10 @@
 #ifndef LAYOUTS_H
 #define LAYOUTS_H
 
+typedef enum KbLayout {
+  QWERTY_LATAM = 0,
+  QWERTY_US,
+} KbLayout;
 
 #define LAYOUT_SIZE 0x57
 

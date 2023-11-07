@@ -7,11 +7,7 @@
 #include <lib.h>
 #include <moduleLoader.h>
 #include <clock.h>
-#include <pcSpeaker.h>
 #include <videoDriver.h>
-#include <naiveConsole.h>
-#include <registers.h>
-#include <exceptions.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -62,43 +58,8 @@ int main()
   loadIdt();
   setFontGridValues();
 
-  setBgColor(0x1A1B26);
-  setFontColor(0xC0CAF5);
-  clearScreen();
-  setLayout(QWERTY_US);
-  sleep(2000);
-  Register * registers = getRegisters();
-  for(int i = 0; i < REGISTER_QUANTITY; i++){
-    printNextString(registers[i].name); printNextChar(' '); printNextHexWithPadding(registers[i].value); printNextChar(' ');
-    if(i%4 == 0)
-      printNextChar('\n');
-  }
-  sleep(1000);
-  zeroDivisionException();
-  sleep(1000);
-  invalidOpcodeException();
-
-  // int test = 3/0; // zeroDivision Error
-  //__asm__ ("ud2"); // invalidOpcode Error
   userModule();
   
-  // printCharXY(500, 500, 'X', 8);
-
-  // KeyStruct buf[20];
-  // int read;
-  // while (1) {
-  //   haltTillNextInterruption();
-  //   read = readKbBuffer(buf, 20);
-  //   for (int i = 0; i < read; ++i) {
-  //     if (buf[i].key == '+' && buf[i].md.ctrlPressed) {
-  //       increaseFont(); 
-  //     } else if (buf[i].key == '-' && buf[i].md.ctrlPressed) {
-  //       decreaseFont();
-  //     } else {
-  //       printNextChar(buf[i].key);
-  //     }
-  //   }
-  // };
 
 	return 0;
 }

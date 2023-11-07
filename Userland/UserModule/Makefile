@@ -1,7 +1,7 @@
 include ../Makefile.inc
 
 OBJDIR := objs
-CDIR := c
+CDIR := c2
 ASMDIR := asm
 
 MODULE=0000-userModule.bin
@@ -26,7 +26,7 @@ $(MODULE): $(ALL_OBJECTS)
 
 $(OBJECTS_C) $(OBJECTS_ASM): | $(OBJDIR)
 
-$(OBJDIR):
+$(OBJDIR): FORCE
 	mkdir -p $(OBJDIR)/$(CDIR) $(OBJDIR)/$(ASMDIR)
 
 $(OBJDIR)/%.o : %.c
@@ -37,5 +37,7 @@ $(OBJDIR)/%.o : %.asm
 
 clean:
 	rm -f $(OBJDIR)/*.o $(OBJDIR)/*/*.o *.bin *.elf
+
+FORCE:
 
 .PHONY: all clean

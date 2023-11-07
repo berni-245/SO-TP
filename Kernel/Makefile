@@ -29,7 +29,7 @@ $(KERNEL): $(ALL_OBJECTS)
 
 $(OBJECTS_C) $(OBJECTS_ASM) $(LOADEROBJECT): | $(OBJDIR)
 
-$(OBJDIR):
+$(OBJDIR): FORCE
 	mkdir -p $(OBJDIR)/$(CDIR) $(OBJDIR)/$(ASMDIR)
 
 $(OBJDIR)/%.o : %.c
@@ -43,5 +43,7 @@ $(LOADEROBJECT):
 
 clean:
 	rm -f $(OBJDIR)/*.o $(OBJDIR)/*/*.o *.bin *.elf
+
+FORCE:
 
 .PHONY: all clean
