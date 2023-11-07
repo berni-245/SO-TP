@@ -295,6 +295,7 @@ void appleGen() {
 int eaten(Snake* s) {
   if (pointEquals(apple, s->body[0])) {
     s->score++;
+    sysPlaySound(400, 50);
     appleGen();
     growSnake(s);
     return 1;

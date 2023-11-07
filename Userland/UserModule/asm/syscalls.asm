@@ -13,6 +13,7 @@ global sysWriteCharNext
 global sysMoveCursor
 global sysPrintPixel
 global sysFillRectangle
+global sysPlaySound
 
 %macro syscall 1
   mov r9, %1
@@ -44,3 +45,5 @@ sysPrintPixel:
   syscall 10
 sysFillRectangle:
   syscall 11
+sysPlaySound:
+  syscall 12

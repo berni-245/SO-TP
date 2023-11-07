@@ -4,6 +4,7 @@
 #include <sysinfo.h>
 #include <timer.h>
 #include <videoDriver.h>
+#include <pcSpeaker.h>
 
 /*
 * There should be stdin, stdout and stderr global variables and read/write syscalls that get/set them.
@@ -22,6 +23,7 @@ static SyscallFunction syscalls[] = {
   (SyscallFunction)moveCursor,
   (SyscallFunction)printPixel,
   (SyscallFunction)fillRectangle,
+  (SyscallFunction)playSoundForCertainMs
 };
 
 SyscallFunction* getSyscallsArray() {
