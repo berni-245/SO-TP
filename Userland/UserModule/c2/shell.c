@@ -41,6 +41,8 @@ int shell() {
   addCommand("setColors", "Set font and background colors.", commandSetColors);
   addCommand("sysInfo", "Get some system information.", commandSysInfo);
   addCommand("test", "Test.", commandTest);
+  addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
+  addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
   // commandHelp();
   newPrompt();
 
@@ -291,4 +293,8 @@ CommandResult commandTest() {
   }
   printf("\n");
   return SUCCESS;
+}
+
+CommandResult commandZeroDivisionError(){
+  int i = 4/0;
 }

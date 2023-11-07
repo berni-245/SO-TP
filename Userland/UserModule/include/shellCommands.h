@@ -20,5 +20,7 @@ CommandResult commandLayout(int argc, char argv[argc][MAX_ARG_LEN]);
 CommandResult commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]);
 CommandResult commandSysInfo();
 CommandResult commandTest();
+CommandResult commandZeroDivisionError();
+CommandResult commandInvalidOpcodeError();
 
 #endif

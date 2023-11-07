@@ -182,10 +182,11 @@ void printNextHex(uint64_t value){
 }
 
 void printNextHexWithPadding(uint64_t value){
+  static int padding = 16;
   char buffer[getScreenWidth()];
   int digits = uintToBase(value, buffer, 16);
   printNextString("0x");
-  for(int i = 0 + digits; i < 8; i++){
+  for(int i = 0 + digits; i < padding; i++){
     printNextChar('0');
   }
 	printNextBase(value, 16);

@@ -1,7 +1,8 @@
 #include <exceptions.h>
 #include <registers.h>
 #include <videoDriver.h>
-#include <clock.h>
+#include <timer.h>
+
 
 static void printRegisters();
 
@@ -22,7 +23,10 @@ static void printRegisters(){
     for(int i = 0; i < REGISTER_QUANTITY; i++){
         printNextString(exceptionRegisters[i].name); printNextChar(' '); 
         printNextHexWithPadding(exceptionRegisters[i].value); printNextChar(' ');
-        if(i % 4 == 0)
+        if(i % 3 == 0) // para que entren 3 registros por línea
             printNextChar('\n');
     }
+    printNextChar('\n');
+    printNextString("Returning to shell in 10 seconds\n");
+    sleep(10000);
 }
