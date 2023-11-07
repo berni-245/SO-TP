@@ -29,13 +29,18 @@ void setFontGridValues();
 int setFontSize(int fs);
 void printCharXY(int x, int y, char c);
 void printChar(int col, int row, char c);
-void printBuffer(const char buf[], int size);
 int printNextChar(char c);
+void printNextString(const char * str);
+void printNextBase(uint64_t value, uint32_t base);
+void printNextDec(uint64_t value);
+void printNextHex(uint64_t value);
+void printNextHexWithPadding(uint64_t value);
 void moveCursor(int col, int row);
 int cursorHasNext();
 int cursorNext();
 int cursorPrev();
 void printCursor();
 void eraseCursor();
+void clearScreen();
 
 #endif

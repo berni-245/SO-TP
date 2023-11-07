@@ -7,7 +7,6 @@
 #include <lib.h>
 #include <moduleLoader.h>
 #include <clock.h>
-#include <pcSpeaker.h>
 #include <videoDriver.h>
 
 extern uint8_t text;
@@ -59,30 +58,8 @@ int main()
   loadIdt();
   setFontGridValues();
 
-  // setColor(BACKGROUND, 0x1A1B26);
-  // setColor(FONT, 0xC0CAF5);
-  // clearScreen();
-
-  // setLayout(QWERTY_US);
-	userModule();
-
-  // printCharXY(500, 500, 'X', 8);
-
-  // KeyStruct buf[20];
-  // int read;
-  // while (1) {
-  //   haltTillNextInterruption();
-  //   read = readKbBuffer(buf, 20);
-  //   for (int i = 0; i < read; ++i) {
-  //     if (buf[i].key == '+' && buf[i].md.ctrlPressed) {
-  //       increaseFont(); 
-  //     } else if (buf[i].key == '-' && buf[i].md.ctrlPressed) {
-  //       decreaseFont();
-  //     } else {
-  //       printNextChar(buf[i].key);
-  //     }
-  //   }
-  // };
+  userModule();
+  
 
 	return 0;
 }
