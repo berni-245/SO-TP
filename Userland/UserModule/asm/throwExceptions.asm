@@ -1,4 +1,3 @@
-global commandZeroDivisionError
 global commandInvalidOpcodeError
 
 section .text
