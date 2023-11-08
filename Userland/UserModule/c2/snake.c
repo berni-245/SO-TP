@@ -61,13 +61,14 @@ void snake(bool multiplayer, char* player1Name, char* player2Name) {
     moveInput();
     specialKeyInput();
     moveSnake(&s1);
-    if (!snakeCollision(&s1) && MULTIPLAYER && !onSnake(&s1, s2.body[0])) {
+    if (snakeCollision(&s1) || onSnake(&s1, s2.body[0])) {
+      gameOver();
+    }
+    if (MULTIPLAYER) {
       moveSnake(&s2);
       if (snakeCollision(&s2) || onSnake(&s2, s1.body[0])) {
         gameOver();
       }
-    } else if (MULTIPLAYER) {
-      gameOver();
     }
     if (eaten(&s1) || eaten(&s2)) {
       updateScoreBoard();
