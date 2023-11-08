@@ -14,7 +14,7 @@ uint64_t * getRegistersValues();
 
 uint64_t * getExceptionRegistersValues();
 
-Register * getRegisters();
+void getRegisters(Register * registers);
 
 Register * getExceptionRegisters();
 

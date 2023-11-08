@@ -30,11 +30,13 @@ int shell() {
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
   addCommand("$?", "Print previous command return code.", commandGetReturnCode);
+  addCommand("realTime", "Get current time", commandRealTime);
   addCommand("keyInfo", "Get pressed key info. Exit with ctrl+c.", commandGetKeyInfo);
   addCommand("rand", "Generate random numbers.", commandRand);
-  addCommand("layout", "Get or set current layout.", commandLayout);
+  addCommand("layout", "Get or set current layout. \nAvailable flags: --help, --list", commandLayout);
   addCommand("setColors", "Set font and background colors.", commandSetColors);
   addCommand("sysInfo", "Get some system information.", commandSysInfo);
+  addCommand("getRegisters", "Get the values of the saved registers. \nAvailable flags: --help", commandGetRegisters);
   addCommand("snake", "Play snake.", commandSnake);
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
@@ -169,6 +171,13 @@ CommandResult commandGetReturnCode() {
   return SUCCESS;
 }
 
+CommandResult commandRealTime(){
+  Time currentTime;
+  sysGetCurrentTime(&currentTime);
+  printf("%s\n", currentTime.string);
+  return SUCCESS;
+}
+
 CommandResult commandHelp() {
   printString("Available commands:\n");
   for (int i = 0; i < commandCount; ++i) {
@@ -273,6 +282,38 @@ CommandResult commandSysInfo() {
   printf("charSeparation: %d\n", systemInfo.charSeparation);
   printf("fontCols: %d\n", systemInfo.fontCols);
   printf("fontRows: %d\n", systemInfo.fontRows);
+  return SUCCESS;
+}
+
+CommandResult commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]){
+  if (argc >= 2 && strcmp(argv[1], "--help") == 0) {
+    puts("Usage:");
+    printf("You can save the values of the registers at any time by pressing F1\n");
+    printf("and by running this command without this flag it will print the saved \n");
+    printf("values of the registers.\n");
+    return SUCCESS;
+  }
+  Register * registers;
+  sysGetRegisters(registers);
+  for(int i = 0; i < REGISTER_QUANTITY; i++){
+    printf("%s %x ", registers[i].name, registers[i].value);
+    if(i % 3 == 0) // so it has enough space to print all 3 registers in a line
+      printf("\n");
+  }
+  printf("\n");
+  printf("For more info add --help to the command\n");
+  return SUCCESS;
+}
+
+CommandResult commandTest() {
+  for (int i = 0; i < 5; ++i) {
+    printf("|");
+    for (int i = 0; i < 98; ++i) {
+      printf("x");
+    }
+    printf("|");
+  }
+  printf("\n");
   return SUCCESS;
 }
 

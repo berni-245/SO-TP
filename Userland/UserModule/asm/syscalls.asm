@@ -14,6 +14,8 @@ global sysMoveCursor
 global sysPrintPixel
 global sysFillRectangle
 global sysPlaySound
+global sysGetCurrentTime
+global sysGetRegisters
 
 %macro syscall 1
   mov r9, %1
@@ -47,3 +49,7 @@ sysFillRectangle:
   syscall 11
 sysPlaySound:
   syscall 12
+sysGetCurrentTime:
+  syscall 13
+sysGetRegisters:
+  syscall 14

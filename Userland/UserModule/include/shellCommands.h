@@ -13,15 +13,18 @@ typedef struct ShellCommand {
 
 CommandResult commandEcho(int argc, char argv[argc][MAX_ARG_LEN]);
 CommandResult commandGetReturnCode();
+CommandResult commandRealTime();
 CommandResult commandHelp();
 CommandResult commandGetKeyInfo();
 CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]);
 CommandResult commandLayout(int argc, char argv[argc][MAX_ARG_LEN]);
 CommandResult commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]);
 CommandResult commandSysInfo();
+CommandResult commandGetRegisters();
 CommandResult commandSnake(int argc, char argv[argc][MAX_ARG_LEN]);
 CommandResult commandTest();
 CommandResult commandZeroDivisionError();
 CommandResult commandInvalidOpcodeError();
+
 
 #endif

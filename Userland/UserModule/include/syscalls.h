@@ -19,5 +19,7 @@ extern int sysMoveCursor(int col, int row);
 void sysPrintPixel(int x, int y, RGBColor color);
 void sysFillRectangle(int x, int y, int width, int height, RGBColor color);
 extern void sysPlaySound(uint32_t nFrequence, int ms);
+extern void sysGetCurrentTime(Time *currentTime);
+extern void sysGetRegisters(Register * registers);
 
 #endif
