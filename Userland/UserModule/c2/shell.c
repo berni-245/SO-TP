@@ -20,11 +20,11 @@ void newPrompt();
 void incFont();
 void decFont();
 void addCommand(char* name, char* description, ShellFunction function);
-void setShellColor();
+void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor);
 CommandResult parseCommand();
 
 int shell() {
-  setShellColor();
+  setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
 
   addCommand("help", "List all commands and their descriptions.", commandHelp);
@@ -82,10 +82,10 @@ int shell() {
   return 1;
 }
 
-void setShellColor() {
-  setBgColor(0x1A1B26);
-  setFontColor(0xC0CAF5);
-  setCursorColor(0xFFFF11);
+void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor) {
+  setFontColor(fontColor);
+  setBgColor(bgColor);
+  setCursorColor(cursorColor);
 }
 
 static char* prompt = " > ";
@@ -326,12 +326,17 @@ CommandResult commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
     printf(" ctrl + x: lose game\n");
     printf(" ctrl + c: exit game\n");
     return MISSING_ARGUMENTS;
-  } else if (argc == 2) {
-    snake(false, argv[1], "");
   } else {
-    snake(true, argv[1], argv[2]);
+    uint32_t fontColor = getFontColor();
+    uint32_t bgColor = getBgColor();
+    uint32_t cursorColor = getCursorColor();
+    if (argc == 2) {
+      snake(false, argv[1], "");
+    } else {
+      snake(true, argv[1], argv[2]);
+    }
+    setShellColors(fontColor, bgColor, cursorColor);
   }
-  setShellColor();
   repaint();
   return SUCCESS;
 }
