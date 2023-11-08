@@ -12,12 +12,7 @@
 #include <sysinfo.h>
 #include <syscalls.h>
 
-// The output of the commands should also be written to the screen buffer!!!
 int currentCommandIdx = 0;
-
-// static char stdin[300];
-// static int stdinIdx = 0;
-// static char stdout[300];
 
 static int commandReturnCode = 0;
 
@@ -41,7 +36,6 @@ int shell() {
   addCommand("setColors", "Set font and background colors.", commandSetColors);
   addCommand("sysInfo", "Get some system information.", commandSysInfo);
   addCommand("snake", "Play snake.", commandSnake);
-  addCommand("test", "Test.", commandTest);
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
   commandHelp();
@@ -287,18 +281,6 @@ CommandResult commandSysInfo() {
   printf("charSeparation: %d\n", systemInfo.charSeparation);
   printf("fontCols: %d\n", systemInfo.fontCols);
   printf("fontRows: %d\n", systemInfo.fontRows);
-  return SUCCESS;
-}
-
-CommandResult commandTest() {
-  for (int i = 0; i < 5; ++i) {
-    printf("|");
-    for (int i = 0; i < 98; ++i) {
-      printf("x");
-    }
-    printf("|");
-  }
-  printf("\n");
   return SUCCESS;
 }
 
