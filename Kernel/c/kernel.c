@@ -7,7 +7,6 @@
 #include <lib.h>
 #include <moduleLoader.h>
 #include <clock.h>
-#include <pcSpeaker.h>
 #include <videoDriver.h>
 
 extern uint8_t text;
@@ -56,8 +55,8 @@ void * initializeKernelBinary()
 
 int main()
 {	
-  loadIdt();
-  setFontGridValues();
+	loadIdt();
+	setFontGridValues();
 
 	userModule();
 

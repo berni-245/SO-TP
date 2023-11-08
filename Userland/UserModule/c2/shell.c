@@ -42,6 +42,8 @@ int shell() {
   addCommand("sysInfo", "Get some system information.", commandSysInfo);
   addCommand("snake", "Play snake.", commandSnake);
   addCommand("test", "Test.", commandTest);
+  addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
+  addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
   commandHelp();
   newPrompt();
 
@@ -323,4 +325,7 @@ CommandResult commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
   setShellColor();
   repaint();
   return SUCCESS;
+}
+CommandResult commandZeroDivisionError(){
+  int i = 4/0;
 }

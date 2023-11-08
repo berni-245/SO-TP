@@ -60,4 +60,7 @@ extern void irq05Handler();
 extern void irq06Handler();
 extern void irq07Handler();
 
+extern void exception00Handler();
+extern void exception01Handler();
+
 #endif

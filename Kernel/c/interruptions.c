@@ -1,5 +1,6 @@
 #include <interruptions.h>
 #include <keyboard.h>
+#include <exceptions.h>
 #include <stdint.h>
 #include <syscalls.h>
 
@@ -17,6 +18,8 @@ void setupIdtEntry(int index, void* irqHandler) {
 }
 
 void loadIdt() {
+  setupIdtEntry(0x00, exception00Handler);
+  setupIdtEntry(0x06, exception01Handler);
   setupIdtEntry(0x20, irq00Handler);
   setupIdtEntry(0x21, irq01Handler);
   setupIdtEntry(0x80, syscallDispatcher);
@@ -29,6 +32,15 @@ static InterruptionFunction interruptions[255] = {
   readKeyToBuffer,
 };
 
+static InterruptionFunction exceptions[17] = {
+  zeroDivisionException,
+  invalidOpcodeException
+};
+
 void irqDispatcher(uint8_t index) {
   interruptions[index]();
+}
+
+void exceptionDispatcher(uint8_t index) {
+  exceptions[index]();
 }
