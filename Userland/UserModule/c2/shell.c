@@ -247,26 +247,18 @@ CommandResult commandLayout(int argc, char (*argv)[MAX_ARG_LEN]) {
 }
 
 CommandResult commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]) {
-  setFontColor(0x010101);
-  setBgColor(0xDDDDDD);
-  setCursorColor(0xFF0000);
-  // if (argc < 3) {
-  //   puts("Usage:");
-  //   printf("\t\t%s <min> <max> [count]\n", argv[0]);
-  //   printf("Where all arguments are integers and count is optional.\n");
-  //   return MISSING_ARGUMENTS;
-  // }
-  // int min = strToInt(argv[1]);
-  // int max = strToInt(argv[2]);
-  // if (max < min) {
-  //   puts("Error: min can't be greater than max");
-  //   return ILLEGAL_ARGUMENT;
-  // }
-  // int count = (argc > 3) ? strToInt(argv[3]) : 1;
-  // while (count--) {
-  //   printf("%d%s", randBetween(min, max), (count == 0) ? "" : ", ");
-  // }
-  // printf("\n");
+  if (argc < 4) {
+    puts("Usage:");
+    printf("\t\t%s <fontColor> <backgroundColor> <cursorColor>\n", argv[0]);
+    printf("Where all arguments should be hex colors.\n");
+    return MISSING_ARGUMENTS;
+  }
+  int fontColor = strToInt(argv[1]);
+  int bgColor = strToInt(argv[2]);
+  int cursorColor = strToInt(argv[3]);
+  setFontColor(fontColor);
+  setBgColor(bgColor);
+  setCursorColor(cursorColor);
   repaint();
   return SUCCESS;
 }

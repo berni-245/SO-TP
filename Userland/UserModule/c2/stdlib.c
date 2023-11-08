@@ -189,17 +189,31 @@ int printf(const char* fmt, ...) {
   return 0;
 }
 
+#define TO_LOWER(c) ((c >= 'A' && c <= 'Z') ? (c + 'a' - 'A') : c)
+#define IS_HEX_LETTER(c) ('a' <= TO_LOWER(c) && TO_LOWER(c) <= 'f')
+#define IS_NUMBER(c) ('0' <= c && c <= '9')
+int hexCharToDec(char c) {
+  c = TO_LOWER(c);
+  if (IS_NUMBER(c)) return c - '0';
+  else if (IS_HEX_LETTER(c)) return c - 'a' + 10;
+  else return -1;
+}
 int strToInt(char* s) {
+  int base = 10;
   int multiplier = 1;
   if (s[0] == '-') {
     multiplier = -1;
     ++s;
   }
+  if (s[0] == '0' && s[1] == 'x') {
+    base = 16;
+    s += 2;
+  }
   int j = strlen(s) - 1;
   int n = 0, k = 1;
-  while (j >= 0 && '0' <= s[j] && s[j] <= '9') {
-    n += (s[j] - '0')*k;
-    --j; k *= 10;
+  while (j >= 0 && (IS_NUMBER(s[j]) || (base == 16 && IS_HEX_LETTER(s[j])))) {
+    n += hexCharToDec(s[j])*k;
+    --j; k *= base;
   }
   return n * multiplier;
 }
