@@ -52,7 +52,7 @@ void jumpLine() {
 void printScreenBuffer() {
   for (int i = screenBufReadIdx; i != screenBufWriteIdx; i = (i + 1) % SCREEN_BUFFER_SIZE) {
     int endOfScreen = sysWriteCharNext(screenBuffer[i]);
-    // if (endOfScreen) jumpLine();
+    if (endOfScreen) jumpLine();
   }
 }
 
@@ -107,15 +107,10 @@ unsigned int strlen(char* s) {
   return len - 1;
 }
 
-uint32_t intToBase(long value, char* buffer, uint32_t base) {
+uint32_t uintToBase(unsigned long value, char* buffer, uint32_t base) {
 	char* p = buffer;
 	char* p1 = buffer;
   char* p2;
-  if (value < 0) {
-    *p++ = '-';
-    p1 = p;
-    value = -value;
-  }
 	uint32_t digits = 0;
 
 	do {
@@ -137,9 +132,22 @@ uint32_t intToBase(long value, char* buffer, uint32_t base) {
 
 	return digits;
 }
-void printAsBase(int n, int base) {
+uint32_t intToBase(long value, char* buffer, uint32_t base) {
+	char* p = buffer;
+  if (value < 0) {
+    *p++ = '-';
+    value = -value;
+  }
+  return uintToBase(value, p, base);
+}
+void printAsBase(long n, int base) {
   char buf[255];
   intToBase(n, buf, base);
+  printString(buf);
+}
+void printUintAsBase(unsigned long n, int base) {
+  char buf[255];
+  uintToBase(n, buf, base);
   printString(buf);
 }
 
@@ -167,7 +175,7 @@ int printf(const char* fmt, ...) {
           break;
         case 'x': 
           printString("0x");
-          printAsBase(va_arg(p, int), 16);
+          printUintAsBase(va_arg(p, int), 16);
           break;
         case 'b': 
           printString("0b");

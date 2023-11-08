@@ -22,6 +22,7 @@ void clearScreen();
 void repaint();
 void printString(const char* s);
 void puts(const char* s);
+uint32_t uintToBase(unsigned long value, char* buffer, uint32_t base);
 uint32_t intToBase(long value, char* buffer, uint32_t base);
 int strcmp(const char*, const char*);
 int strFindChar(const char* s, char c);
