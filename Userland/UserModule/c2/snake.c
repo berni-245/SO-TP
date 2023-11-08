@@ -64,6 +64,7 @@ void snake(bool multiplayer, char* player1Name, char* player2Name) {
     if (MULTIPLAYER) moveSnake(&s2);
     if (!snakeCollision(&s1) && multiplayer) {
       if (!snakeCollision(&s2) && (onSnake(s2.body[0], &s1) || onSnake(s1.body[0], &s2))) {
+        sysPlaySound(100, 50);
         gameOver();
       }
     }
@@ -257,11 +258,13 @@ bool pointEquals(Point a, Point b) {
 bool snakeCollision(Snake* s) {
   if (s->body[0].x == grid.cols - 1 || s->body[0].x == 0 ||
       s->body[0].y == grid.rows - 1 || s->body[0].y == 0) {
+    sysPlaySound(100, 50);
     gameOver();
     return true;
   }
   for (int i = s->len; i > 1; i--) {
     if (pointEquals(s->body[0], s->body[i])) {
+      sysPlaySound(100, 50);
       gameOver();
       return true;
     }
@@ -295,7 +298,7 @@ void appleGen() {
 int eaten(Snake* s) {
   if (pointEquals(apple, s->body[0])) {
     s->score++;
-    sysPlaySound(400, 50);
+    sysPlaySound(600, 50);
     appleGen();
     growSnake(s);
     return 1;
