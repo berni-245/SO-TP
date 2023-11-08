@@ -88,21 +88,30 @@ void setShellColor() {
   setCursorColor(0xFFFF11);
 }
 
+static char* prompt = " > ";
+static char* errorPrompt = " >! ";
+static int currentPromptLen = 0;
+void newPrompt() {
+  char* currentPrompt;
+  if (commandReturnCode == 0) {
+    currentPrompt = prompt;
+    currentPromptLen = 3;
+  } else {
+    currentPrompt = errorPrompt;
+    currentPromptLen = 4;
+  }
+  printString(currentPrompt);
+  currentCommandIdx = screenBufWriteIdx;
+}
+
 void incFont() {
   setFontSize(systemInfo.fontSize + 1);
+  screenBufReadIdx = currentCommandIdx - currentPromptLen;
   repaint();
 }
 void decFont() {
   setFontSize(systemInfo.fontSize - 1);
   repaint();
-}
-
-static char* prompt = " > ";
-static char* errorPrompt = " >! ";
-void newPrompt() {
-  char* currentPrompt = (commandReturnCode == 0) ? prompt : errorPrompt;
-  printString(currentPrompt);
-  currentCommandIdx = screenBufWriteIdx;
 }
 
 static ShellCommand commands[50];
@@ -296,12 +305,12 @@ CommandResult commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
     );
     return SUCCESS;
   }
-  Register * registers;
+  Register registers[REGISTER_QUANTITY];
   sysGetRegisters(registers);
+  // Print 3 registers per row.
   for(int i = 0; i < REGISTER_QUANTITY; i++){
-    printf("%s %x ", registers[i].name, registers[i].value);
-    if(i % 3 == 0) // so it has enough space to print all 3 registers in a line
-      printf("\n");
+    printf("%s %lx ", registers[i].name, registers[i].value);
+    if(i % 3 == 0) printf("\n");
   }
   printf("\n");
   printf("For more info add --help to the command\n");
@@ -334,4 +343,5 @@ CommandResult commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
 }
 CommandResult commandZeroDivisionError(){
   int i = 4/0;
+  return SUCCESS;
 }

@@ -1,7 +1,10 @@
 #ifndef REGISTERS_H
 #define REGISTERS_H
 
+#include <videoDriver.h>
 #include <stdint.h>
+#include <timer.h>
+
 #define REGISTER_QUANTITY 17
 #define STR_LEN 4
 
@@ -10,13 +13,10 @@ typedef struct Register{
     char name[STR_LEN];
 } Register;
 
-uint64_t * getRegistersValues();
-
-uint64_t * getExceptionRegistersValues();
-
-void getRegisters(Register * registers);
-
-Register * getExceptionRegisters();
-
+void printRegisters();
+void printExceptionRegisters();
+void getRegisters(Register registers[REGISTER_QUANTITY]);
+uint64_t* getRegisterValues();
+uint64_t* getExceptionRegisterValues();
 
 #endif

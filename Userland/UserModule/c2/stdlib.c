@@ -52,7 +52,7 @@ void jumpLine() {
 void printScreenBuffer() {
   for (int i = screenBufReadIdx; i != screenBufWriteIdx; i = (i + 1) % SCREEN_BUFFER_SIZE) {
     int endOfScreen = sysWriteCharNext(screenBuffer[i]);
-    if (endOfScreen) jumpLine();
+    // if (endOfScreen) jumpLine();
   }
 }
 
@@ -168,7 +168,13 @@ int printf(const char* fmt, ...) {
           printAsBase(va_arg(p, int), 10);
           break;
         case 'l': 
-          printAsBase(va_arg(p, long), 10);
+          if (fmt[i+1] == 'x') {
+            ++i;
+            printString("0x");
+            printUintAsBase(va_arg(p, long), 16);
+          } else {
+            printAsBase(va_arg(p, long), 10);
+          }
           break;
         case 'f':
           printString("'TODO print float'");
