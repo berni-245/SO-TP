@@ -33,10 +33,10 @@ int shell() {
   addCommand("realTime", "Get current time", commandRealTime);
   addCommand("keyInfo", "Get pressed key info. Exit with ctrl+c.", commandGetKeyInfo);
   addCommand("rand", "Generate random numbers.", commandRand);
-  addCommand("layout", "Get or set current layout. \nAvailable flags: --help, --list", commandLayout);
+  addCommand("layout", "Get or set current layout. \n    Available flags: --help, --list", commandLayout);
   addCommand("setColors", "Set font and background colors.", commandSetColors);
   addCommand("sysInfo", "Get some system information.", commandSysInfo);
-  addCommand("getRegisters", "Get the values of the saved registers. \nAvailable flags: --help", commandGetRegisters);
+  addCommand("getRegisters", "Get the values of the saved registers. \n    Available flags: --help", commandGetRegisters);
   addCommand("snake", "Play snake.", commandSnake);
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
@@ -285,12 +285,15 @@ CommandResult commandSysInfo() {
   return SUCCESS;
 }
 
-CommandResult commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]){
+CommandResult commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
   if (argc >= 2 && strcmp(argv[1], "--help") == 0) {
     puts("Usage:");
-    printf("You can save the values of the registers at any time by pressing F1\n");
-    printf("and by running this command without this flag it will print the saved \n");
-    printf("values of the registers.\n");
+    printf("\t\t%s\n", argv[0]);
+    printf(
+      "You can save the values of the registers at any time by pressing F1 "
+      "and by running this command without this flag it will print the saved "
+      "values of the registers.\n"
+    );
     return SUCCESS;
   }
   Register * registers;
@@ -302,18 +305,6 @@ CommandResult commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]){
   }
   printf("\n");
   printf("For more info add --help to the command\n");
-  return SUCCESS;
-}
-
-CommandResult commandTest() {
-  for (int i = 0; i < 5; ++i) {
-    printf("|");
-    for (int i = 0; i < 98; ++i) {
-      printf("x");
-    }
-    printf("|");
-  }
-  printf("\n");
   return SUCCESS;
 }
 
