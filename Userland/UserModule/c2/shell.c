@@ -342,6 +342,9 @@ CommandResult commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
   return SUCCESS;
 }
 CommandResult commandZeroDivisionError(){
-  int i = 4/0;
+  // Always set srand because after the exception the modules starts anew
+  // and srand is zero again.
+  setSrand(sysGetTicks());
+  int i = rand()/0;
   return SUCCESS;
 }

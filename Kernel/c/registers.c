@@ -13,7 +13,7 @@ uint64_t* getRegisterValues() {
 }
 
 uint64_t* getExceptionRegisterValues() {
-  return registerValues;
+  return exceptionRegisterValues;
 }
 
 void getRegisters(Register regs[REGISTER_QUANTITY]) {

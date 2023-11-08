@@ -24,11 +24,12 @@ saveRegisters:
 .exception:
     call getExceptionRegisterValues
     mov rbx, rax
-    jmp .loop
+    jmp .getFirstReg
 .noException:
     call getRegisterValues
     mov rbx, rax      ; guardo la dirección donde almacenaré los registros    
 
+.getFirstReg
     lea rax, [rbp + 24]     ; guardo en rax la dirección del segundo argumento, es decir el rip pusheado anteriormente
     xor rcx, rcx            ; seteo el contador en 0
 
