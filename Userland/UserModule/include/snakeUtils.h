@@ -66,7 +66,7 @@ void drawSnake(Snake* s);
 void moveSnake(Snake* s);
 bool pointEquals(Point a, Point b);
 bool snakeCollision(Snake*);
-bool onSnake(Point p, Snake* s);
+bool onSnake(Snake* s, Point p);
 void appleGen();
 int eaten(Snake* s);
 void updateScoreBoard();

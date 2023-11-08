@@ -318,25 +318,19 @@ CommandResult commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
 }
 
 CommandResult commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
-  if (argc < 3) {
+  if (argc < 2) {
     puts("Usage:");
-    printf("\t\t%s <playerCount> <player1Name> [player2Name]\n", argv[0]);
-    printf("Where playerCount can be 1 or 2.\n");
+    printf("\t\t%s <player1Name> [player2Name]\n", argv[0]);
     printf("Player 1 moves with wasd, player 2 with ijkl. Other keybinds are:\n");
     printf(" ctrl + r: reset game\n");
     printf(" ctrl + x: lose game\n");
     printf(" ctrl + c: exit game\n");
     return MISSING_ARGUMENTS;
+  } else if (argc == 2) {
+    snake(false, argv[1], "");
+  } else {
+    snake(true, argv[1], argv[2]);
   }
-  int playerCount = strToInt(argv[1]);
-  if (playerCount != 1 && playerCount != 2) {
-    printf("Invalid player count: %s\n", argv[1]);
-    return ILLEGAL_ARGUMENT;
-  } else if (playerCount == 2 && argc < 4) {
-    printf("Player 2 name missing\n");
-    return MISSING_ARGUMENTS;
-  }
-  snake(playerCount > 1, argv[2], argv[3]);
   setShellColor();
   repaint();
   return SUCCESS;

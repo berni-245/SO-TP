@@ -61,12 +61,13 @@ void snake(bool multiplayer, char* player1Name, char* player2Name) {
     moveInput();
     specialKeyInput();
     moveSnake(&s1);
-    if (MULTIPLAYER) moveSnake(&s2);
-    if (!snakeCollision(&s1) && multiplayer) {
-      if (!snakeCollision(&s2) && (onSnake(s2.body[0], &s1) || onSnake(s1.body[0], &s2))) {
-        sysPlaySound(100, 50);
+    if (!snakeCollision(&s1) && MULTIPLAYER && !onSnake(&s1, s2.body[0])) {
+      moveSnake(&s2);
+      if (snakeCollision(&s2) || onSnake(&s2, s1.body[0])) {
         gameOver();
       }
+    } else if (MULTIPLAYER) {
+      gameOver();
     }
     if (eaten(&s1) || eaten(&s2)) {
       updateScoreBoard();
@@ -249,6 +250,7 @@ void gameOver() {
     grid.width/2 - (len/2)*(systemInfo.charWidth*fontSize + systemInfo.charSeparation),
     grid.height/2, message, fontSize, 0
   );
+  sysPlaySound(100, 50);
 }
 
 bool pointEquals(Point a, Point b) {
@@ -258,21 +260,17 @@ bool pointEquals(Point a, Point b) {
 bool snakeCollision(Snake* s) {
   if (s->body[0].x == grid.cols - 1 || s->body[0].x == 0 ||
       s->body[0].y == grid.rows - 1 || s->body[0].y == 0) {
-    sysPlaySound(100, 50);
-    gameOver();
     return true;
   }
   for (int i = s->len; i > 1; i--) {
     if (pointEquals(s->body[0], s->body[i])) {
-      sysPlaySound(100, 50);
-      gameOver();
       return true;
     }
   }
   return false;
 }
 
-bool onSnake(Point p, Snake* s) {
+bool onSnake(Snake* s, Point p) {
   for (int i = 0; i < s->len; i++) {
     if (pointEquals(p, s->body[i])) return true;
   }
@@ -285,7 +283,7 @@ void appleGen() {
     apple.x = randBetween(1, grid.cols - 2);
     apple.y = randBetween(1, grid.rows - 2);
     for (int i = 0; i < s1.len && !regen; ++i) {
-      if (onSnake(apple, &s1) || onSnake(apple, &s2)) {
+      if (onSnake(&s1, apple) || onSnake(&s2, apple)) {
         apple.x = randBetween(1, grid.cols - 2);
         apple.y = randBetween(1, grid.rows - 2);
       }
