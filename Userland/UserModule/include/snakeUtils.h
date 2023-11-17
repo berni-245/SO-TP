@@ -39,6 +39,7 @@ typedef struct {
   int color;
   char* name;
   int nameLen;
+  int nameX, nameY;
   int scoreX, scoreY;
 } Snake;
 
@@ -60,8 +61,8 @@ void clearGridCell(int col, int row);
 
 void setSnake(Snake* s, int col, int row, uint32_t color, char* name, int scoreX, int scoreY);
 void growSnake(Snake* s);
-int moveInput();
-int specialKeyInput();
+bool moveInput();
+bool specialKeyInput();
 void drawSnake(Snake* s);
 void moveSnake(Snake* s);
 bool pointEquals(Point a, Point b);

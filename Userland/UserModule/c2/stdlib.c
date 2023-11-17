@@ -51,7 +51,7 @@ void jumpLine() {
 
 void printScreenBuffer() {
   for (int i = screenBufReadIdx; i != screenBufWriteIdx; i = (i + 1) % SCREEN_BUFFER_SIZE) {
-    int endOfScreen = sysWriteCharNext(screenBuffer[i]);
+    /* int endOfScreen = */ sysWriteCharNext(screenBuffer[i]);
     // if (endOfScreen) jumpLine();
   }
 }
@@ -151,29 +151,76 @@ void printUintAsBase(unsigned long n, int base) {
   printString(buf);
 }
 
+static char paddingChar;
+static int paddingLen = 0;
+void printPadding() {
+  for (int i = 0; i < paddingLen; ++i) {
+    printChar(paddingChar);
+  }
+  paddingLen = 0;
+}
+void printAsBaseWithPadding(long n, int base) {
+  char buf[255];
+  int digits = intToBase(n, buf, base);
+  paddingLen = paddingLen - digits;
+  char* s = buf;
+  if (n < 0) {
+    printChar('-');
+    ++s;
+    --paddingLen;
+  }
+  printPadding();
+  printString(s);
+}
+void printUintAsBaseWithPadding(long n, int base) {
+  char buf[255];
+  int digits = uintToBase(n, buf, base);
+  paddingLen = paddingLen - digits;
+  char* s = buf;
+  printPadding();
+  printString(s);
+}
+void printStringWithPadding(const char* s) {
+  for (int i = 0; s[i] != 0 && paddingLen > 0; ++i) {
+    --paddingLen;
+  }
+  printPadding();
+  for (int i = 0; s[i] != 0; ++i) {
+    printChar(s[i]);
+  }
+}
+
 // Return 0 on successful print, non 0 on error.
 int printf(const char* fmt, ...) {
   va_list p;
   va_start (p, fmt);
+  paddingLen = 0;
 
-  for (int i = 0; fmt[i] != 0; ++i) {
-    if (fmt[i] != '%') {
+  int i = 0;
+  while (fmt[i] != 0) {
+    if (fmt[i] != '%' && paddingLen == 0) {
       printChar(fmt[i]);
     } else {
-      switch (fmt[++i]) {
+      if (paddingLen == 0) ++i;
+      else if (!strContains("dlxs", fmt[i])) {
+        printf("...\nError: Only '%%d', '%%l' and '%%x' modifiers accept padding.\n");
+        return 1;
+      }
+      switch (fmt[i]) {
         case '%':
           printChar('%');
           break;
         case 'd': 
-          printAsBase(va_arg(p, int), 10);
+          printAsBaseWithPadding(va_arg(p, int), 10);
+          paddingLen = 0;
           break;
         case 'l': 
           if (fmt[i+1] == 'x') {
             ++i;
             printString("0x");
-            printUintAsBase(va_arg(p, long), 16);
+            printUintAsBaseWithPadding(va_arg(p, long), 16);
           } else {
-            printAsBase(va_arg(p, long), 10);
+            printAsBaseWithPadding(va_arg(p, long), 10);
           }
           break;
         case 'f':
@@ -181,34 +228,49 @@ int printf(const char* fmt, ...) {
           break;
         case 'x': 
           printString("0x");
-          printUintAsBase(va_arg(p, int), 16);
+          printUintAsBaseWithPadding(va_arg(p, int), 16);
           break;
         case 'b': 
           printString("0b");
           printAsBase(va_arg(p, int), 2);
           break;
         case 's':
-          printString(va_arg(p, char*));
+          printStringWithPadding(va_arg(p, char*));
           break;
         case 'c':
-          // sysWriteCharNext(va_arg(p, int));
           printChar(va_arg(p, int));
           break;
         default:
-          printf("\nUnkown option: %%%c\n", fmt[i]);
-          return 1;
+          if (IS_DIGIT(fmt[i])) {
+            paddingChar = ' ';
+            if (fmt[i] == '0') {
+              paddingChar = '0';
+              ++i;
+            }
+            char nbr[MAX_PADDING_DIGITS + 1];
+            int j = 0;
+            while (IS_DIGIT(fmt[i]) && j < MAX_PADDING_DIGITS) nbr[j++] = fmt[i++];
+            if (IS_DIGIT(fmt[i])) {
+              printf("...\nFormat error: \"%s\"\n", fmt);
+              printf("Maximum padding of %l exceeded\n", pow(10, MAX_PADDING_DIGITS) - 1);
+              return 1;
+            }
+            nbr[j] = 0;
+            paddingLen = strToInt(nbr);
+          } else {
+            printf("\nUnkown option: %%%c\n", fmt[i]);
+            return 1;
+          }
       }
     }
+    if (paddingLen == 0) ++i;
   }
   return 0;
 }
 
-#define TO_LOWER(c) ((c >= 'A' && c <= 'Z') ? (c + 'a' - 'A') : c)
-#define IS_HEX_LETTER(c) ('a' <= TO_LOWER(c) && TO_LOWER(c) <= 'f')
-#define IS_NUMBER(c) ('0' <= c && c <= '9')
 int hexCharToDec(char c) {
   c = TO_LOWER(c);
-  if (IS_NUMBER(c)) return c - '0';
+  if (IS_DIGIT(c)) return c - '0';
   else if (IS_HEX_LETTER(c)) return c - 'a' + 10;
   else return -1;
 }
@@ -225,7 +287,7 @@ int strToInt(char* s) {
   }
   int j = strlen(s) - 1;
   int n = 0, k = 1;
-  while (j >= 0 && (IS_NUMBER(s[j]) || (base == 16 && IS_HEX_LETTER(s[j])))) {
+  while (j >= 0 && (IS_DIGIT(s[j]) || (base == 16 && IS_HEX_LETTER(s[j])))) {
     n += hexCharToDec(s[j])*k;
     --j; k *= base;
   }
@@ -292,4 +354,31 @@ void printStringXY(int x, int y, char* s, int fontSize, int charsPerRow) {
     }
     ++col;
   }
+}
+
+int strTrimStart(const char* s) {
+  int i = 0;
+  while (*(s++) == ' ') ++i;
+  return i;
+}
+
+bool strContains(const char* s, const char c) {
+  for (int i = 0; s[i] != 0; ++i) {
+    if (s[i] == c) return true;
+  }
+  return false;
+}
+
+char toLower(char c) {
+  return TO_LOWER(c);
+}
+
+long pow(int x, int n) {
+  // Habría que settear un errno o algo en realidad.
+  if (n < 0) return x;
+  long res = 1;
+  for (int i = 0; i < n; ++i) {
+    res *= x;
+  }
+  return res;
 }

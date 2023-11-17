@@ -8,6 +8,12 @@
 #define NULL (void*)0
 #define EOF -1
 
+#define MAX_PADDING_DIGITS 2
+
+#define TO_LOWER(c) ((c >= 'A' && c <= 'Z') ? (c + 'a' - 'A') : c)
+#define IS_HEX_LETTER(c) ('a' <= TO_LOWER(c) && TO_LOWER(c) <= 'f')
+#define IS_DIGIT(c) ('0' <= c && c <= '9')
+
 // Should be larger than the real max amount of characters
 // of fontCols*fontRows = 2117 for smallest font size.
 #define SCREEN_BUFFER_SIZE 3000
@@ -35,5 +41,9 @@ unsigned int rand();
 // double normalizedRand();
 unsigned int randBetween(int min, int max);
 void printStringXY(int x, int y, char* s, int fontSize, int charsPerRow);
+int strTrimStart(const char* s);
+bool strContains(const char* s, const char c);
+char toLower(char c);
+long pow(int x, int n);
 
 #endif

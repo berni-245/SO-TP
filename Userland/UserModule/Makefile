@@ -20,6 +20,14 @@ ALL_OBJECTS := $(OBJECTS_C) $(OBJECTS_ASM)
 
 all: $(MODULE)
 
+# This compiling method should supposedly keep debugging and binary files synced.
+# Without this, for some reason the addresses of global variables differes between the two
+# and debugging is a pain because of it. However, doing it this way just doesn't work...
+# $(MODULE_DEBUG): $(ALL_OBJECTS)
+# 	$(GCC) $(GCCFLAGS) -T $(LINK_SCRIPT) -Wl,--oformat=elf64-x86-64 $(LOADERSRC) $(ALL_OBJECTS) -o ../$(MODULE_DEBUG)
+# $(MODULE): $(MODULE_DEBUG)
+# 	objcopy -O binary ../$(MODULE_DEBUG) ../$(MODULE)
+
 $(MODULE): $(ALL_OBJECTS)
 	$(GCC) $(GCCFLAGS) -T $(LINK_SCRIPT) $(LOADERSRC) $(ALL_OBJECTS) -o ../$(MODULE)
 	$(GCC) $(GCCFLAGS) -T $(LINK_SCRIPT) -Wl,--oformat=elf64-x86-64 $(LOADERSRC) $(ALL_OBJECTS) -o ../$(MODULE_DEBUG)

@@ -7,17 +7,18 @@
 #include <stdlib.h>
 #include <time.h>
 
-static bool GAME_OVER, EXIT, MULTIPLAYER;
+static bool GAME_OVER, EXIT, MULTIPLAYER, MUTE;
 Snake s1 = {0};
 Snake s2 = {0};
 KeyStruct input;
 
 Grid grid;
 
-void snake(bool multiplayer, char* player1Name, char* player2Name) {
+void snake(bool multiplayer, char* player1Name, char* player2Name, bool mute) {
   MULTIPLAYER = multiplayer;
-  GAME_OVER = 0;
-  EXIT = 0;
+  MUTE = mute;
+  GAME_OVER = false;
+  EXIT = false;
   setGrid();
   int bgColor = 0x262626;
   setBgColor(bgColor);
@@ -51,33 +52,30 @@ void snake(bool multiplayer, char* player1Name, char* player2Name) {
 
   appleGen();
   updateScoreBoard();
-  while (!moveInput()) {
-    sysHalt();
-    getKey(&input);
-  }
-  while (!GAME_OVER) {
-    sleep(55);
-    getKey(&input);
-    moveInput();
-    specialKeyInput();
-    moveSnake(&s1);
-    if (snakeCollision(&s1) || onSnake(&s1, s2.body[0])) {
-      gameOver();
-    }
-    if (MULTIPLAYER) {
-      moveSnake(&s2);
-      if (snakeCollision(&s2) || onSnake(&s2, s1.body[0])) {
+  while (!EXIT) {
+    do {
+      sysHalt();
+      getKey(&input);
+    } while (!specialKeyInput() && !moveInput());
+    while (!GAME_OVER && !EXIT && !specialKeyInput()) {
+      sleep(55);
+      // sysHalt();
+      getKey(&input);
+      moveInput();
+      moveSnake(&s1);
+      if (snakeCollision(&s1) || onSnake(&s1, s2.body[0])) {
         gameOver();
       }
+      if (MULTIPLAYER) {
+        moveSnake(&s2);
+        if (snakeCollision(&s2) || onSnake(&s2, s1.body[0])) {
+          gameOver();
+        }
+      }
+      if (eaten(&s1) || eaten(&s2)) {
+        updateScoreBoard();
+      }
     }
-    if (eaten(&s1) || eaten(&s2)) {
-      updateScoreBoard();
-    }
-  }
-  while (!EXIT) {
-    sysHalt();
-    getKey(&input);
-    specialKeyInput();
   }
   setFontSize(prevFontSize);
   return;
@@ -103,6 +101,12 @@ void drawSnake(Snake* s) {
   setFillColor(s->color);
   for (int i = 0; i < s->len; ++i) {
     fillGridCell(s->body[i].x, s->body[i].y);
+  }
+}
+
+void eraseSnake(Snake* s) {
+  for (int i = 0; i < s->len; ++i) {
+    clearGridCell(s->body[i].x, s->body[i].y);
   }
 }
 
@@ -144,7 +148,16 @@ void clearGridCell(int col, int row) {
   );
 }
 
-void setSnake(Snake* s, int col, int row, uint32_t color, char* name, int scoreX, int scoreY) {
+void printSnakeName(Snake* s) {
+  s->scoreX = s->nameX;
+  s->scoreY = s->nameY;
+  printStringXY(s->nameX, s->nameY, s->name, 1, 0);
+  s->scoreX += s->nameLen * systemInfo.charWidth + systemInfo.charSeparation;
+  printStringXY(s->scoreX, s->scoreY, ": ", 1, 0);
+  s->scoreX += 2 * systemInfo.charWidth + systemInfo.charSeparation;
+}
+
+void setSnake(Snake* s, int col, int row, uint32_t color, char* name, int nameX, int nameY) {
   s->body[0].x = col;
   s->body[0].y = row;
   s->dirX = 0;
@@ -158,12 +171,9 @@ void setSnake(Snake* s, int col, int row, uint32_t color, char* name, int scoreX
     name[NAME_MAX_LEN] = 0;
     s->nameLen = NAME_MAX_LEN;
   }
-  printStringXY(scoreX, scoreY, s->name, 1, 0);
-  scoreX += s->nameLen * systemInfo.charWidth + systemInfo.charSeparation;
-  printStringXY(scoreX, scoreY, ": ", 1, 0);
-  scoreX += 2 * systemInfo.charWidth + systemInfo.charSeparation;
-  s->scoreX = scoreX;
-  s->scoreY = scoreY;
+  s->nameX = nameX;
+  s->nameY = nameY;
+  printSnakeName(s);
   drawSnake(s);
 }
 
@@ -191,7 +201,7 @@ void changeDirections(Snake* snake, char input, char* movKeys) {
 }
 
 // Return 1 if special key pressed, 0 otherwise;
-int moveInput() {
+bool moveInput() {
   switch (input.character) {
     case 'w': case 'a': case 's': case 'd':
       changeDirections(&s1, input.character, "wasd");
@@ -202,12 +212,13 @@ int moveInput() {
       break;
 
     default:
-      return 0;
+      return false;
   }
-  return 1;
+  input.character = 0;
+  return true;
 }
 
-int specialKeyInput() {
+bool specialKeyInput() {
   if (input.md.ctrlPressed && input.character != 0) {
     switch(input.character) {
       case 'x':
@@ -219,15 +230,17 @@ int specialKeyInput() {
         break;
 
       case 'c':
-        GAME_OVER = 1;
-        EXIT = 1;
+        GAME_OVER = true;
+        EXIT = true;
         break;
 
       default:
-        return 0;
+        return false;
     }
+    input.character = 0;
+    return true;
   }
-  return 1;
+  return false;
 }
 
 void moveSnake(Snake *s) {
@@ -243,7 +256,7 @@ void moveSnake(Snake *s) {
 }
 
 void gameOver() {
-  GAME_OVER = 1;
+  GAME_OVER = true;
   char* message =  "Game Over";
   int len = strlen(message);
   int fontSize = 3;
@@ -251,7 +264,7 @@ void gameOver() {
     grid.width/2 - (len/2)*(systemInfo.charWidth*fontSize + systemInfo.charSeparation),
     grid.height/2, message, fontSize, 0
   );
-  sysPlaySound(100, 50);
+  if (!MUTE) sysPlaySound(100, 50);
 }
 
 bool pointEquals(Point a, Point b) {
@@ -297,7 +310,7 @@ void appleGen() {
 int eaten(Snake* s) {
   if (pointEquals(apple, s->body[0])) {
     s->score++;
-    sysPlaySound(600, 50);
+    if (!MUTE) sysPlaySound(600, 50);
     appleGen();
     growSnake(s);
     return 1;
@@ -332,5 +345,26 @@ void updateScoreBoard() {
 
 void reset() {
   clearScreen();
-  snake(MULTIPLAYER, s1.name, s2.name);
+  drawGrid();
+  s1.len = 1;
+  s1.body[0].x = grid.cols/2 - 3;
+  s1.body[0].y = grid.rows/2;
+  s1.dirX = STOPPED;
+  s1.dirY = STOPPED;
+  s1.score = 0;
+  drawSnake(&s1);
+  printSnakeName(&s1);
+  if (MULTIPLAYER) {
+    s2.len = 1;
+    s2.body[0].x = grid.cols/2 + 3;
+    s2.body[0].y = grid.rows/2;
+    s2.dirX = STOPPED;
+    s2.dirY = STOPPED;
+    s2.score = 0;
+    drawSnake(&s2);
+    printSnakeName(&s2);
+  }
+  updateScoreBoard();
+  appleGen();
+  GAME_OVER = false;
 }

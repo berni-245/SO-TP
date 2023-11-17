@@ -1,31 +1,20 @@
-/* sampleCodeModule.c */
-
-#include <colors.h>
-#include <draw.h>
-#include <utils.h>
 #include <shell.h>
-#include <shellCommands.h>
-#include <snake.h>
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <sysinfo.h>
-#include <syscalls.h>
 
+extern uint8_t bss;
+
+// Stores just the command indexes.
+int commandHistory[MAX_HISTORY_LEN];
+int historyIdx = 0;
+bool historyInitialized = false;
 int currentCommandIdx = 0;
 
 static int commandReturnCode = 0;
 
-void newPrompt();
-void incFont();
-void decFont();
-void addCommand(char* name, char* description, ShellFunction function);
-void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor);
-CommandResult parseCommand();
-
 int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
+
+  // printf("BSS: %04x\n", bss);
 
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
@@ -41,6 +30,7 @@ int shell() {
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
   commandHelp();
+
   newPrompt();
 
   KeyStruct key;
@@ -48,7 +38,7 @@ int shell() {
     sysHalt();
     if (getKey(&key) != EOF) {
       if (key.md.ctrlPressed) {
-        switch (key.character) {
+        switch (toLower(key.character)) {
           case '+':
             incFont();
             break;
@@ -62,9 +52,16 @@ int shell() {
             currentCommandIdx = 0;
             newPrompt();
             break;
+          case 'w':
+            deleteWord();
+            break;
+          case 'k':
+            historyPrev();
+            break;
         }
       } else {
         if (key.character == '\n') {
+          historyPush();
           printChar(key.character);
           commandReturnCode = parseCommand();
           newPrompt();
@@ -72,6 +69,8 @@ int shell() {
           if (screenBufWriteIdx != currentCommandIdx) {
             printChar(key.character);
           }
+        } else if (key.character == '\t') {
+          autocomplete();
         } else {
           printChar(key.character);
         }
@@ -80,6 +79,44 @@ int shell() {
   };
 
   return 1;
+}
+
+void incHistIdx() {
+  incCircularIdx(&historyIdx, MAX_HISTORY_LEN);
+}
+void decHistIdx() {
+  decCircularIdx(&historyIdx, MAX_HISTORY_LEN);
+}
+void historyPush() {
+  historyInitialized = true;
+  commandHistory[historyIdx] = currentCommandIdx;
+  incHistIdx();
+}
+void historyPrev() {
+  if (!historyInitialized) return;
+  int i = commandHistory[historyIdx];
+  decHistIdx();
+  while (screenBuffer[i] != '\n') {
+    printChar(screenBuffer[i]);
+    incCircularIdx(&i, SCREEN_BUFFER_SIZE);
+  }
+}
+
+int getCurrentChar() {
+  return screenBuffer[(screenBufWriteIdx > 0) ? screenBufWriteIdx - 1 : SCREEN_BUFFER_SIZE - 1];
+}
+void deleteWord() {
+  if (screenBufWriteIdx == currentCommandIdx) return;
+  char* wordSeps = " -.:,;";
+  if (!strContains(wordSeps, getCurrentChar())) {
+    do {
+      printChar('\b');
+    } while (!strContains(wordSeps, getCurrentChar()));
+  } else {
+    do {
+      printChar('\b');
+    } while (strContains(wordSeps, getCurrentChar()) && (screenBufWriteIdx != currentCommandIdx));
+  }
 }
 
 void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor) {
@@ -107,6 +144,7 @@ void newPrompt() {
 void incFont() {
   setFontSize(systemInfo.fontSize + 1);
   screenBufReadIdx = currentCommandIdx - currentPromptLen;
+  if (screenBufReadIdx < 0) screenBufReadIdx = SCREEN_BUFFER_SIZE + screenBufReadIdx;
   repaint();
 }
 void decFont() {
@@ -114,9 +152,10 @@ void decFont() {
   repaint();
 }
 
-static ShellCommand commands[50];
+static ShellCommand commands[MAX_COMMAND_COUNT];
 static int commandCount = 0;
 void addCommand(char* name, char* description, ShellFunction function) {
+  if (commandCount >= MAX_COMMAND_COUNT) return;
   ShellCommand newCommand = {.name = name, .description = description, .function = function};
   commands[commandCount++] = newCommand;
 }
@@ -127,7 +166,33 @@ ShellFunction getCommand(char* name) {
   return NULL;
 }
 
-CommandResult parseCommand() {
+void autocomplete() {
+  int matchCount = 0, matchIdx = 0, len = 0;
+  screenBuffer[screenBufWriteIdx] = 0;
+  for (int i = 0; i < commandCount; ++i) {
+    char* command = commands[i].name;
+    bool match = true;
+    int k = 0;
+    for (
+      int j = currentCommandIdx;
+      screenBuffer[j] != 0 && command[k] != 0 && match;
+      ++j, ++k
+    ) {
+      if (screenBuffer[j] == ' ') return;
+      else if (screenBuffer[j] != command[k]) match = false;
+    }
+    if (match && command[k] != 0) {
+      ++matchCount;
+      if (matchCount > 1) return;
+      matchIdx = i;
+      len = k;
+    }
+  }
+  if (matchCount == 0) return;
+  printString(commands[matchIdx].name + len);
+}
+
+ExitCode parseCommand() {
   // Upto MAX_ARG_COUNT arguments (including the actual command)
   // of MAX_COMMAND_LEN characters each (+1 for null termination).
   char argv[MAX_ARG_COUNT][MAX_ARG_LEN];
@@ -135,6 +200,7 @@ CommandResult parseCommand() {
   int len = 0;
   int argc = 0;
   ShellFunction command;
+  i += strTrimStart(screenBuffer + i);
   while (argc < MAX_ARG_COUNT) {
     if (screenBuffer[i] != ' ' && screenBuffer[i] != '\n' && len < MAX_ARG_LEN) {
       argv[argc][len++] = screenBuffer[i];
@@ -159,14 +225,14 @@ CommandResult parseCommand() {
         return command(argc, argv);
       }
       i = (i + 1) % SCREEN_BUFFER_SIZE;
-      while (screenBuffer[i] == ' ');
+      i += strTrimStart(screenBuffer + i);
     }
   }
   puts(CommandResultStrings[TOO_MANY_ARGUMENTS]);
   return TOO_MANY_ARGUMENTS;
 }
 
-CommandResult commandEcho(int argc, char argv[argc][MAX_ARG_LEN]) {
+ExitCode commandEcho(int argc, char argv[argc][MAX_ARG_LEN]) {
   // Starts at 1 because first arg is the command name
   for (int i = 1; i < argc; ++i) {
     printf("%s ", argv[i]);
@@ -175,19 +241,19 @@ CommandResult commandEcho(int argc, char argv[argc][MAX_ARG_LEN]) {
   return SUCCESS;
 }
 
-CommandResult commandGetReturnCode() {
+ExitCode commandGetReturnCode() {
   printf("%s - Code: %d\n", CommandResultStrings[commandReturnCode], commandReturnCode);
   return SUCCESS;
 }
 
-CommandResult commandRealTime(){
+ExitCode commandRealTime(){
   Time currentTime;
   sysGetCurrentTime(&currentTime);
   printf("%s\n", currentTime.string);
   return SUCCESS;
 }
 
-CommandResult commandHelp() {
+ExitCode commandHelp() {
   printString("Available commands:\n");
   for (int i = 0; i < commandCount; ++i) {
     printf("\t- %s: %s\n", commands[i].name, commands[i].description);
@@ -195,7 +261,7 @@ CommandResult commandHelp() {
   return SUCCESS;
 }
 
-CommandResult commandGetKeyInfo() {
+ExitCode commandGetKeyInfo() {
   KeyStruct key;
   while (1) {
     sysHalt();
@@ -209,7 +275,7 @@ CommandResult commandGetKeyInfo() {
   return SUCCESS;
 }
 
-CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
+ExitCode commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
   static bool randInitialized = false;
   if (!randInitialized) {
     setSrand(sysGetTicks());
@@ -224,7 +290,7 @@ CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
   int min = strToInt(argv[1]);
   int max = strToInt(argv[2]);
   if (max < min) {
-    puts("Error: min can't be greater than max");
+    printf("Error: min (%d) can't be greater than max (%d)\n", min, max);
     return ILLEGAL_ARGUMENT;
   }
   int count = (argc > 3) ? strToInt(argv[3]) : 1;
@@ -235,7 +301,7 @@ CommandResult commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
   return SUCCESS;
 }
 
-CommandResult commandLayout(int argc, char (*argv)[MAX_ARG_LEN]) {
+ExitCode commandLayout(int argc, char (*argv)[MAX_ARG_LEN]) {
   if (argc == 1) {
     printf("Current layout: %s - %d\n", LayoutStrings[systemInfo.layout], systemInfo.layout);
     return SUCCESS;
@@ -264,7 +330,7 @@ CommandResult commandLayout(int argc, char (*argv)[MAX_ARG_LEN]) {
   return SUCCESS;
 }
 
-CommandResult commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]) {
+ExitCode commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]) {
   if (argc < 4) {
     puts("Usage:");
     printf("\t\t%s <fontColor> <backgroundColor> <cursorColor>\n", argv[0]);
@@ -281,7 +347,7 @@ CommandResult commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]) {
   return SUCCESS;
 }
 
-CommandResult commandSysInfo() {
+ExitCode commandSysInfo() {
   printf("screenWidth: %d\n", systemInfo.screenWidth);
   printf("screenHeight: %d\n", systemInfo.screenHeight);
   printf("charWidth: %d\n", systemInfo.charWidth);
@@ -294,7 +360,7 @@ CommandResult commandSysInfo() {
   return SUCCESS;
 }
 
-CommandResult commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
+ExitCode commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
   if (argc >= 2 && strcmp(argv[1], "--help") == 0) {
     puts("Usage:");
     printf("\t\t%s\n", argv[0]);
@@ -309,7 +375,7 @@ CommandResult commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
   sysGetRegisters(registers);
   // Print 3 registers per row.
   for(int i = 0; i < REGISTER_QUANTITY; i++){
-    printf("%s %lx ", registers[i].name, registers[i].value);
+    printf("%s %016lx ", registers[i].name, registers[i].value);
     if(i % 3 == 0) printf("\n");
   }
   printf("\n");
@@ -317,30 +383,38 @@ CommandResult commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
   return SUCCESS;
 }
 
-CommandResult commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
+ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
   if (argc < 2) {
     puts("Usage:");
-    printf("\t\t%s <player1Name> [player2Name]\n", argv[0]);
+    printf("\t\t%s [options] <player1Name> [player2Name]\n", argv[0]);
+    printf("Options:\n");
+    printf("\t\t--mute    don't play any sounds.\n");
     printf("Player 1 moves with wasd, player 2 with ijkl. Other keybinds are:\n");
     printf(" ctrl + r: reset game\n");
     printf(" ctrl + x: lose game\n");
     printf(" ctrl + c: exit game\n");
     return MISSING_ARGUMENTS;
   } else {
+    int argIdx = 1;
+    bool mute = false;
+    if (strcmp(argv[argIdx], "--mute") == 0) {
+      mute = true;
+      ++argIdx;
+    }
     uint32_t fontColor = getFontColor();
     uint32_t bgColor = getBgColor();
     uint32_t cursorColor = getCursorColor();
     if (argc == 2) {
-      snake(false, argv[1], "");
+      snake(false, argv[argIdx], "", mute);
     } else {
-      snake(true, argv[1], argv[2]);
+      snake(true, argv[argIdx], argv[argIdx + 1], mute);
     }
     setShellColors(fontColor, bgColor, cursorColor);
   }
   repaint();
   return SUCCESS;
 }
-CommandResult commandZeroDivisionError(){
+ExitCode commandZeroDivisionError(){
   // Always set srand because after the exception the modules starts anew
   // and srand is zero again.
   setSrand(sysGetTicks());
