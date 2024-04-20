@@ -1,7 +1,7 @@
+#include <clock.h>
 #include <interruptions.h>
 #include <lib.h>
 #include <moduleLoader.h>
-#include <clock.h>
 #include <stdint.h>
 #include <videoDriver.h>
 
@@ -19,42 +19,33 @@ typedef int (*EntryPoint)();
 static EntryPoint const userModule = (EntryPoint)0x400000;
 static EntryPoint const sampleDataModule = (EntryPoint)0x500000;
 
-void clearBSS(void * bssAddress, uint64_t bssSize)
-{
-	memset(bssAddress, 0, bssSize);
+void clearBSS(void* bssAddress, uint64_t bssSize) {
+  memset(bssAddress, 0, bssSize);
 }
 
-void * getStackBase()
-{
-	return (void*)(
-		(uint64_t)&endOfKernel
-		+ PageSize * 8				//The size of the stack itself, 32KiB
-		- sizeof(uint64_t)			//Begin at the top of the stack
-	);
+void* getStackBase() {
+  // PageSize * 8 = The size of the stack itself, 32KiB
+  // Subtract sizeof(uint64_t) to begin at the top of the stack.
+  return (void*)((uint64_t)&endOfKernel + PageSize * 8 - sizeof(uint64_t));
 }
 
-void * initializeKernelBinary()
-{
-	void * moduleAddresses[] = {
-		userModule,
-		sampleDataModule
-	};
+void* initializeKernelBinary() {
+  void* moduleAddresses[] = {userModule, sampleDataModule};
 
-	loadModules(&endOfKernelBinary, moduleAddresses);
+  loadModules(&endOfKernelBinary, moduleAddresses);
 
-	clearBSS(&kernelBss, &endOfKernel - &kernelBss);
+  clearBSS(&kernelBss, &endOfKernel - &kernelBss);
 
-	setBinaryClockFormat();
+  setBinaryClockFormat();
 
-	return getStackBase();
+  return getStackBase();
 }
 
-int main()
-{	
-	loadIdt();
-	setFontGridValues();
+int main() {
+  loadIdt();
+  setFontGridValues();
 
-	userModule();
+  userModule();
 
-	return 0;
+  return 0;
 }
