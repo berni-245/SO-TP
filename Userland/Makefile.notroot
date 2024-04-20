@@ -6,14 +6,14 @@ MODULES := $(wildcard *Module)
 all: $(MODULES) sampleDataModule
 
 $(MODULES): FORCE
-	cd $@; make
+	$(MAKE) -C $@ -f Makefile.notroot
 
 sampleDataModule:
 	printf "This is sample data." >> $(SAMPLE_DATA) && dd if=/dev/zero bs=1 count=1 >> $(SAMPLE_DATA)
 
 clean:
 	@for module in $(MODULES); do \
-		cd $$module; make clean; \
+		$(MAKE) -C $(module) -f Makefile.notroot clean \
 	done
 	rm -rf *.bin *.elf
 
