@@ -1,6 +1,7 @@
 #include <clock.h>
 #include <interruptions.h>
 #include <lib.h>
+#include <memory.h>
 #include <moduleLoader.h>
 #include <stdint.h>
 #include <videoDriver.h>
@@ -44,6 +45,7 @@ void* initializeKernelBinary() {
 int main() {
   loadIdt();
   setFontGridValues();
+  memoryInit();
 
   userModule();
 
