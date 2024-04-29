@@ -48,7 +48,7 @@ $(LOADEROBJECT):
 	$(ASM) $(ASMFLAGS) $(LOADERSRC) -o $(LOADEROBJECT)
 
 clean:
-	rm -f $(OBJDIR)/*.o $(OBJDIR)/*/*.o *.bin *.elf
+	rm -rf $(OBJDIR) *.bin *.elf
 
 FORCE:
 

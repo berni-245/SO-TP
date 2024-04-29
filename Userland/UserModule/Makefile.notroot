@@ -44,7 +44,7 @@ $(OBJDIR)/%.o : %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 clean:
-	rm -f $(OBJDIR)/*.o $(OBJDIR)/*/*.o *.bin *.elf
+	rm -rf $(OBJDIR) *.bin *.elf
 
 FORCE:
 
