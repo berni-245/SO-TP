@@ -7,10 +7,8 @@ $docker start $container
 if [[ $? -ne 0 ]]; then
   exit $?
 fi
-$docker exec -it $container make clean -C/root/Toolchain/
-$docker exec -it $container make clean -C/root/
-$docker exec -it $container make -C/root/Toolchain/
-$docker exec -it $container  make -C/root/
+$docker exec -it $container make -C /root/ clean
+$docker exec -it $container make -C /root/ all
 $docker stop $container
 sudo chown $USER:$USER ./Image/x64BareBonesImage.qcow2
 

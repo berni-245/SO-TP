@@ -1,5 +1,8 @@
+all: image
 
-all:  bootloader kernel userland image
+
+image: bootloader kernel userland toolchain
+	$(MAKE) -C Image -f Makefile.notroot all
 
 bootloader:
 	$(MAKE) -C Bootloader -f Makefile.notroot all
@@ -10,8 +13,9 @@ kernel:
 userland:
 	$(MAKE) -C Userland -f Makefile.notroot all
 
-image: kernel bootloader userland
-	$(MAKE) -C Image -f Makefile.notroot all
+toolchain:
+	$(MAKE) -C Toolchain -f Makefile.notroot all
+
 
 clean:
 	$(MAKE) -C Toolchain -f Makefile.notroot clean
