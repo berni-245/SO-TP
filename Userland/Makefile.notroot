@@ -13,7 +13,7 @@ sampleDataModule:
 
 clean:
 	@for module in $(MODULES); do \
-		$(MAKE) -C $(module) -f Makefile.notroot clean \
+		$(MAKE) -C $$module -f Makefile.notroot clean; \
 	done
 	rm -rf *.bin *.elf
 
