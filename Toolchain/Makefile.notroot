@@ -1,0 +1,9 @@
+all: modulePacker
+
+modulePacker:
+	$(MAKE) -C ModulePacker -f Makefile.notroot all
+
+clean:
+	$(MAKE) -C ModulePacker -f Makefile.notroot clean
+
+.PHONY: modulePacker all clean

@@ -1,0 +1,13 @@
+all: bmfs pure64
+
+bmfs:
+	$(MAKE) -C BMFS -f Makefile.notroot all
+
+pure64:
+	$(MAKE) -C Pure64 -f Makefile.notroot all
+
+clean:
+	$(MAKE) -C BMFS -f Makefile.notroot clean
+	$(MAKE) -C Pure64 -f Makefile.notroot clean
+
+.PHONY: all bmfs pure64 clean
