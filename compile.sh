@@ -1,6 +1,6 @@
 #!/bin/sh
 
-container='arqui_builder'
+container='so_builder'
 docker='sudo docker'
 
 if ! $docker start $container; then
