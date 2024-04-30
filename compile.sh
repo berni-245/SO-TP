@@ -11,6 +11,9 @@ $docker exec -it $container make -C /root/ all
 $docker stop $container
 sudo chown "$USER:$USER" ./Image/x64BareBonesImage.qcow2
 
+# I have to create this files dynamically because .clangd doesn't accept relative paths
+# so they need to be recreated for evry user or any time the project is moved.
+# See: https://github.com/clangd/clangd/issues/1038
 cat <<EOF > Kernel/.clangd
 CompileFlags:
   Add:
