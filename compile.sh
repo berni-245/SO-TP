@@ -6,7 +6,6 @@ docker='sudo docker'
 if ! $docker start $container; then
 	exit $?
 fi
-$docker exec -it $container make -C /root/ clean
 $docker exec -it $container make -C /root/ all
 sudo chown "$USER:$USER" ./Image/x64BareBonesImage.qcow2
 $docker stop $container &
