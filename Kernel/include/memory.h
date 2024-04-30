@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-void* malloc(uint32_t size);
-void memoryInit();
+void* malloc(uint64_t size);
+void memoryInit(void* heapStart);
 
 #endif
