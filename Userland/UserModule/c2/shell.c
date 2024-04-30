@@ -379,28 +379,38 @@ ExitCode commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
   return SUCCESS;
 }
 
+void commandSnakeUsage(char* commandName) {
+  puts("Usage:");
+  printf("\t\t%s [options] <player1Name> [player2Name]\n", commandName);
+  printf("Options:\n");
+  printf("\t\t--mute    don't play any sounds.\n");
+  printf("Player 1 moves with wasd, player 2 with ijkl. Other keybinds are:\n");
+  printf(" ctrl + r: reset game\n");
+  printf(" ctrl + x: lose game\n");
+  printf(" ctrl + c: exit game\n");
+}
+
 ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
   if (argc < 2) {
-    puts("Usage:");
-    printf("\t\t%s [options] <player1Name> [player2Name]\n", argv[0]);
-    printf("Options:\n");
-    printf("\t\t--mute    don't play any sounds.\n");
-    printf("Player 1 moves with wasd, player 2 with ijkl. Other keybinds are:\n");
-    printf(" ctrl + r: reset game\n");
-    printf(" ctrl + x: lose game\n");
-    printf(" ctrl + c: exit game\n");
+    commandSnakeUsage(argv[0]);
     return MISSING_ARGUMENTS;
   } else {
     int argIdx = 1;
+    int playerCount = argc - 1;
     bool mute = false;
     if (strcmp(argv[argIdx], "--mute") == 0) {
       mute = true;
       ++argIdx;
+      --playerCount;
+    }
+    if (playerCount < 1) {
+      commandSnakeUsage(argv[0]);
+      return MISSING_ARGUMENTS;
     }
     uint32_t fontColor = getFontColor();
     uint32_t bgColor = getBgColor();
     uint32_t cursorColor = getCursorColor();
-    if (argc == 2) {
+    if (playerCount == 1) {
       snake(false, argv[argIdx], "", mute);
     } else {
       snake(true, argv[argIdx], argv[argIdx + 1], mute);
