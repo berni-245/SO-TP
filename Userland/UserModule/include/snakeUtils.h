@@ -4,11 +4,11 @@
 #include <colors.h>
 #include <draw.h>
 #include <keyboard.h>
-#include <time.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <syscalls.h>
 #include <sysinfo.h>
+#include <time.h>
 
 #define SNAKE_MAX_LEN 50
 #define NAME_MAX_LEN 15
@@ -72,7 +72,7 @@ void appleGen();
 int eaten(Snake* s);
 void updateScoreBoard();
 void reset();
-void changeDirections(Snake *snake, char input, char *movKeys);
+void changeDirections(Snake* snake, char input, char* movKeys);
 void gameOver();
 
 #endif

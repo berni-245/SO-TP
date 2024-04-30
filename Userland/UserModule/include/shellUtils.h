@@ -4,14 +4,14 @@
 #include <circularBuffer.h>
 #include <colors.h>
 #include <draw.h>
-#include <utils.h>
 #include <snake.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <sysinfo.h>
 #include <syscalls.h>
+#include <sysinfo.h>
+#include <utils.h>
 
 #define MAX_ARG_COUNT 20
 #define MAX_ARG_LEN 50 + 1
@@ -28,15 +28,14 @@ typedef enum {
   OUT_OF_BOUNDS,
 } ExitCode;
 static const char* const CommandResultStrings[] = {
-  [SUCCESS] = "Success",
-  [TOO_MANY_ARGUMENTS] = "Too many arguments",
-  [ARGUMENT_TOO_LONG]  = "Argument too long",
-  [COMMAND_NOT_FOUND]  = "Command not found",
-  [MISSING_ARGUMENTS]  = "Missing arguments",
-  [ILLEGAL_ARGUMENT]  = "Illegal argument",
-  [OUT_OF_BOUNDS]  = "Argument of bounds",
+    [SUCCESS] = "Success",
+    [TOO_MANY_ARGUMENTS] = "Too many arguments",
+    [ARGUMENT_TOO_LONG] = "Argument too long",
+    [COMMAND_NOT_FOUND] = "Command not found",
+    [MISSING_ARGUMENTS] = "Missing arguments",
+    [ILLEGAL_ARGUMENT] = "Illegal argument",
+    [OUT_OF_BOUNDS] = "Argument of bounds",
 };
-
 
 typedef ExitCode (*ShellFunction)(int argc, char[argc][MAX_ARG_LEN]);
 
