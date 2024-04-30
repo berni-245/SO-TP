@@ -1,10 +1,10 @@
+#include <exceptions.h>
 #include <interruptions.h>
 #include <keyboard.h>
-#include <exceptions.h>
 #include <stdint.h>
 #include <syscalls.h>
 
-InterruptionDescriptor *idt = (InterruptionDescriptor *)0;
+InterruptionDescriptor* idt = (InterruptionDescriptor*)0;
 
 void setupIdtEntry(int index, void* irqHandler) {
   uint64_t offset = (uint64_t)irqHandler;
@@ -29,14 +29,11 @@ void loadIdt() {
 }
 
 static InterruptionFunction interruptions[255] = {
-  timerTick,
-  readKeyToBuffer,
+    timerTick,
+    readKeyToBuffer,
 };
 
-static InterruptionFunction exceptions[17] = {
-  zeroDivisionException,
-  invalidOpcodeException
-};
+static InterruptionFunction exceptions[17] = {zeroDivisionException, invalidOpcodeException};
 
 void irqDispatcher(uint8_t index) {
   interruptions[index]();

@@ -25,7 +25,9 @@ int shell() {
   addCommand("layout", "Get or set current layout. \n    Available flags: --help, --list", commandLayout);
   addCommand("setColors", "Set font and background colors.", commandSetColors);
   addCommand("sysInfo", "Get some system information.", commandSysInfo);
-  addCommand("getRegisters", "Get the values of the saved registers. \n    Available flags: --help", commandGetRegisters);
+  addCommand(
+      "getRegisters", "Get the values of the saved registers. \n    Available flags: --help", commandGetRegisters
+  );
   addCommand("snake", "Play snake.", commandSnake);
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
@@ -39,25 +41,25 @@ int shell() {
     if (getKey(&key) != EOF) {
       if (key.md.ctrlPressed) {
         switch (toLower(key.character)) {
-          case '+':
-            incFont();
-            break;
-          case '-':
-            decFont();
-            break;
-          case 'l':
-            clearScreen();
-            screenBufWriteIdx = 0;
-            screenBufReadIdx = 0;
-            currentCommandIdx = 0;
-            newPrompt();
-            break;
-          case 'w':
-            deleteWord();
-            break;
-          case 'k':
-            historyPrev();
-            break;
+        case '+':
+          incFont();
+          break;
+        case '-':
+          decFont();
+          break;
+        case 'l':
+          clearScreen();
+          screenBufWriteIdx = 0;
+          screenBufReadIdx = 0;
+          currentCommandIdx = 0;
+          newPrompt();
+          break;
+        case 'w':
+          deleteWord();
+          break;
+        case 'k':
+          historyPrev();
+          break;
         }
       } else {
         if (key.character == '\n') {
@@ -173,11 +175,7 @@ void autocomplete() {
     char* command = commands[i].name;
     bool match = true;
     int k = 0;
-    for (
-      int j = currentCommandIdx;
-      screenBuffer[j] != 0 && command[k] != 0 && match;
-      ++j, ++k
-    ) {
+    for (int j = currentCommandIdx; screenBuffer[j] != 0 && command[k] != 0 && match; ++j, ++k) {
       if (screenBuffer[j] == ' ') return;
       else if (screenBuffer[j] != command[k]) match = false;
     }
@@ -246,7 +244,7 @@ ExitCode commandGetReturnCode() {
   return SUCCESS;
 }
 
-ExitCode commandRealTime(){
+ExitCode commandRealTime() {
   Time currentTime;
   sysGetCurrentTime(&currentTime);
   printf("%s\n", currentTime.string);
@@ -364,19 +362,17 @@ ExitCode commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
   if (argc >= 2 && strcmp(argv[1], "--help") == 0) {
     puts("Usage:");
     printf("\t\t%s\n", argv[0]);
-    printf(
-      "You can save the values of the registers at any time by pressing F1 "
-      "and by running this command without this flag it will print the saved "
-      "values of the registers.\n"
-    );
+    printf("You can save the values of the registers at any time by pressing F1 "
+           "and by running this command without this flag it will print the saved "
+           "values of the registers.\n");
     return SUCCESS;
   }
   Register registers[REGISTER_QUANTITY];
   sysGetRegisters(registers);
   // Print 3 registers per row.
-  for(int i = 0; i < REGISTER_QUANTITY; i++){
+  for (int i = 0; i < REGISTER_QUANTITY; i++) {
     printf("%s %016lx ", registers[i].name, registers[i].value);
-    if(i % 3 == 0) printf("\n");
+    if (i % 3 == 0) printf("\n");
   }
   printf("\n");
   printf("For more info add --help to the command\n");
@@ -414,10 +410,10 @@ ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
   repaint();
   return SUCCESS;
 }
-ExitCode commandZeroDivisionError(){
+ExitCode commandZeroDivisionError() {
   // Always set srand because after the exception the modules starts anew
   // and srand is zero again.
   setSrand(sysGetTicks());
-  int i = rand()/0;
+  int i = rand() / 0;
   return SUCCESS;
 }

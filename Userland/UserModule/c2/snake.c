@@ -2,9 +2,9 @@
 #include <draw.h>
 #include <snake.h>
 #include <snakeUtils.h>
+#include <stdlib.h>
 #include <syscalls.h>
 #include <sysinfo.h>
-#include <stdlib.h>
 #include <time.h>
 
 static bool GAME_OVER, EXIT, MULTIPLAYER, MUTE;
@@ -29,24 +29,12 @@ void snake(bool multiplayer, char* player1Name, char* player2Name, bool mute) {
   setFontSize(1);
   clearScreen();
   drawGrid();
-  setSnake(
-    &s1,
-    grid.cols/2 - 3,
-    grid.rows/2,
-    0x00FF00,
-    player1Name,
-    grid.x0,
-    grid.y0 - systemInfo.charHeight - 10
-  );
+  setSnake(&s1, grid.cols / 2 - 3, grid.rows / 2, 0x00FF00, player1Name, grid.x0, grid.y0 - systemInfo.charHeight - 10);
   if (MULTIPLAYER) {
     setSnake(
-      &s2,
-      grid.cols/2 + 3,
-      grid.rows/2,
-      0x0000FF,
-      player2Name,
-      grid.width - (NAME_MAX_LEN + 2 + SCORE_MAX_DIGITS)*(systemInfo.charWidth + systemInfo.charSeparation),
-      grid.y0 - systemInfo.charHeight - 10
+        &s2, grid.cols / 2 + 3, grid.rows / 2, 0x0000FF, player2Name,
+        grid.width - (NAME_MAX_LEN + 2 + SCORE_MAX_DIGITS) * (systemInfo.charWidth + systemInfo.charSeparation),
+        grid.y0 - systemInfo.charHeight - 10
     );
   }
 
@@ -81,7 +69,6 @@ void snake(bool multiplayer, char* player1Name, char* player2Name, bool mute) {
   return;
 }
 
-
 void setGrid() {
   grid.cols = 60;
   grid.rows = 40;
@@ -89,10 +76,10 @@ void setGrid() {
   grid.color = 0x424242;
   grid.borderWidth = 3;
   grid.lineWidth = 1;
-  grid.x0 = CHAR_SPACE_LEFT*systemInfo.charWidth + grid.borderWidth;
-  grid.y0 = CHAR_SPACE_UP*systemInfo.charHeight + grid.borderWidth + 10;
-  grid.width = grid.cols*(grid.cellSize + grid.lineWidth) - grid.lineWidth;
-  grid.height = grid.rows*(grid.cellSize + grid.lineWidth) - grid.lineWidth;
+  grid.x0 = CHAR_SPACE_LEFT * systemInfo.charWidth + grid.borderWidth;
+  grid.y0 = CHAR_SPACE_UP * systemInfo.charHeight + grid.borderWidth + 10;
+  grid.width = grid.cols * (grid.cellSize + grid.lineWidth) - grid.lineWidth;
+  grid.height = grid.rows * (grid.cellSize + grid.lineWidth) - grid.lineWidth;
 }
 
 Point apple = {0};
@@ -113,38 +100,24 @@ void eraseSnake(Snake* s) {
 void drawGrid() {
   strokeRectangleOutward(grid.x0, grid.y0, grid.width, grid.height, grid.borderWidth);
   for (int i = 1; i < grid.rows; i++) {
-    strokeHorizontalLine(
-      grid.x0,
-      grid.y0 + (i - 1) * grid.lineWidth + i * grid.cellSize,
-      grid.width,
-      grid.lineWidth
-    );
+    strokeHorizontalLine(grid.x0, grid.y0 + (i - 1) * grid.lineWidth + i * grid.cellSize, grid.width, grid.lineWidth);
   }
   for (int i = 1; i < grid.cols; i++) {
-    strokeVerticalLine(
-      grid.x0+ (i - 1) * grid.lineWidth + i * grid.cellSize,
-      grid.y0,
-      grid.height,
-      grid.lineWidth
-    );
+    strokeVerticalLine(grid.x0 + (i - 1) * grid.lineWidth + i * grid.cellSize, grid.y0, grid.height, grid.lineWidth);
   }
 }
 
 void fillGridCell(int col, int row) {
   fillRectangle(
-    grid.x0 + col*(grid.cellSize + grid.lineWidth),
-    grid.y0 + row*(grid.cellSize + grid.lineWidth),
-    grid.cellSize,
-    grid.cellSize
+      grid.x0 + col * (grid.cellSize + grid.lineWidth), grid.y0 + row * (grid.cellSize + grid.lineWidth), grid.cellSize,
+      grid.cellSize
   );
 }
 
 void clearGridCell(int col, int row) {
   clearRectangle(
-    grid.x0 + col*(grid.cellSize + grid.lineWidth),
-    grid.y0 + row*(grid.cellSize + grid.lineWidth),
-    grid.cellSize,
-    grid.cellSize
+      grid.x0 + col * (grid.cellSize + grid.lineWidth), grid.y0 + row * (grid.cellSize + grid.lineWidth), grid.cellSize,
+      grid.cellSize
   );
 }
 
@@ -177,7 +150,7 @@ void setSnake(Snake* s, int col, int row, uint32_t color, char* name, int nameX,
   drawSnake(s);
 }
 
-void growSnake(Snake *s) {
+void growSnake(Snake* s) {
   if (s->len == SNAKE_MAX_LEN) return;
   int l = ++s->len;
   s->body[l - 1].x = s->body[l - 2].x;
@@ -203,16 +176,22 @@ void changeDirections(Snake* snake, char input, char* movKeys) {
 // Return 1 if special key pressed, 0 otherwise;
 bool moveInput() {
   switch (input.character) {
-    case 'w': case 'a': case 's': case 'd':
-      changeDirections(&s1, input.character, "wasd");
-      break;
+  case 'w':
+  case 'a':
+  case 's':
+  case 'd':
+    changeDirections(&s1, input.character, "wasd");
+    break;
 
-    case 'i': case 'j': case 'k': case 'l':
-      changeDirections(&s2, input.character, "ijkl");
-      break;
+  case 'i':
+  case 'j':
+  case 'k':
+  case 'l':
+    changeDirections(&s2, input.character, "ijkl");
+    break;
 
-    default:
-      return false;
+  default:
+    return false;
   }
   input.character = 0;
   return true;
@@ -220,22 +199,22 @@ bool moveInput() {
 
 bool specialKeyInput() {
   if (input.md.ctrlPressed && input.character != 0) {
-    switch(input.character) {
-      case 'x':
-        gameOver();
-        break;
+    switch (input.character) {
+    case 'x':
+      gameOver();
+      break;
 
-      case 'r':
-        reset();
-        break;
+    case 'r':
+      reset();
+      break;
 
-      case 'c':
-        GAME_OVER = true;
-        EXIT = true;
-        break;
+    case 'c':
+      GAME_OVER = true;
+      EXIT = true;
+      break;
 
-      default:
-        return false;
+    default:
+      return false;
     }
     input.character = 0;
     return true;
@@ -243,7 +222,7 @@ bool specialKeyInput() {
   return false;
 }
 
-void moveSnake(Snake *s) {
+void moveSnake(Snake* s) {
   setFillColor(s->color);
   clearGridCell(s->body[s->len - 1].x, s->body[s->len - 1].y);
   for (int i = s->len - 1; i > 0; i--) {
@@ -257,12 +236,12 @@ void moveSnake(Snake *s) {
 
 void gameOver() {
   GAME_OVER = true;
-  char* message =  "Game Over";
+  char* message = "Game Over";
   int len = strlen(message);
   int fontSize = 3;
   printStringXY(
-    grid.width/2 - (len/2)*(systemInfo.charWidth*fontSize + systemInfo.charSeparation),
-    grid.height/2, message, fontSize, 0
+      grid.width / 2 - (len / 2) * (systemInfo.charWidth * fontSize + systemInfo.charSeparation), grid.height / 2,
+      message, fontSize, 0
   );
   if (!MUTE) sysPlaySound(100, 50);
 }
@@ -272,8 +251,7 @@ bool pointEquals(Point a, Point b) {
 }
 
 bool snakeCollision(Snake* s) {
-  if (s->body[0].x == grid.cols - 1 || s->body[0].x == 0 ||
-      s->body[0].y == grid.rows - 1 || s->body[0].y == 0) {
+  if (s->body[0].x == grid.cols - 1 || s->body[0].x == 0 || s->body[0].y == grid.rows - 1 || s->body[0].y == 0) {
     return true;
   }
   for (int i = s->len; i > 1; i--) {
@@ -328,10 +306,7 @@ void eraseScore(int col, int row, int nameLen) {
 
 void printPlayerScore(Snake* s) {
   clearRectangle(
-    s->scoreX,
-    s->scoreY,
-    (systemInfo.charWidth + systemInfo.charSeparation)*SCORE_MAX_DIGITS,
-    systemInfo.charHeight
+      s->scoreX, s->scoreY, (systemInfo.charWidth + systemInfo.charSeparation) * SCORE_MAX_DIGITS, systemInfo.charHeight
   );
   char score[SCORE_MAX_DIGITS + 1];
   intToBase(s->score, score, 10);
@@ -347,8 +322,8 @@ void reset() {
   clearScreen();
   drawGrid();
   s1.len = 1;
-  s1.body[0].x = grid.cols/2 - 3;
-  s1.body[0].y = grid.rows/2;
+  s1.body[0].x = grid.cols / 2 - 3;
+  s1.body[0].y = grid.rows / 2;
   s1.dirX = STOPPED;
   s1.dirY = STOPPED;
   s1.score = 0;
@@ -356,8 +331,8 @@ void reset() {
   printSnakeName(&s1);
   if (MULTIPLAYER) {
     s2.len = 1;
-    s2.body[0].x = grid.cols/2 + 3;
-    s2.body[0].y = grid.rows/2;
+    s2.body[0].x = grid.cols / 2 + 3;
+    s2.body[0].y = grid.rows / 2;
     s2.dirX = STOPPED;
     s2.dirY = STOPPED;
     s2.score = 0;
