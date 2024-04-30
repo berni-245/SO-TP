@@ -21,5 +21,6 @@ void sysFillRectangle(int x, int y, int width, int height, RGBColor color);
 extern void sysPlaySound(uint32_t nFrequence, int ms);
 extern void sysGetCurrentTime(Time *currentTime);
 extern void sysGetRegisters(Register * registers);
+extern void* sysMalloc(uint64_t size);
 
 #endif

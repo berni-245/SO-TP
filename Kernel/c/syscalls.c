@@ -1,6 +1,7 @@
 #include <clock.h>
 #include <interruptions.h>
 #include <keyboard.h>
+#include <memory.h>
 #include <pcSpeaker.h>
 #include <registers.h>
 #include <syscalls.h>
@@ -27,7 +28,8 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)fillRectangle,
     (SyscallFunction)playSoundForCertainMs,
     (SyscallFunction)getCurrentTime,
-    (SyscallFunction)getRegisters
+    (SyscallFunction)getRegisters,
+    (SyscallFunction)malloc,
 };
 
 SyscallFunction* getSyscallsArray() {
