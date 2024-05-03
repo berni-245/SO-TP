@@ -8,7 +8,7 @@ if ! $docker start $container; then
 fi
 $docker exec -it $container make -C /root/ all
 sudo chown "$USER:$USER" ./Image/x64BareBonesImage.qcow2
-$docker stop $container &
+$docker stop $container 1>/dev/null &
 
 # I have to create this files dynamically because .clangd doesn't accept relative paths
 # so they need to be recreated for evry user or any time the project is moved.
