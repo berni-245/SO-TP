@@ -24,4 +24,4 @@ clean:
 	$(MAKE) -C Kernel -f Makefile.notroot clean
 	$(MAKE) -C Userland -f Makefile.notroot clean
 
-.PHONY: bootloader image collections kernel userland all clean
+.PHONY: all clean toolchain userland kernel bootloader
