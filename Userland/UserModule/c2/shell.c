@@ -236,7 +236,7 @@ ExitCode parseCommand() {
         return ARGUMENT_TOO_LONG;
       }
       if (argc == 0) {
-        if (argv[0][0] == 0) return 0;
+        if (argv[0][0] == 0) return SUCCESS;
         command = getCommand(argv[0]);
         if (command == NULL) {
           printf("%s: %s\n", CommandResultStrings[COMMAND_NOT_FOUND], argv[0]);
