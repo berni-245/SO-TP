@@ -1,4 +1,4 @@
-#include <shell.h>
+#include <shellUtils.h>
 
 extern uint8_t bss;
 
