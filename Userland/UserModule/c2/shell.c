@@ -243,8 +243,10 @@ ExitCode parseCommand() {
           return COMMAND_NOT_FOUND;
         }
       }
-      ++argc;
-      len = 0;
+      if (len != 0) {
+        ++argc;
+        len = 0;
+      }
       if (screenBuffer[i] == '\n') {
         return command(argc, argv);
       }
