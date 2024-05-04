@@ -325,7 +325,7 @@ ExitCode commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
   return SUCCESS;
 }
 
-ExitCode commandLayout(int argc, char (*argv)[MAX_ARG_LEN]) {
+ExitCode commandLayout(int argc, char argv[argc][MAX_ARG_LEN]) {
   if (argc == 1) {
     printf("Current layout: %s - %d\n", LayoutStrings[systemInfo.layout], systemInfo.layout);
     return SUCCESS;
