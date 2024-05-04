@@ -28,13 +28,8 @@ typedef enum {
   OUT_OF_BOUNDS,
 } ExitCode;
 static const char* const CommandResultStrings[] = {
-    [SUCCESS] = "Success",
-    [TOO_MANY_ARGUMENTS] = "Too many arguments",
-    [ARGUMENT_TOO_LONG] = "Argument too long",
-    [COMMAND_NOT_FOUND] = "Command not found",
-    [MISSING_ARGUMENTS] = "Missing arguments",
-    [ILLEGAL_ARGUMENT] = "Illegal argument",
-    [OUT_OF_BOUNDS] = "Argument of bounds",
+    "Success",           "Too many arguments", "Argument too long",  "Command not found",
+    "Missing arguments", "Illegal argument",   "Argument of bounds",
 };
 
 typedef ExitCode (*ShellFunction)(int argc, char[argc][MAX_ARG_LEN]);
