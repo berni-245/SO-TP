@@ -450,6 +450,9 @@ ExitCode commandZeroDivisionError() {
   // Always set srand because after the exception the modules starts anew
   // and srand is zero again.
   setSrand(sysGetTicks());
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdiv-by-zero"
   int i = rand() / 0;
+#pragma GCC diagnostic pop
   return SUCCESS;
 }
