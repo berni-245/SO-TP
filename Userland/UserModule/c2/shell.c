@@ -154,11 +154,11 @@ void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor) 
   setCursorColor(cursorColor);
 }
 
-static char* prompt = " > ";
-static char* errorPrompt = " >! ";
+static const char* const prompt = " > ";
+static const char* const errorPrompt = " >! ";
 static int currentPromptLen = 0;
 void newPrompt() {
-  char* currentPrompt;
+  const char* currentPrompt;
   if (commandReturnCode == 0) {
     currentPrompt = prompt;
     currentPromptLen = 3;
