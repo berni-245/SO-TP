@@ -452,7 +452,6 @@ ExitCode commandZeroDivisionError() {
   setSrand(sysGetTicks());
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdiv-by-zero"
-  int i = rand() / 0;
+  return rand() / 0;
 #pragma GCC diagnostic pop
-  return SUCCESS;
 }
