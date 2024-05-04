@@ -7,7 +7,6 @@ static uint32_t readUint32(uint8_t** address);
 
 // loadModules(&endOfKernelBinary, moduleAddresses);
 void* loadModules(void* payloadStart, void** targetModuleAddress) {
-  int i;
   // currentModule -> endOfKernelBinary
   uint8_t* currentModule = (uint8_t*)payloadStart;
 
@@ -16,7 +15,7 @@ void* loadModules(void* payloadStart, void** targetModuleAddress) {
   uint32_t moduleCount = readUint32(&currentModule);
 
   void* endOfModules;
-  for (i = 0; i < moduleCount; i++) endOfModules = loadModule(&currentModule, targetModuleAddress[i]);
+  for (int i = 0; i < moduleCount; i++) endOfModules = loadModule(&currentModule, targetModuleAddress[i]);
 
   return endOfModules;
 }
