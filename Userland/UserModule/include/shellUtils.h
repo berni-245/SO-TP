@@ -73,6 +73,7 @@ typedef struct ShellCommand {
 void newPrompt();
 void incFont();
 void decFont();
+void clearLine();
 void addCommand(char* name, char* description, ShellFunction function);
 void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor);
 void autocomplete();
@@ -80,6 +81,7 @@ void deleteWord();
 void historyPush();
 void historyPrev();
 void historyNext();
+void resetHistoryCurrentVals();
 // void parseCommandOpts(int argc, char argv[argc][MAX_ARG_LEN], int flagCount, CommandOption flags[]);
 
 ExitCode parseCommand();

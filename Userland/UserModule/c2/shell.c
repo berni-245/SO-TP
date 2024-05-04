@@ -2,10 +2,19 @@
 
 extern uint8_t bss;
 
-// Stores just the command indexes.
+// Circular buffer. Stores just the command indexes in the global screenBuffer.
 int commandHistory[MAX_HISTORY_LEN];
-int historyIdx = 0;
-bool historyInitialized = false;
+// Where in the commandHistory the new command's index should go.
+int historyNewIdx = 0;
+// Stores where in the commandHistory we are standing while traversing it with
+// historyPrev and historyNext.
+int historyCurrentIdx = 0;
+// How many commands have been stored. Can't go back more than this.
+int historyCount = 0;
+// How many elements remain to go back through while traversing the commandHistory.
+int historyCurrentCount = 0;
+
+// Index in the screenBuffer of the start of the current command.
 int currentCommandIdx = 0;
 
 static int commandReturnCode = 0;
@@ -60,10 +69,14 @@ int shell() {
         case 'k':
           historyPrev();
           break;
+        case 'j':
+          historyNext();
+          break;
         }
       } else {
         if (key.character == '\n') {
-          historyPush();
+          if (screenBufWriteIdx != currentCommandIdx) historyPush();
+          resetHistoryCurrentVals();
           printChar(key.character);
           commandReturnCode = parseCommand();
           newPrompt();
@@ -83,21 +96,36 @@ int shell() {
   return 1;
 }
 
-void incHistIdx() {
-  incCircularIdx(&historyIdx, MAX_HISTORY_LEN);
+void clearLine() {
+  while (screenBufWriteIdx != currentCommandIdx) printChar('\b');
 }
-void decHistIdx() {
-  decCircularIdx(&historyIdx, MAX_HISTORY_LEN);
+
+void resetHistoryCurrentVals() {
+  historyCurrentIdx = historyNewIdx;
+  historyCurrentCount = historyCount;
 }
 void historyPush() {
-  historyInitialized = true;
-  commandHistory[historyIdx] = currentCommandIdx;
-  incHistIdx();
+  commandHistory[historyNewIdx] = currentCommandIdx;
+  incCircularIdx(&historyNewIdx, MAX_HISTORY_LEN);
+  if (historyCount < MAX_HISTORY_LEN) ++historyCount;
 }
 void historyPrev() {
-  if (!historyInitialized) return;
-  int i = commandHistory[historyIdx];
-  decHistIdx();
+  if (historyCurrentCount == 0) return;
+  decCircularIdx(&historyCurrentIdx, MAX_HISTORY_LEN);
+  --historyCurrentCount;
+  int i = commandHistory[historyCurrentIdx];
+  clearLine();
+  while (screenBuffer[i] != '\n') {
+    printChar(screenBuffer[i]);
+    incCircularIdx(&i, SCREEN_BUFFER_SIZE);
+  }
+}
+void historyNext() {
+  if (historyCurrentCount >= historyCount - 1) return;
+  incCircularIdx(&historyCurrentIdx, MAX_HISTORY_LEN);
+  ++historyCurrentCount;
+  int i = commandHistory[historyCurrentIdx];
+  clearLine();
   while (screenBuffer[i] != '\n') {
     printChar(screenBuffer[i]);
     incCircularIdx(&i, SCREEN_BUFFER_SIZE);
