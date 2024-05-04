@@ -350,7 +350,7 @@ void printStringXY(int x, int y, char* s, int fontSize, int charsPerRow) {
   }
 }
 
-int strTrimStart(const char* s) {
+int strTrimStartOffset(const char* s) {
   int i = 0;
   while (*(s++) == ' ') ++i;
   return i;

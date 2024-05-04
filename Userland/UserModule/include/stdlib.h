@@ -41,7 +41,7 @@ unsigned int rand();
 // double normalizedRand();
 unsigned int randBetween(int min, int max);
 void printStringXY(int x, int y, char* s, int fontSize, int charsPerRow);
-int strTrimStart(const char* s);
+int strTrimStartOffset(const char* s);
 bool strContains(const char* s, const char c);
 char toLower(char c);
 long pow(int x, int n);

@@ -224,11 +224,11 @@ ExitCode parseCommand() {
   int len = 0;
   int argc = 0;
   ShellFunction command;
-  i += strTrimStart(screenBuffer + i);
+  incCircularIdxBy(&i, strTrimStartOffset(screenBuffer + i), SCREEN_BUFFER_SIZE);
   while (argc < MAX_ARG_COUNT) {
     if (screenBuffer[i] != ' ' && screenBuffer[i] != '\n' && len < MAX_ARG_LEN) {
       argv[argc][len++] = screenBuffer[i];
-      i = (i + 1) % SCREEN_BUFFER_SIZE;
+      incCircularIdx(&i, SCREEN_BUFFER_SIZE);
     } else {
       argv[argc][len] = 0;
       if (len == MAX_ARG_LEN) {
@@ -248,8 +248,8 @@ ExitCode parseCommand() {
       if (screenBuffer[i] == '\n') {
         return command(argc, argv);
       }
-      i = (i + 1) % SCREEN_BUFFER_SIZE;
-      i += strTrimStart(screenBuffer + i);
+      incCircularIdx(&i, SCREEN_BUFFER_SIZE);
+      incCircularIdxBy(&i, strTrimStartOffset(screenBuffer + i), SCREEN_BUFFER_SIZE);
     }
   }
   puts(CommandResultStrings[TOO_MANY_ARGUMENTS]);
