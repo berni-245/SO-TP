@@ -60,7 +60,6 @@ int shell() {
           clearScreen();
           screenBufWriteIdx = 0;
           screenBufReadIdx = 0;
-          currentCommandIdx = 0;
           newPrompt();
           break;
         case 'w':
