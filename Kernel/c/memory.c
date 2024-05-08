@@ -43,3 +43,7 @@ void* malloc(uint64_t size) {
   heapCurrent += size;
   return heapRet;
 }
+
+void free(void* ptr) {
+  return;
+}

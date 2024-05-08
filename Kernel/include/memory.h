@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 void* malloc(uint64_t size);
+void free(void* ptr);
 void memoryInit(void* heapStart);
 
 #endif
