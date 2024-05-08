@@ -8,14 +8,8 @@ global haltTillNextInterruption
 	
 global picMask
 
-global irq00Handler
-global irq01Handler
-global irq02Handler
-global irq03Handler
-global irq04Handler
-global irq05Handler
-global irq06Handler
-global irq07Handler
+global timerTickIrqHandler
+global keyboardIrqHandler
 
 global exception00Handler
 global exception01Handler
@@ -28,9 +22,10 @@ extern getStackBase
 
 
 
-irq00Handler:
+timerTickIrqHandler:
   irqHandler 0
-irq01Handler:
+
+keyboardIrqHandler:
   push rax
   call readKeyCode
   cmp al, 0x3b ; f1 para sacar captura de los registros
@@ -43,19 +38,6 @@ irq01Handler:
   popState
 .skip:
   irqHandler 1
-irq02Handler:
-  irqHandler 2
-irq03Handler:
-  irqHandler 3
-irq04Handler:
-  irqHandler 4
-irq05Handler:
-  irqHandler 5
-irq06Handler:
-  irqHandler 6
-irq07Handler:
-  irqHandler 7
-
 
 exception00Handler:
   exceptionHandler 0
