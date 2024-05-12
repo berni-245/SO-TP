@@ -1,3 +1,4 @@
+#include "syscalls.h"
 #include <shellUtils.h>
 
 extern uint8_t bss;
@@ -248,7 +249,13 @@ ExitCode parseCommand() {
         len = 0;
       }
       if (screenBuffer[i] == '\n') {
-        return command(argc, argv);
+        // return command(argc, argv);
+        char* argvPtrs[argc];
+        for (int i = 0; i < argc; ++i) {
+          argvPtrs[i] = argv[i];
+        }
+        sysCreateProcess(argc, argvPtrs, command);
+        return 0;
       }
       incCircularIdx(&i, SCREEN_BUFFER_SIZE);
       incCircularIdxBy(&i, strTrimStartOffset(screenBuffer + i), SCREEN_BUFFER_SIZE);
@@ -301,7 +308,8 @@ ExitCode commandGetKeyInfo() {
   return SUCCESS;
 }
 
-ExitCode commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
+// argc aka rdi is arriving as 0 for some reason.
+ExitCode commandRand(int argc, char* argv[argc]) {
   static bool randInitialized = false;
   if (!randInitialized) {
     setSrand(sysGetTicks());
@@ -324,7 +332,7 @@ ExitCode commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
     printf("%d%s", randBetween(min, max), (count == 0) ? "" : ", ");
   }
   printf("\n");
-  return SUCCESS;
+  sysExit(SUCCESS);
 }
 
 ExitCode commandLayout(int argc, char argv[argc][MAX_ARG_LEN]) {

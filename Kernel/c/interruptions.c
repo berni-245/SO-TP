@@ -25,11 +25,11 @@ void loadIdt() {
   setupIdtEntry(0x80, syscallDispatcher);
   picMask(TIMER_TICK_MASK & KEYBOARD_MASK);
   // picMask(/* TIMER_TICK_MASK & */ KEYBOARD_MASK);
-  enableInterruptions();
+  // enableInterruptions();
 }
 
 static InterruptionFunction interruptions[255] = {
-    timerTick,
+    incTicks,
     readKeyToBuffer,
 };
 

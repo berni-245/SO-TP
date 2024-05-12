@@ -1,6 +1,6 @@
 %include "asm/include/interruptions_macros.asm"
+%include "asm/include/processes_macros.asm"
 
-section .text
 
 global disableInterruptions
 global enableInterruptions
@@ -19,24 +19,53 @@ extern readKeyCode
 extern saveRegisters
 extern exceptionDispatcher
 extern getStackBase
+extern schedule
 
 
+section .text
 
 timerTickIrqHandler:
   irqHandler 0
+  ; pushGpr
+
+  ; ; Increase timer tick
+  ; mov rdi, 0
+  ; call irqDispatcher
+
+  ; ; call schedule
+  ; ; mov rsp, rax
+
+  ; mov al, 0x20
+  ; out 0x20, al
+
+  ; popGpr
+  ; iretq
 
 keyboardIrqHandler:
+.captureRegisters:
   push rax
   call readKeyCode
   cmp al, 0x3b ; f1 para sacar captura de los registros
+  jne .nextProcess
   pop rax
-  jne .skip
   pushState
   push qword normalRegistersCode
   call saveRegisters
-  pop rax
+  pop rax ; remove the pushed normalRegistersCode from stack
   popState
-.skip:
+  jmp .prematureExit
+.nextProcess: ; Just for testing
+  cmp al, 0x3c ; f2
+  pop rax
+  jne .regularKeyPress
+  mov rdi, rsp
+  call schedule
+  mov rsp, rax
+  popGpr
+.prematureExit
+  eoi
+  iretq
+.regularKeyPress:
   irqHandler 1
 
 exception00Handler:

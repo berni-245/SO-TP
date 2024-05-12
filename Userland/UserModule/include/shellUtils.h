@@ -85,7 +85,7 @@ ExitCode commandGetReturnCode();
 ExitCode commandRealTime();
 ExitCode commandHelp();
 ExitCode commandGetKeyInfo();
-ExitCode commandRand(int argc, char argv[argc][MAX_ARG_LEN]);
+ExitCode commandRand(int argc, char* argv[argc]);
 ExitCode commandLayout(int argc, char argv[argc][MAX_ARG_LEN]);
 ExitCode commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]);
 ExitCode commandSysInfo();

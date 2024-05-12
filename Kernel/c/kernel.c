@@ -5,6 +5,7 @@
 #include <moduleLoader.h>
 #include <stdint.h>
 #include <videoDriver.h>
+#include <scheduler.h>
 
 // extern uint8_t kernelText;
 // extern uint8_t kernelRodata;
@@ -49,8 +50,14 @@ void* initializeKernelBinary() {
 int main() {
   loadIdt();
   setFontGridValues();
+  initializePCBList();
 
-  userModule();
+  // userModule();
+  createProcess(0, NULL, userModule);
+
+  // This should only run until the shell process begins, afterwards I don't
+  // think this code will ever be reached again.
+  while (1) haltTillNextInterruption();
 
   return 0;
 }

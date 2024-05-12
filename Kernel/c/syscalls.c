@@ -4,6 +4,7 @@
 #include <memory.h>
 #include <pcSpeaker.h>
 #include <registers.h>
+#include <scheduler.h>
 #include <syscalls.h>
 #include <sysinfo.h>
 #include <timer.h>
@@ -30,6 +31,8 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)getCurrentTime,
     (SyscallFunction)getRegisters,
     (SyscallFunction)malloc,
+    (SyscallFunction)createProcess,
+    (SyscallFunction)exit,
 };
 
 SyscallFunction* getSyscallsArray() {

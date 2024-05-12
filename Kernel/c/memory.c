@@ -19,16 +19,16 @@ If endOfModules = 0x503e3 => heapStart = 0x503e8
 0x00000000000503e8  xx 00 00 00 00 00 00 00
 0x00000000000503f0  00 00 00 00 00 00 00 00
 
-endOfModules = 0x503e3        v                 
+endOfModules = 0x503e3        v
 0x00000000000503e0  00 00 00 00 00 00 00 00
 
 heapStart = 0x503e3 + 7
-heapStart = 0x503ea        v                        
+heapStart = 0x503ea        v
 0x00000000000503e8  00 00 00 00 00 00 00 00
 
 mask = ~7 = 0b1111...11111000 (with a total of 64 bits)
 heapStart = heapStart & mask = 0b...1010 & 0b...1000 = 0b...1000
-heapStart = 0x503e8  v                              
+heapStart = 0x503e8  v
 0x00000000000503e8  00 00 00 00 00 00 00 00
 */
 
@@ -42,6 +42,37 @@ void* malloc(uint64_t size) {
   void* heapRet = heapCurrent;
   heapCurrent += size;
   return heapRet;
+}
+
+/*
+rsp = e                s                   
+0x00000000000503d8  00 00 00 00 00 00 00 00
+0x00000000000503e0  00 00 00 00 00 00 00 00
+0x00000000000503e8  00 00 00 00 00 00 00 00
+                                   e  >>   
+0x00000000000503f0  00 00 00 00 00 00 00 00
+
+rsp = e - 8            s                   
+0x00000000000503d8  00 00 00 00 00 00 00 00
+0x00000000000503e0  00 00 00 00 00 00 00 00
+                                   v       
+0x00000000000503e8  00 00 00 00 00 00 00 00
+                                   e  >>   
+0x00000000000503f0  00 00 00 00 00 00 00 00
+
+rsp = (e - 8) & ~7     s                 
+0x00000000000503d8  00 00 00 00 00 00 00 00
+0x00000000000503e0  00 00 00 00 00 00 00 00
+                    v                      
+0x00000000000503e8  00 00 00 00 00 00 00 00
+                                    e >>   
+0x00000000000503f0  00 00 00 00 00 00 00 00
+ */
+void* stackAlloc(uint64_t size) {
+  void* rsp = malloc(size);
+  rsp += size - 1;
+  rsp = (void*)(((uint64_t)rsp - addressByteSize) & ~(addressByteSize - 1));
+  return rsp;
 }
 
 void free(void* ptr) {

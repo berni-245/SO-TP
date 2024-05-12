@@ -23,5 +23,7 @@ extern void sysGetCurrentTime(Time* currentTime);
 extern void sysGetRegisters(Register* registers);
 extern void* sysMalloc(uint64_t size);
 void sysFree(void* ptr);
+uint32_t sysCreateProcess(int argc, char* argv[], void* processRip);
+void sysExit(int exitCode);
 
 #endif

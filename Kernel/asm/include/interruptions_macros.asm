@@ -1,3 +1,6 @@
+; Watch out!!! Modifiying this file isn't detected by the Makefile so a 
+; sudo make clean is necessary for changes to take effect.
+
 %macro pushState 0
 	push r15
   lea r15, [rsp + 8] ; me guardo el stack pointer al entrar a la interrupción
@@ -39,12 +42,16 @@
 	pop r15
 %endmacro
 
+%macro eoi 0
+  mov al, 0x20
+  out 0x20, al
+%endmacro
+
 %macro irqHandler 1
   push rax
   mov rdi, %1
   call irqDispatcher
-  mov al, 0x20
-  out 0x20, al
+  eoi
   pop rax
   iretq
 %endmacro
