@@ -51,8 +51,6 @@ static const uint64_t addressByteSize = sizeof(void*);
 static const uint64_t alinedHeapStructSize = (sizeof(blockLink_t) + addressByteSize - 1) & ~(addressByteSize - 1);
 
 static uint64_t freeBytesRemaining;
-static uint64_t numberOfSuccessfulAllocations = 0;
-static uint64_t numberOfSuccessfulFrees = 0;
 
 void memoryInit(void* endOfModules) {
   void * alinedHeapStart = (void*)(((uint64_t)endOfModules + addressByteSize - 1) & ~(addressByteSize - 1));
@@ -73,71 +71,50 @@ void memoryInit(void* endOfModules) {
 
 static void insertBlockIntoFreeList(blockLink_t * blockToInsert){
   blockLink_t * blockIterator;
-    uint8_t *puc;
+  uint8_t *puc;
 
-    /* Iterate through the list until a block is found that has a higher address
-     * than the block being inserted. */
-    for (blockIterator = &listStart; blockIterator->nextFreeBlock < blockToInsert; blockIterator = blockIterator->nextFreeBlock)
-    {
-        /* Nothing to do here, just iterate to the right position. */
-    }
+  /* Iterate through the list until a block is found that has a higher address
+    * than the block being inserted. */
+  for (blockIterator = &listStart; blockIterator->nextFreeBlock < blockToInsert; blockIterator = blockIterator->nextFreeBlock) {
+      /* Nothing to do here, just iterate to the right position. */
+  }
 
-    /* Do the block being inserted, and the block it is being inserted after
-     * make a contiguous block of memory? */
-    puc = (uint8_t *) blockIterator;
+  /* Do the block being inserted, and the block it is being inserted after
+    * make a contiguous block of memory? */
+  puc = (uint8_t *) blockIterator;
 
-    if ((puc + blockIterator->blockSize) == (uint8_t *)blockToInsert)
-    {
-        blockIterator->blockSize += blockToInsert->blockSize;
-        blockToInsert = blockIterator;
-    }
-    else
-    {
-        mtCOVERAGE_TEST_MARKER();
-    }
+  if ((puc + blockIterator->blockSize) == (uint8_t *)blockToInsert) {
+      blockIterator->blockSize += blockToInsert->blockSize;
+      blockToInsert = blockIterator;
+  }
+  /* Do the block being inserted, and the block it is being inserted before
+    * make a contiguous block of memory? */
+  puc = (uint8_t *)blockToInsert;
 
-    /* Do the block being inserted, and the block it is being inserted before
-     * make a contiguous block of memory? */
-    puc = (uint8_t *)blockToInsert;
+  if ((puc + blockToInsert->blockSize) == (uint8_t *) blockIterator->nextFreeBlock) {
+      if (blockIterator->nextFreeBlock != listEnd) {
+          /* Form one big block from the two blocks. */
+          blockToInsert->blockSize += blockIterator->nextFreeBlock->blockSize;
+          blockToInsert->nextFreeBlock = blockIterator->nextFreeBlock->nextFreeBlock;
+      }
+      else {
+          blockToInsert->nextFreeBlock = listEnd;
+      }
+  }
+  else {
+      blockToInsert->nextFreeBlock = blockIterator->nextFreeBlock;
+  }
 
-    if ((puc + blockToInsert->blockSize) == (uint8_t *) blockIterator->nextFreeBlock)
-    {
-        if (blockIterator->nextFreeBlock != listEnd)
-        {
-            /* Form one big block from the two blocks. */
-            blockToInsert->blockSize += blockIterator->nextFreeBlock->blockSize;
-            blockToInsert->nextFreeBlock = blockIterator->nextFreeBlock->nextFreeBlock;
-        }
-        else
-        {
-            blockToInsert->nextFreeBlock = listEnd;
-        }
-    }
-    else
-    {
-        blockToInsert->nextFreeBlock = blockIterator->nextFreeBlock;
-    }
-
-    /* If the block being inserted plugged a gab, so was merged with the block
-     * before and the block after, then it's pxNextFreeBlock pointer will have
-     * already been set, and should not be set here as that would make it point
-     * to itself. */
-    if (blockIterator != blockToInsert)
-    {
-        blockIterator->nextFreeBlock = blockToInsert;
-    }
-    else
-    {
-        mtCOVERAGE_TEST_MARKER();
-    }
+  /* If the block being inserted plugged a gab, so was merged with the block
+    * before and the block after, then it's pxNextFreeBlock pointer will have
+    * already been set, and should not be set here as that would make it point
+    * to itself. */
+  if (blockIterator != blockToInsert) {
+      blockIterator->nextFreeBlock = blockToInsert;
+  }
 }
 
 void* malloc(uint64_t size) {
-  // if (heapCurrent + size - heapStart > heapSize) return NULL;
-  // void* heapRet = heapCurrent;
-  // heapCurrent += size;
-  // return heapRet;
-
   blockLink_t * block;
   blockLink_t * previousBlock;
   blockLink_t * newBlockLink;
@@ -188,40 +165,27 @@ void* malloc(uint64_t size) {
 
 void free(void* ptr) {
   uint8_t *puc = (uint8_t *) ptr;
-    blockLink_t *pxLink;
+  blockLink_t *pxLink;
 
-    if (ptr != NULL)
-    {
-        /* The memory being freed will have an BlockLink_t structure immediately
-         * before it. */
-        puc -= alinedHeapStructSize;
+  if (ptr != NULL) {
+      /* The memory being freed will have an BlockLink_t structure immediately
+        * before it. */
+      puc -= alinedHeapStructSize;
 
-        /* This casting is to keep the compiler from issuing warnings. */
-        pxLink = (void *)puc;
+      /* This casting is to keep the compiler from issuing warnings. */
+      pxLink = (void *)puc;
 
-        if (heapBLOCK_IS_ALLOCATED(pxLink) != 0)
-        {
-            if (pxLink->nextFreeBlock == NULL)
-            {
-                /* The block is being returned to the heap - it is no longer
-                 * allocated. */
-                heapFREE_BLOCK(pxLink);
+      if (heapBLOCK_IS_ALLOCATED(pxLink) != 0) {
+          if (pxLink->nextFreeBlock == NULL) {
+              /* The block is being returned to the heap - it is no longer
+                * allocated. */
+              heapFREE_BLOCK(pxLink);
 
-                
-                    /* Add this block to the list of free blocks. */
-                freeBytesRemaining += pxLink->blockSize;
-                insertBlockIntoFreeList(((blockLink_t *)pxLink));
-                numberOfSuccessfulFrees++;
-            
-            }
-            else
-            {
-                mtCOVERAGE_TEST_MARKER();
-            }
-        }
-        else
-        {
-            mtCOVERAGE_TEST_MARKER();
-        }
-    }
+              
+                  /* Add this block to the list of free blocks. */
+              freeBytesRemaining += pxLink->blockSize;
+              insertBlockIntoFreeList(((blockLink_t *)pxLink));          
+          }
+      }
+  }
 }
