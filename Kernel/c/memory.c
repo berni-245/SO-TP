@@ -1,14 +1,7 @@
 #include <memory.h>
+#include <stdint.h>
 
 // extern uint8_t endOfBinary;
-
-// 64MB max heap size
-static const int heapSize = (1 << 20) * 64;
-
-static void* heapStart;
-static void* heapCurrent;
-
-static const uint64_t addressByteSize = sizeof(void*);
 
 /*
 heapStart alignment example:
@@ -32,9 +25,35 @@ heapStart = 0x503e8  v
 0x00000000000503e8  00 00 00 00 00 00 00 00
 */
 
+typedef struct blockLink_t{
+  struct blockLink_t * nextFreeBlock;
+  uint64_t blockSize;
+} blockLink_t;
+
+// 64MB max heap size
+static const int heapSize = (1 << 20) * 64;
+
+static void* heapStart;
+static void* heapCurrent;
+static blockLink_t listStart;
+static blockLink_t * listEnd = NULL;
+
+static const uint64_t addressByteSize = sizeof(void*);
+static const uint64_t heapStructSize = sizeof(blockLink_t);
+
 void memoryInit(void* endOfModules) {
-  heapStart = (void*)(((uint64_t)endOfModules + addressByteSize - 1) & ~(addressByteSize - 1));
-  heapCurrent = heapStart;
+  void * alinedHeapStart = (void*)(((uint64_t)endOfModules + addressByteSize - 1) & ~(addressByteSize - 1));
+  listStart.nextFreeBlock = alinedHeapStart;
+  listStart.blockSize = 0;
+
+  void * alinedHeapEnd = (void*)((uint64_t) (alinedHeapStart + heapSize - heapStructSize) & ~(addressByteSize - 1));
+  listEnd = (blockLink_t *) alinedHeapEnd;
+  listEnd->blockSize = 0;
+  listEnd->nextFreeBlock = NULL;
+
+  blockLink_t * firstFreeBlock = (blockLink_t *) alinedHeapStart;
+  firstFreeBlock->blockSize = (uint64_t) (alinedHeapEnd - alinedHeapStart);
+  firstFreeBlock->nextFreeBlock = listEnd;
 }
 
 void* malloc(uint64_t size) {
