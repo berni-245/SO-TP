@@ -22,6 +22,6 @@ extern void sysPlaySound(uint32_t nFrequence, int ms);
 extern void sysGetCurrentTime(Time* currentTime);
 extern void sysGetRegisters(Register* registers);
 extern void* sysMalloc(uint64_t size);
-void sysFree(void* ptr);
+extern void sysFree(void* ptr);
 
 #endif

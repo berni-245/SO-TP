@@ -25,8 +25,6 @@ heapStart = 0x503e8  v
 0x00000000000503e8  00 00 00 00 00 00 00 00
 */
 
-#define MINIMUM_BLOCK_SIZE ((uint64_t) (alinedHeapStructSize << 1))
-
 #define heapBITS_PER_BYTE ((uint64_t) 8)
 #define heapBLOCK_ALLOCATED_BITMASK (((uint64_t)1) << ((sizeof(uint64_t) * heapBITS_PER_BYTE) - 1))
 #define heapBLOCK_SIZE_IS_VALID(blockSize) (((blockSize) & heapBLOCK_ALLOCATED_BITMASK) == 0)
@@ -42,8 +40,6 @@ typedef struct blockLink_t{
 // 64MB max heap size
 static const int heapSize = (1 << 20) * 64;
 
-static void* heapStart;
-static void* heapCurrent;
 static blockLink_t listStart;
 static blockLink_t * listEnd = NULL;
 
@@ -51,6 +47,8 @@ static const uint64_t addressByteSize = sizeof(void*);
 static const uint64_t alinedHeapStructSize = (sizeof(blockLink_t) + addressByteSize - 1) & ~(addressByteSize - 1);
 
 static uint64_t freeBytesRemaining;
+
+#define MINIMUM_BLOCK_SIZE ((uint64_t) (alinedHeapStructSize << 1)) // should be 32 bytes 
 
 void memoryInit(void* endOfModules) {
   void * alinedHeapStart = (void*)(((uint64_t)endOfModules + addressByteSize - 1) & ~(addressByteSize - 1));
@@ -71,27 +69,25 @@ void memoryInit(void* endOfModules) {
 
 static void insertBlockIntoFreeList(blockLink_t * blockToInsert){
   blockLink_t * blockIterator;
-  uint8_t *puc;
+  uint8_t *aux;
 
   /* Iterate through the list until a block is found that has a higher address
     * than the block being inserted. */
-  for (blockIterator = &listStart; blockIterator->nextFreeBlock < blockToInsert; blockIterator = blockIterator->nextFreeBlock) {
-      /* Nothing to do here, just iterate to the right position. */
-  }
+  for (blockIterator = &listStart; blockIterator->nextFreeBlock < blockToInsert; blockIterator = blockIterator->nextFreeBlock) {}
 
   /* Do the block being inserted, and the block it is being inserted after
     * make a contiguous block of memory? */
-  puc = (uint8_t *) blockIterator;
+  aux = (uint8_t *) blockIterator;
 
-  if ((puc + blockIterator->blockSize) == (uint8_t *)blockToInsert) {
+  if ((aux + blockIterator->blockSize) == (uint8_t *)blockToInsert) {
       blockIterator->blockSize += blockToInsert->blockSize;
       blockToInsert = blockIterator;
   }
   /* Do the block being inserted, and the block it is being inserted before
     * make a contiguous block of memory? */
-  puc = (uint8_t *)blockToInsert;
+  aux = (uint8_t *)blockToInsert;
 
-  if ((puc + blockToInsert->blockSize) == (uint8_t *) blockIterator->nextFreeBlock) {
+  if ((aux + blockToInsert->blockSize) == (uint8_t *) blockIterator->nextFreeBlock) {
       if (blockIterator->nextFreeBlock != listEnd) {
           /* Form one big block from the two blocks. */
           blockToInsert->blockSize += blockIterator->nextFreeBlock->blockSize;
@@ -140,7 +136,7 @@ void* malloc(uint64_t size) {
       previousBlock->nextFreeBlock = block->nextFreeBlock;
 
       if((block->blockSize - alinedRequiredSize) > MINIMUM_BLOCK_SIZE){
-        newBlockLink = (void *) (block + alinedRequiredSize);
+        newBlockLink = (blockLink_t *) (block + alinedRequiredSize);
         newBlockLink->blockSize = block->blockSize - alinedRequiredSize;
         block->blockSize = alinedRequiredSize;
 
@@ -164,27 +160,25 @@ void* malloc(uint64_t size) {
 }
 
 void free(void* ptr) {
-  uint8_t *puc = (uint8_t *) ptr;
-  blockLink_t *pxLink;
+  uint8_t *aux = (uint8_t *) ptr;
+  blockLink_t *freeBlock;
 
   if (ptr != NULL) {
-      /* The memory being freed will have an BlockLink_t structure immediately
+      /* The memory being freed will have an blockLink_t structure immediately
         * before it. */
-      puc -= alinedHeapStructSize;
+      aux -= alinedHeapStructSize;
 
-      /* This casting is to keep the compiler from issuing warnings. */
-      pxLink = (void *)puc;
+      freeBlock = (void *)aux;
 
-      if (heapBLOCK_IS_ALLOCATED(pxLink) != 0) {
-          if (pxLink->nextFreeBlock == NULL) {
+      if (heapBLOCK_IS_ALLOCATED(freeBlock) != 0) {
+          if (freeBlock->nextFreeBlock == NULL) {
               /* The block is being returned to the heap - it is no longer
                 * allocated. */
-              heapFREE_BLOCK(pxLink);
+              heapFREE_BLOCK(freeBlock);
 
               
-                  /* Add this block to the list of free blocks. */
-              freeBytesRemaining += pxLink->blockSize;
-              insertBlockIntoFreeList(((blockLink_t *)pxLink));          
+              freeBytesRemaining += freeBlock->blockSize;
+              insertBlockIntoFreeList(((blockLink_t *)freeBlock));
           }
       }
   }

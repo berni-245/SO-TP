@@ -17,6 +17,7 @@ global sysPlaySound
 global sysGetCurrentTime
 global sysGetRegisters
 global sysMalloc
+global sysFree
 
 %macro syscall 1
   mov r9, %1
@@ -56,3 +57,6 @@ sysGetRegisters:
   syscall 14
 sysMalloc:
   syscall 15
+sysFree:
+  syscall 16
+

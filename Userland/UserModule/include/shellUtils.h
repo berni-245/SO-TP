@@ -94,5 +94,6 @@ ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]);
 ExitCode commandTest();
 ExitCode commandZeroDivisionError();
 ExitCode commandInvalidOpcodeError();
+ExitCode commandMallocTest();
 
 #endif

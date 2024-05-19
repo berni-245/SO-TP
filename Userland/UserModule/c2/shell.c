@@ -39,6 +39,7 @@ int shell() {
   addCommand("snake", "Play snake.", commandSnake);
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
+  addCommand("commandMallocTest", "Test malloc syscall", commandMallocTest);
   commandHelp();
 
   newPrompt();
@@ -456,4 +457,20 @@ ExitCode commandZeroDivisionError() {
 #pragma GCC diagnostic ignored "-Wdiv-by-zero"
   return rand() / 0;
 #pragma GCC diagnostic pop
+}
+
+ExitCode commandMallocTest(){
+  char * str = sysMalloc(13);
+  char temp[] = "hello world!";
+
+  int i = 0;
+  for(; i < 12; i++){
+    str[i] = temp[i];
+  }
+  str[i] = 0;
+
+  printf("%s\n", str);
+
+  sysFree(str);
+  return SUCCESS;
 }
