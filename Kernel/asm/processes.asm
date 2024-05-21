@@ -45,7 +45,6 @@ createProcessStack:
   ; grows upwards) and address aligned.
   mov rsp, rax
   mov rbp, rax
-  push 0      ; Align
   push 0      ; ss
   push rax    ; original rsp (before the pushes)
   push 0x202  ; rflags
