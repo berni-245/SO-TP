@@ -4,6 +4,8 @@
 
 // 64MB max heap size
 static const int heapSize = (1 << 20) * 64;
+// 4KB stack size
+static const int stackSize = (1 << 10) * 4;
 
 static void* heapStart;
 static void* heapCurrent;
@@ -45,34 +47,34 @@ void* malloc(uint64_t size) {
 }
 
 /*
-rsp = e                s                   
+rsp = e                e                   
 0x00000000000503d8  00 00 00 00 00 00 00 00
 0x00000000000503e0  00 00 00 00 00 00 00 00
 0x00000000000503e8  00 00 00 00 00 00 00 00
-                                   e  >>   
+                                   s  >>   
 0x00000000000503f0  00 00 00 00 00 00 00 00
 
-rsp = e - 8            s                   
+rsp = e - 8            e                   
 0x00000000000503d8  00 00 00 00 00 00 00 00
 0x00000000000503e0  00 00 00 00 00 00 00 00
                                    v       
 0x00000000000503e8  00 00 00 00 00 00 00 00
-                                   e  >>   
+                                   s  >>   
 0x00000000000503f0  00 00 00 00 00 00 00 00
 
-rsp = (e - 8) & ~7     s                 
+rsp = (e - 8) & ~7
+                       e                 
 0x00000000000503d8  00 00 00 00 00 00 00 00
 0x00000000000503e0  00 00 00 00 00 00 00 00
                     v                      
 0x00000000000503e8  00 00 00 00 00 00 00 00
-                                    e >>   
+                                    s >>   
 0x00000000000503f0  00 00 00 00 00 00 00 00
  */
-void* stackAlloc(uint64_t size) {
-  void* rsp = malloc(size);
-  rsp += size - 1;
-  rsp = (void*)(((uint64_t)rsp - addressByteSize) & ~(addressByteSize - 1));
-  return rsp;
+void stackAlloc(void** stackStart, void** stackEnd) {
+  *stackEnd = malloc(stackSize);
+  *stackStart = *stackEnd + stackSize - 1;
+  *stackStart = (void*)(((uint64_t)*stackStart - addressByteSize) & ~(addressByteSize - 1));
 }
 
 void free(void* ptr) {

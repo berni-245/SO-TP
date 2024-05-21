@@ -18,8 +18,10 @@ static const uint64_t PageSize = 0x1000;
 
 typedef int (*EntryPoint)();
 
-static EntryPoint const userModule = (EntryPoint)0x400000;
+EntryPoint const userModule = (EntryPoint)0x400000;
 static EntryPoint const sampleDataModule = (EntryPoint)0x500000;
+
+extern void startUserModule();
 
 void clearBSS(void* bssAddress, uint64_t bssSize) {
   memset(bssAddress, 0, bssSize);
@@ -53,11 +55,11 @@ int main() {
   initializePCBList();
 
   // userModule();
-  createProcess(0, NULL, userModule);
+  startUserModule();
 
   // This should only run until the shell process begins, afterwards I don't
   // think this code will ever be reached again.
-  while (1) haltTillNextInterruption();
+  // while (1) haltTillNextInterruption();
 
   return 0;
 }

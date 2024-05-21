@@ -13,8 +13,8 @@
 #include <sysinfo.h>
 #include <utils.h>
 
-#define MAX_ARG_COUNT 20
-#define MAX_ARG_LEN 50 + 1
+#define MAX_ARG_COUNT 5
+#define MAX_ARG_LEN 50
 #define MAX_COMMAND_COUNT 50
 #define MAX_HISTORY_LEN 50
 
@@ -32,7 +32,7 @@ static const char* const CommandResultStrings[] = {
     "Missing arguments", "Illegal argument",   "Argument of bounds",
 };
 
-typedef ExitCode (*ShellFunction)(int argc, char[argc][MAX_ARG_LEN]);
+typedef void (*ShellFunction)(int argc, char* [argc]);
 
 /*
 typedef struct {
@@ -80,19 +80,19 @@ void resetHistoryCurrentVals();
 // void parseCommandOpts(int argc, char argv[argc][MAX_ARG_LEN], int flagCount, CommandOption flags[]);
 
 ExitCode parseCommand();
-ExitCode commandEcho(int argc, char argv[argc][MAX_ARG_LEN]);
-ExitCode commandGetReturnCode();
-ExitCode commandRealTime();
-ExitCode commandHelp();
-ExitCode commandGetKeyInfo();
-ExitCode commandRand(int argc, char* argv[argc]);
-ExitCode commandLayout(int argc, char argv[argc][MAX_ARG_LEN]);
-ExitCode commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]);
-ExitCode commandSysInfo();
-ExitCode commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]);
-ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]);
-ExitCode commandTest();
-ExitCode commandZeroDivisionError();
-ExitCode commandInvalidOpcodeError();
+void commandEcho(int argc, char* argv[argc]);
+void commandGetReturnCode();
+void commandRealTime();
+void commandHelp();
+void commandGetKeyInfo();
+void commandRand(int argc, char* argv[argc]);
+void commandLayout(int argc, char* argv[argc]);
+void commandSetColors(int argc, char* argv[argc]);
+void commandSysInfo();
+void commandGetRegisters(int argc, char* argv[argc]);
+void commandSnake(int argc, char* argv[argc]);
+void commandTest();
+void commandZeroDivisionError();
+void commandInvalidOpcodeError();
 
 #endif

@@ -53,7 +53,7 @@ void loadIdt();
 
 extern void timerTickIrqHandler();
 extern void keyboardIrqHandler();
-extern void irq02Handler();
+extern void asdf();
 extern void irq03Handler();
 extern void irq04Handler();
 extern void irq05Handler();

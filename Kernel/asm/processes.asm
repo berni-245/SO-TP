@@ -1,11 +1,15 @@
 %include "asm/include/processes_macros.asm"
+%include "asm/include/interruptions_macros.asm"
 
-global createProcessStack
+global initializeProcessStack
 global idleProc
 global exit
+global startUserModule
 
 extern stackAlloc
 extern exitProcess
+extern createUsermModuleProcess
+extern asdfInterruption
 
 
 section .text
@@ -16,10 +20,11 @@ section .text
 ;  rdi: argc
 ;  rsi: argv
 ;  rdx: pointer to process function
+;  rcx: pointer to begining of stack
 ; Return
-;  rax: stack pointer for created process
+;  rax: current stack pointer for created process
 ; -----------------------------------------------------------------------
-createProcessStack:
+initializeProcessStack:
   ; This is just so gdb detects this function for the call stack.
   push rbp
   mov rbp, rsp
@@ -29,24 +34,11 @@ createProcessStack:
   push r11
   mov r11, rsp
 
-  ; I need to preserve all this registers as they may be modified by stackAlloc (or need to
-  ; be manually modified like rdi).
-  push rdi
-  push rsi
-  push rdx
-  mov rdi, [stackSizePtr]
-  call stackAlloc
-  pop rdx
-  pop rsi
-  pop rdi
-
   ; Move the stack pointer to the allocated memory (this will be the new process' stack)
-  ; Note that stackAlloc already reaturns the address of the "end" of the block (as stack
-  ; grows upwards) and address aligned.
-  mov rsp, rax
-  mov rbp, rax
+  mov rsp, rcx
+  mov rbp, rcx
   push 0      ; ss
-  push rax    ; original rsp (before the pushes)
+  push rcx    ; original rsp (before the pushes)
   push 0x202  ; rflags
   push 0x8    ; cs
   push rdx    ; rip
@@ -65,7 +57,6 @@ createProcessStack:
 ; -------------------------     FUNCTION     ----------------------------
 ; Description: A process created at kernel initialization and which is always ready
 ; Arguments: None
-; Return: None
 ; -----------------------------------------------------------------------
 idleProc:
   hlt
@@ -80,8 +71,18 @@ idleProc:
 ; -----------------------------------------------------------------------
 exit:
   call exitProcess
-  int 0x20
+  int 0x22
 
-
-section .rodata
-  stackSizePtr dq 0x1000 ; 4kb
+; -------------------------     FUNCTION     ----------------------------
+; Description: Create usermodule process. Not trivial as I need to circunvent
+; the timer tick interruption (keyboard one for now tho (f2)) to avoid 
+; overriding rsp.
+; Arguments: None
+; Return: doesn't return
+; -----------------------------------------------------------------------
+startUserModule:
+  call createUsermModuleProcess
+  mov rsp, rax
+  popGpr
+  eoi
+  iretq

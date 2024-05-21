@@ -14,6 +14,9 @@ global keyboardIrqHandler
 global exception00Handler
 global exception01Handler
 
+global asdf
+global asdfInterruption
+
 extern irqDispatcher
 extern readKeyCode
 extern saveRegisters
@@ -28,18 +31,31 @@ timerTickIrqHandler:
   irqHandler 0
   ; pushGpr
 
+  ; ; call schedule
+  ; ; mov rsp, rax
+
   ; ; Increase timer tick
   ; mov rdi, 0
   ; call irqDispatcher
-
-  ; ; call schedule
-  ; ; mov rsp, rax
 
   ; mov al, 0x20
   ; out 0x20, al
 
   ; popGpr
   ; iretq
+
+asdfInterruption:
+  int 0x22
+  ret
+
+asdf:
+  pushGpr
+  mov rdi, rsp
+  call schedule
+  mov rsp, rax
+  popGpr
+  eoi
+  iretq
 
 keyboardIrqHandler:
 .captureRegisters:
@@ -51,18 +67,16 @@ keyboardIrqHandler:
   pushState
   push qword normalRegistersCode
   call saveRegisters
-  pop rax ; remove the pushed normalRegistersCode from stack
+  add rsp, 8 ; remove the pushed normalRegistersCode from stack
   popState
-  jmp .prematureExit
+  eoi
+  iretq
 .nextProcess: ; Just for testing
   cmp al, 0x3c ; f2
   pop rax
   jne .regularKeyPress
-  mov rdi, rsp
-  call schedule
-  mov rsp, rax
-  popGpr
-.prematureExit
+.f2Press:
+  int 0x22
   eoi
   iretq
 .regularKeyPress:

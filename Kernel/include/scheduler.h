@@ -11,7 +11,10 @@ typedef struct {
   uint8_t priority;
   State state;
   void* rsp;
-
+  void* rbp;
+  char* name;
+  int exitCode;
+  int waitedProcessExitCode;
 } PCB;
 
 // void freePCBNode(PCBNode* node);
@@ -19,5 +22,7 @@ void initializePCBList();
 void* schedule(void* rsp);
 uint32_t createProcess(int argc, char* argv[], void* processRip);
 extern void exit(int exitCode);
+void startFirstProcess(void* processAddress);
+int waitPid(uint32_t pid);
 
 #endif

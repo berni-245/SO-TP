@@ -24,7 +24,6 @@ int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
 
-
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
   addCommand("$?", "Print previous command return code.", commandGetReturnCode);
@@ -40,7 +39,9 @@ int shell() {
   addCommand("snake", "Play snake.", commandSnake);
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
-  commandHelp();
+
+  char* argv[1] = {"help"};
+  sysWaitPid(sysCreateProcess(1, argv, commandHelp));
 
   newPrompt();
 
@@ -218,98 +219,106 @@ void autocomplete() {
 }
 
 ExitCode parseCommand() {
-  // Upto MAX_ARG_COUNT arguments (including the actual command)
-  // of MAX_COMMAND_LEN characters each (+1 for null termination).
-  char argv[MAX_ARG_COUNT][MAX_ARG_LEN];
+  // MAX_ARG_COUNT is large enough for me to ignore the error of the user going
+  // over it. It's a pain to take it into account. If it has to be done I'd rather
+  // make a dynamic sized array.
+  char* argv[MAX_ARG_COUNT];
+  int argc = 0, len = 0;
   int i = currentCommandIdx;
-  int len = 0;
-  int argc = 0;
-  ShellFunction command;
   incCircularIdxBy(&i, strTrimStartOffset(screenBuffer + i), SCREEN_BUFFER_SIZE);
-  while (argc < MAX_ARG_COUNT) {
-    if (screenBuffer[i] != ' ' && screenBuffer[i] != '\n' && len < MAX_ARG_LEN) {
-      argv[argc][len++] = screenBuffer[i];
-      incCircularIdx(&i, SCREEN_BUFFER_SIZE);
+  argv[0] = sysMalloc(MAX_ARG_LEN + 1);
+  ShellFunction command;
+  char c;
+  do {
+    c = screenBuffer[i];
+    if (c == ' ') {
+      argv[argc++][len] = 0;
+      len = 0;
+      incCircularIdxBy(&i, strTrimStartOffset(screenBuffer + i), SCREEN_BUFFER_SIZE);
+      c = screenBuffer[i];
+      if (c != '\n') argv[argc] = sysMalloc(MAX_ARG_LEN + 1);
+    } else if (c == '\n') {
+      argv[argc++][len] = 0;
+      len = 0;
     } else {
-      argv[argc][len] = 0;
-      if (len == MAX_ARG_LEN) {
+      if (len >= MAX_ARG_LEN) {
+        argv[argc][MAX_ARG_LEN] = 0;
         printf("%s: %s...\n", CommandResultStrings[ARGUMENT_TOO_LONG], argv[argc]);
+        for (int i = 0; i < argc; ++i) sysFree(argv[i]);
         return ARGUMENT_TOO_LONG;
       }
-      if (argc == 0) {
-        if (argv[0][0] == 0) return SUCCESS;
-        command = getCommand(argv[0]);
-        if (command == NULL) {
-          printf("%s: %s\n", CommandResultStrings[COMMAND_NOT_FOUND], argv[0]);
-          return COMMAND_NOT_FOUND;
-        }
-      }
-      if (len != 0) {
-        ++argc;
-        len = 0;
-      }
-      if (screenBuffer[i] == '\n') {
-        // return command(argc, argv);
-        char* argvPtrs[argc];
-        for (int i = 0; i < argc; ++i) {
-          argvPtrs[i] = argv[i];
-        }
-        sysCreateProcess(argc, argvPtrs, command);
-        return 0;
-      }
+      argv[argc][len++] = c;
       incCircularIdx(&i, SCREEN_BUFFER_SIZE);
-      incCircularIdxBy(&i, strTrimStartOffset(screenBuffer + i), SCREEN_BUFFER_SIZE);
     }
+  } while (c != '\n');
+
+  if (argv[0][0] == 0) return SUCCESS;
+  // It's inefficient checking if the command is valid after parsing all the arguments.
+  // But doing it right after parsing the first word was annoying because there're two
+  // cases: `command arg1 ...\n` and `command\n`
+  command = getCommand(argv[0]);
+  if (command == NULL) {
+    printf("%s: %s\n", CommandResultStrings[COMMAND_NOT_FOUND], argv[0]);
+    sysFree(argv[0]);
+    return COMMAND_NOT_FOUND;
   }
-  puts(CommandResultStrings[TOO_MANY_ARGUMENTS]);
-  return TOO_MANY_ARGUMENTS;
+
+  if (strcmp(argv[argc - 1], "&") == 0) {
+    sysCreateProcess(argc - 1, argv, command);
+    for (int i = 0; i < argc; ++i) sysFree(argv[i]);
+    return SUCCESS;
+  } else {
+    int pid = sysCreateProcess(argc, argv, command);
+    for (int i = 0; i < argc; ++i) sysFree(argv[i]);
+    return sysWaitPid(pid);
+  }
 }
 
-ExitCode commandEcho(int argc, char argv[argc][MAX_ARG_LEN]) {
+void commandEcho(int argc, char* argv[argc]) {
   // Starts at 1 because first arg is the command name
   for (int i = 1; i < argc; ++i) {
     printf("%s ", argv[i]);
   }
   printChar('\n');
-  return SUCCESS;
+  sysExit(SUCCESS);
 }
 
-ExitCode commandGetReturnCode() {
+void commandGetReturnCode() {
   printf("%s - Code: %d\n", CommandResultStrings[commandReturnCode], commandReturnCode);
-  return SUCCESS;
+  sysExit(SUCCESS);
 }
 
-ExitCode commandRealTime() {
+void commandRealTime() {
   Time currentTime;
   sysGetCurrentTime(&currentTime);
   printf("%s\n", currentTime.string);
-  return SUCCESS;
+  sysExit(SUCCESS);
 }
 
-ExitCode commandHelp() {
+void commandHelp() {
   printString("Available commands:\n");
   for (int i = 0; i < commandCount; ++i) {
     printf("\t- %s: %s\n", commands[i].name, commands[i].description);
   }
-  return SUCCESS;
+  sysExit(0x999);
 }
 
-ExitCode commandGetKeyInfo() {
+void commandGetKeyInfo() {
   KeyStruct key;
   while (1) {
     sysHalt();
     if (getKey(&key) != EOF) {
-      if (justCtrlMod(&key) && key.character == 'c') return SUCCESS;
+      if (justCtrlMod(&key) && key.character == 'c') sysExit(SUCCESS);
       else {
         printKey(&key);
       }
     }
   }
-  return SUCCESS;
+  sysExit(SUCCESS);
 }
 
 // argc aka rdi is arriving as 0 for some reason.
-ExitCode commandRand(int argc, char* argv[argc]) {
+void commandRand(int argc, char* argv[argc]) {
   static bool randInitialized = false;
   if (!randInitialized) {
     setSrand(sysGetTicks());
@@ -319,13 +328,13 @@ ExitCode commandRand(int argc, char* argv[argc]) {
     puts("Usage:");
     printf("\t\t%s <min> <max> [count]\n", argv[0]);
     printf("Where all arguments are integers and count is optional.\n");
-    return MISSING_ARGUMENTS;
+    sysExit(MISSING_ARGUMENTS);
   }
   int min = strToInt(argv[1]);
   int max = strToInt(argv[2]);
   if (max < min) {
     printf("Error: min (%d) can't be greater than max (%d)\n", min, max);
-    return ILLEGAL_ARGUMENT;
+    sysExit(ILLEGAL_ARGUMENT);
   }
   int count = (argc > 3) ? strToInt(argv[3]) : 1;
   while (count--) {
@@ -335,10 +344,10 @@ ExitCode commandRand(int argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-ExitCode commandLayout(int argc, char argv[argc][MAX_ARG_LEN]) {
+void commandLayout(int argc, char* argv[argc]) {
   if (argc == 1) {
     printf("Current layout: %s - %d\n", LayoutStrings[systemInfo.layout], systemInfo.layout);
-    return SUCCESS;
+    sysExit(SUCCESS);
   }
   if (strcmp(argv[1], "--help") == 0) {
     printf("Usage\n");
@@ -356,20 +365,20 @@ ExitCode commandLayout(int argc, char argv[argc][MAX_ARG_LEN]) {
     int code = strToInt(argv[1]);
     if (code != QWERTY_LATAM && code != QWERTY_US) {
       printf("Layout not available: %s\n", argv[1]);
-      return ILLEGAL_ARGUMENT;
+      sysExit(ILLEGAL_ARGUMENT);
     }
     setLayout(code);
     printf("Layout set to %s\n", LayoutStrings[code]);
   }
-  return SUCCESS;
+  sysExit(SUCCESS);
 }
 
-ExitCode commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]) {
+void commandSetColors(int argc, char* argv[argc]) {
   if (argc < 4) {
     puts("Usage:");
     printf("\t\t%s <fontColor> <backgroundColor> <cursorColor>\n", argv[0]);
     printf("Where all arguments should be hex colors.\n");
-    return MISSING_ARGUMENTS;
+    sysExit(MISSING_ARGUMENTS);
   }
   int fontColor = strToInt(argv[1]);
   int bgColor = strToInt(argv[2]);
@@ -378,10 +387,10 @@ ExitCode commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]) {
   setBgColor(bgColor);
   setCursorColor(cursorColor);
   repaint();
-  return SUCCESS;
+  sysExit(SUCCESS);
 }
 
-ExitCode commandSysInfo() {
+void commandSysInfo() {
   printf("screenWidth: %d\n", systemInfo.screenWidth);
   printf("screenHeight: %d\n", systemInfo.screenHeight);
   printf("charWidth: %d\n", systemInfo.charWidth);
@@ -391,17 +400,17 @@ ExitCode commandSysInfo() {
   printf("charSeparation: %d\n", systemInfo.charSeparation);
   printf("fontCols: %d\n", systemInfo.fontCols);
   printf("fontRows: %d\n", systemInfo.fontRows);
-  return SUCCESS;
+  sysExit(SUCCESS);
 }
 
-ExitCode commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
+void commandGetRegisters(int argc, char* argv[argc]) {
   if (argc >= 2 && strcmp(argv[1], "--help") == 0) {
     puts("Usage:");
     printf("\t\t%s\n", argv[0]);
     printf("You can save the values of the registers at any time by pressing F1 "
            "and by running this command without this flag it will print the saved "
            "values of the registers.\n");
-    return SUCCESS;
+    sysExit(SUCCESS);
   }
   Register registers[REGISTER_QUANTITY];
   sysGetRegisters(registers);
@@ -412,7 +421,7 @@ ExitCode commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
   }
   printf("\n");
   printf("For more info add --help to the command\n");
-  return SUCCESS;
+  sysExit(SUCCESS);
 }
 
 void commandSnakeUsage(char* commandName) {
@@ -426,10 +435,10 @@ void commandSnakeUsage(char* commandName) {
   printf(" ctrl + c: exit game\n");
 }
 
-ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
+void commandSnake(int argc, char* argv[argc]) {
   if (argc < 2) {
     commandSnakeUsage(argv[0]);
-    return MISSING_ARGUMENTS;
+    sysExit(MISSING_ARGUMENTS);
   } else {
     int argIdx = 1;
     int playerCount = argc - 1;
@@ -441,7 +450,7 @@ ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
     }
     if (playerCount < 1) {
       commandSnakeUsage(argv[0]);
-      return MISSING_ARGUMENTS;
+      sysExit(MISSING_ARGUMENTS);
     }
     uint32_t fontColor = getFontColor();
     uint32_t bgColor = getBgColor();
@@ -454,14 +463,14 @@ ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
     setShellColors(fontColor, bgColor, cursorColor);
   }
   repaint();
-  return SUCCESS;
+  sysExit(SUCCESS);
 }
-ExitCode commandZeroDivisionError() {
+void commandZeroDivisionError() {
   // Always set srand because after the exception the modules starts anew
   // and srand is zero again.
   setSrand(sysGetTicks());
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdiv-by-zero"
-  return rand() / 0;
+  sysExit(rand() / 0);
 #pragma GCC diagnostic pop
 }
