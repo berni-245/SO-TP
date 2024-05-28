@@ -26,8 +26,8 @@ typedef struct {
 extern void* initializeProcessStack(int argc, char* argv[], void* processRip, void* stackStart);
 extern void idleProc();
 extern void* userModule;
+void deleteCurrentProcess();
 
-void exitProcessASDF();
 
 PCBList pcbList;
 PCB idleProcPCB;
@@ -106,8 +106,7 @@ void* schedule(void* rsp) {
 
   PCBNode* ogCurrent = pcbList.current;
   if (pcbList.current->pcb->state == EXITED) {
-    exitProcessASDF();
-    // Prolly need to do smth similar as below but now current could be NULL from exitProcessASDF
+    deleteCurrentProcess();
     while (pcbList.current != ogCurrent && pcbList.current->pcb->state != READY) {
       pcbList.prev = pcbList.current;
       pcbList.current = pcbList.current->next;
@@ -186,7 +185,7 @@ argc = 3
 0xXXXXX  00 00 00 00 00 00 00 00
  */
 static uint32_t pid = 0;
-void* createProcessASDF(int argc, char* argv[], void* processRip) {
+void* createProcess(int argc, char* argv[], void* processRip) {
   void* stackStart;
   void* stackEnd;
   stackAlloc(&stackStart, &stackEnd);
@@ -206,17 +205,17 @@ void* createProcessASDF(int argc, char* argv[], void* processRip) {
 
 void* createUsermModuleProcess() {
   char* argv[1] = {"init"};
-  void* rsp = createProcessASDF(1, argv, userModule);
+  void* rsp = createProcess(1, argv, userModule);
   pcbList.current = pcbList.head;
   return rsp;
 }
 
-uint32_t createProcess(int argc, char* argv[], void* processRip) {
-  createProcessASDF(argc, argv, processRip);
+uint32_t createUserProcess(int argc, char* argv[], void* processRip) {
+  createProcess(argc, argv, processRip);
   return pid - 1;
 }
 
-void exitProcessASDF() {
+void deleteCurrentProcess() {
   // Do something with exitCode?
 
   for (int i = 0; i < pcbList.current->wfmLen; ++i) {
