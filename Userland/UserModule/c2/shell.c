@@ -39,6 +39,7 @@ int shell() {
   addCommand("snake", "Play snake.", commandSnake);
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
+  addCommand("ps", "Print process list", commandPs);
 
   char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));
@@ -465,6 +466,7 @@ void commandSnake(int argc, char* argv[argc]) {
   repaint();
   sysExit(SUCCESS);
 }
+
 void commandZeroDivisionError() {
   // Always set srand because after the exception the modules starts anew
   // and srand is zero again.
@@ -473,4 +475,15 @@ void commandZeroDivisionError() {
 #pragma GCC diagnostic ignored "-Wdiv-by-zero"
   sysExit(rand() / 0);
 #pragma GCC diagnostic pop
+}
+
+void commandPs() {
+  int len;
+  PCB* pcbList = sysPCBList(&len);
+  printf("%3s, %-10s, %-10s, %10s, %10s, %10s\n", "PID", "Name", "State", "rsp", "rbp", "Priority");
+  for (int i = 0; i < len; ++i) {
+    PCB* pcb = pcbList + i;
+    printf("%3d, %-10s, %-10s, %p, %p, %10d\n", pcb->pid, pcb->name, pcb->state, pcb->rsp, pcb->rbp, pcb->priority);
+  }
+  sysExit(SUCCESS);
 }
