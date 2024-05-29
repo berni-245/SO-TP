@@ -203,7 +203,7 @@ void* createProcess(int argc, char* argv[], void* processRip) {
   return rsp;
 }
 
-void* createUsermModuleProcess() {
+void* createUserModuleProcess() {
   char* argv[1] = {"init"};
   void* rsp = createProcess(1, argv, userModule);
   pcbList.current = pcbList.head;

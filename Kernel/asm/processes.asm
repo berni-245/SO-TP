@@ -8,7 +8,7 @@ global startUserModule
 
 extern stackAlloc
 extern exitProcess
-extern createUsermModuleProcess
+extern createUserModuleProcess
 extern asdfInterruption
 
 
@@ -81,7 +81,7 @@ exit:
 ; Return: doesn't return
 ; -----------------------------------------------------------------------
 startUserModule:
-  call createUsermModuleProcess
+  call createUserModuleProcess
   mov rsp, rax
   popGpr
   eoi
