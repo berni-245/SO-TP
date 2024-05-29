@@ -51,11 +51,20 @@ define ppcbnode
 end
 
 define ppcblist
-    set var $n = pcbList.head
-    while $n
+    set $n = pcbList.head
+    if $n == 0
+        printf "List is empty\n"
+        return
+    end
+    set $gdbIsFuckingStupid = 0
+    while !$gdbIsFuckingStupid
         ppcbnode $n
-        set var $n = $n->next
         printf "\n"
+        if $n == pcbList.tail
+            set $gdbIsFuckingStupid = 1
+        else
+            set $n = $n->next
+        end
     end
 end
 

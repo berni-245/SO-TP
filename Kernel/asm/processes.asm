@@ -7,7 +7,7 @@ global exit
 global startUserModule
 
 extern stackAlloc
-extern exitProcess
+extern exitCurrentProcess
 extern createUserModuleProcess
 extern asdfInterruption
 
@@ -70,7 +70,7 @@ idleProc:
 ; Return: doesn't return
 ; -----------------------------------------------------------------------
 exit:
-  call exitProcess
+  call exitCurrentProcess
   int 0x22
 
 ; -------------------------     FUNCTION     ----------------------------
