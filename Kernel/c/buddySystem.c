@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 typedef enum { false = 0, true = 1 } boolean;
 
@@ -32,6 +33,8 @@ void init_buddy_system(void* endOfModules) {
 int get_order(unsigned int size) {
     int order = 0;
     unsigned int block_size = MIN_BLOCK_SIZE;
+    // Incluir el tamaño de la estructura Block en el cálculo
+    size += sizeof(Block);
     while (block_size < size) {
         block_size <<= 1;
         order++;
@@ -43,6 +46,7 @@ Block* split_block(Block* block, int order) {
     unsigned int block_size = block->size;
     block->size = block_size / 2;
 
+    // Calcular la dirección del buddy
     Block* buddy = (Block*)((char*)block + block->size);
     buddy->size = block->size;
     buddy->is_free = true;
@@ -68,7 +72,7 @@ void* buddy_alloc(unsigned int size) {
             }
 
             block->is_free = false;
-            return (void*)(block + 1);
+            return (void*)(block + 1);  // La memoria útil comienza después de la estructura Block
         }
     }
 
@@ -100,7 +104,7 @@ void merge_block(Block* block, int order) {
 void buddy_free(void* ptr) {
     if (ptr == NULL) return;
 
-    Block* block = (Block*)ptr - 1;
+    Block* block = (Block*)ptr - 1;  // La estructura Block está justo antes de la memoria útil
     block->is_free = true;
     int order = get_order(block->size);
 
