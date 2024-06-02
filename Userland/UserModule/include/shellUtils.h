@@ -13,7 +13,7 @@
 #include <sysinfo.h>
 #include <utils.h>
 
-#define MAX_ARG_COUNT 5
+#define MAX_ARG_COUNT 20
 #define MAX_ARG_LEN 50
 #define MAX_COMMAND_COUNT 50
 #define MAX_HISTORY_LEN 50
