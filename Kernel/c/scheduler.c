@@ -86,7 +86,7 @@ void freeCurrentProcess() {
   pcbList.current = toRemove->next;
   pcbList.prev->next = pcbList.current;
   if (pcbList.head == toRemove) pcbList.head = pcbList.current;
-  else if (pcbList.tail == toRemove) pcbList.head = pcbList.prev;
+  else if (pcbList.tail == toRemove) pcbList.tail = pcbList.prev;
 
   free(toRemove->pcb->stack);
   free(toRemove->pcb);
