@@ -486,5 +486,6 @@ void commandPs() {
     PCB* pcb = pcbList + i;
     printf("%3d, %-10s, %-10s, %p, %p, %10d\n", pcb->pid, pcb->name, pcb->state, pcb->rsp, pcb->rbp, pcb->priority);
   }
+  sysFree(pcbList);
   sysExit(SUCCESS);
 }
