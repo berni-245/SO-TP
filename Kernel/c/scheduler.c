@@ -54,12 +54,6 @@ PCBNode* createPCBNode(uint32_t pid, uint8_t priority, State state, void* stack,
   return node;
 }
 
-// void freePCBNode(PCBNode* node) {
-//   free(node->pcb);
-//   free(node->stack);
-//   free(node);
-// }
-
 void addPCB(uint32_t pid, void* stack, void* rsp, void* rbp, char* name) {
   PCBNode* node = createPCBNode(pid, 1, READY, stack, rsp, rbp, name);
 
@@ -137,9 +131,8 @@ void* schedule(void* rsp) {
   }
 
   PCBNode* ogCurrent = pcbList.current;
-  // We need to always go to next process first so we
-  // 1) don't repeat current if it's READY, and
-  // 2) don't free current process while we are inside its own stack.
+  // We need to always go to next process first so we don't free current process
+  // while we are inside its own stack.
   nextPCB();
   while (true) {
     if (pcbList.current->pcb->state == READY) {
