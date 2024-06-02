@@ -279,3 +279,16 @@ PCBForUserland* getPCBList(int* len) {
   }
   return pcbArray;
 }
+
+const PCB* getCurrentPCB() {
+  return pcbList.current->pcb;
+}
+
+void blockCurrentProcess() {
+  pcbList.current->pcb->state = BLOCKED;
+  asdfInterruption();
+}
+
+void readyProcess(const PCB* pcb) {
+  ((PCB*)pcb)->state = READY;
+}

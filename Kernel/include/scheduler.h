@@ -39,5 +39,8 @@ extern void exit(int exitCode);
 void startFirstProcess(void* processAddress);
 int waitPid(uint32_t pid);
 PCBForUserland* getPCBList(int* len);
+const PCB* getCurrentPCB();
+void blockCurrentProcess();
+void readyProcess(const PCB* pcb);
 
 #endif
