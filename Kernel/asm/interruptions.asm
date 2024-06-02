@@ -28,21 +28,20 @@ extern schedule
 section .text
 
 timerTickIrqHandler:
-  irqHandler 0
-  ; pushGpr
+  ; irqHandler 0
+  pushGpr
 
-  ; ; call schedule
-  ; ; mov rsp, rax
+  mov rdi, rsp
+  call schedule
+  mov rsp, rax
 
-  ; ; Increase timer tick
-  ; mov rdi, 0
-  ; call irqDispatcher
+  ; Increase timer tick
+  mov rdi, 0
+  call irqDispatcher
 
-  ; mov al, 0x20
-  ; out 0x20, al
-
-  ; popGpr
-  ; iretq
+  popGpr
+  eoi
+  iretq
 
 asdfInterruption:
   int 0x22

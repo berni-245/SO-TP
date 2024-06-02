@@ -84,5 +84,6 @@ startUserModule:
   call createUserModuleProcess
   mov rsp, rax
   popGpr
+	sti
   eoi
   iretq
