@@ -40,6 +40,7 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)destroySemaphore,
     (SyscallFunction)waitSemaphore,
     (SyscallFunction)postSemaphore,
+    (SyscallFunction)openSemaphore,
 };
 
 SyscallFunction* getSyscallsArray() {
