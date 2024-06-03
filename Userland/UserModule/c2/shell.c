@@ -522,14 +522,18 @@ void commandDestroySemaphore(int argc, char* argv[argc]){
     printf("%5d\n", sem);
     sysExit(SUCCESS);
 }
-void sumSummer(int sem_id, int value){
-    for (int j=0; j < value; j++) {
-        int a=sysWaitSem(sem_id);
-        printf("\ta=%d", a);
-        semValue++;
-        int b=sysPostSem(sem_id);
-        printf("\tb=%d", b);
+void sumSummer(int argc, char* argv[]){
+    int sem=sysOpenSem("t");
+    for (int j=0; j < 10000; j++) {
+        sysWaitSem(sem);
+        if (semValue<10000) {
+            semValue++;
+        }
+        sysPostSem(sem);
     }
+    sysWaitSem(0);
+    printf("%5d\n", semValue);
+    sysPostSem(0);
     sysExit(SUCCESS);
 }
 void commandTestSem(int argc, char* argv[argc]){
@@ -539,19 +543,16 @@ void commandTestSem(int argc, char* argv[argc]){
         sysExit(MISSING_ARGUMENTS);
     }
     int sem=sysCreateSemaphore("t", 1);
-
-    int value=strToInt(argv[1]);
-    sumSummer(sem, value);
-    int pid1 = sysCreateProcess(argc, argv, sumSummer);
-    int pid2 = sysCreateProcess(argc, argv, sumSummer);
+    int pid1 = sysCreateProcess(0, NULL, sumSummer);
+    int pid2 = sysCreateProcess(0, NULL, sumSummer);
     sysWaitPid(pid1);
-    sysWaitPid(pid2);
+
     printf("%5d\n", pid1);
     printf("%5d\n", pid2);
-    printf("%5d\n", value);
-    //sysDestroySemaphore("t");
-    printf("%d5", semValue);
+    printf("%5d\n", semValue);
+    sysDestroySemaphore("t");
     semValue=0;
+
     sysExit(SUCCESS);
 }
 

@@ -102,6 +102,9 @@ int postSemaphore(int sem_id){
 int waitSemaphore(int sem_id){
     return my_sem_wait(sem_id);
 }
+int openSemaphore(char* name){
+    return my_sem_open(name, -1);
+}
 int my_sem_init(char *sem_name, unsigned int init_value) {
     if (sem_finder(sem_name)!=ERROR)
         return ERROR;
@@ -134,7 +137,7 @@ int my_sem_init(char *sem_name, unsigned int init_value) {
 
 int my_sem_open(char *name, int value) {
     int sem_id = sem_finder(name);
-    if (sem_id == ERROR) {
+    if (sem_id == ERROR && value!=-1) {
         sem_id = my_sem_init(name, value);
         if (sem_id == ERROR)
             return ERROR;

@@ -4,11 +4,14 @@ GLOBAL _leave_region
 
 _enter_region:
   mov rax,1
-  xchg rax,[rsp+8]
+  xchg rax,[rdi]
   cmp rax,0
-  jne _enter_region
+  je _exit
+  int 22h
+  jmp _enter_region
+_exit:
   ret
     
 _leave_region:
-   mov qword [rsp+8], 0
+   mov qword [rdi], 0
    ret
