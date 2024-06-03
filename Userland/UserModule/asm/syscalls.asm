@@ -21,6 +21,10 @@ global sysCreateProcess
 global sysExit
 global sysWaitPid
 global sysPCBList
+global sysCreateSemaphore
+global sysDestroySemaphore
+global sysWaitSem
+global sysPostSem
 
 %macro syscall 1
   mov r9, %1
@@ -68,3 +72,11 @@ sysWaitPid:
   syscall 18
 sysPCBList:
   syscall 19
+sysCreateSemaphore:
+  syscall 20
+sysDestroySemaphore:
+  syscall 21
+sysWaitSem:
+  syscall 22
+sysPostSem:
+  syscall 23
