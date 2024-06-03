@@ -20,6 +20,8 @@ int currentCommandIdx = 0;
 static int commandReturnCode = 0;
 static int currentPromptLen = 0;
 
+int semValue=0;
+
 int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
@@ -40,6 +42,9 @@ int shell() {
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
   addCommand("ps", "Print process list", commandPs);
+  addCommand("createSem", "Creates a semaphore", commandCreateSemaphore);
+  addCommand("destroySem", "Destroys a semaphore", commandDestroySemaphore);
+  addCommand("testSem", "Takes global variable to 1000", commandTestSem);
 
   char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));
@@ -490,3 +495,64 @@ void commandPs() {
   sysFree(pcbList);
   sysExit(SUCCESS);
 }
+
+void commandCreateSemaphore(int argc, char* argv[argc]) {
+    if (argc != 3) {
+        puts("Usage:");
+        printf("\t\t%s <semName> <semValue>\n", argv[0]);
+        sysExit(MISSING_ARGUMENTS);
+    }
+    char* semName = argv[1];
+    int semValue = strToInt(argv[2]);
+    int sem_id = sysCreateSemaphore(semName, semValue);
+    if (sem_id == -1) {
+        puts("Error creating semaphore");
+    } else {
+        printf("Semaphore created with ID: %d\n", sem_id);
+    }
+    sysExit(SUCCESS);
+}
+void commandDestroySemaphore(int argc, char* argv[argc]){
+    if (argc!=2){
+        puts("Usage:");
+        printf("\t\t%s <semName>\n", argv[0]);
+        sysExit(MISSING_ARGUMENTS);
+    }
+    printf("%s\n", argv[1]);
+    int sem=sysDestroySemaphore(argv[1]);
+    printf("%5d\n", sem);
+    sysExit(SUCCESS);
+}
+void sumSummer(int sem_id, int value){
+    for (int j=0; j < value; j++) {
+        int a=sysWaitSem(sem_id);
+        printf("\ta=%d", a);
+        semValue++;
+        int b=sysPostSem(sem_id);
+        printf("\tb=%d", b);
+    }
+    sysExit(SUCCESS);
+}
+void commandTestSem(int argc, char* argv[argc]){
+    if (argc!=2){
+        puts("Usage:");
+        printf("\t\t%s <targetValue>\n", argv[0]);
+        sysExit(MISSING_ARGUMENTS);
+    }
+    int sem=sysCreateSemaphore("t", 1);
+
+    int value=strToInt(argv[1]);
+    sumSummer(sem, value);
+    int pid1 = sysCreateProcess(argc, argv, sumSummer);
+    int pid2 = sysCreateProcess(argc, argv, sumSummer);
+    sysWaitPid(pid1);
+    sysWaitPid(pid2);
+    printf("%5d\n", pid1);
+    printf("%5d\n", pid2);
+    printf("%5d\n", value);
+    //sysDestroySemaphore("t");
+    printf("%d5", semValue);
+    semValue=0;
+    sysExit(SUCCESS);
+}
+

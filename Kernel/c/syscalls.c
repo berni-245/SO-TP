@@ -9,6 +9,7 @@
 #include <sysinfo.h>
 #include <timer.h>
 #include <videoDriver.h>
+#include <semaphores.h>
 
 /*
  * There should be stdin, stdout and stderr global variables and read/write syscalls that get/set them.
@@ -35,6 +36,10 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)exit,
     (SyscallFunction)waitPid,
     (SyscallFunction)getPCBList,
+    (SyscallFunction)createSemaphore,
+    (SyscallFunction)destroySemaphore,
+    (SyscallFunction)waitSemaphore,
+    (SyscallFunction)postSemaphore,
 };
 
 SyscallFunction* getSyscallsArray() {
