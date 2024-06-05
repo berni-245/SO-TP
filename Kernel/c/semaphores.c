@@ -57,19 +57,21 @@ int position_to_init_sem() {
 
 
 int fifo_queue(int pos, const PCB* process_by_pcb) {
-    process_by_PCB *process = malloc(sizeof(process_by_PCB));
+    process_by_PCB* process = malloc(sizeof(process_by_PCB));
     if (process==NULL){
         return ERROR;
     }
     process->process_pcb = process_by_pcb;
+    process->next = NULL;
+    process->before = NULL;
     if (sem_array[pos].sem->process_first == NULL) {
         sem_array[pos].sem->process_first = process;
+        sem_array[pos].sem->process_last= process;
     } else{
-        process->next=NULL;
         process->before=sem_array[pos].sem->process_last;
         sem_array[pos].sem->process_last->next=process;
+        sem_array[pos].sem->process_last = process;
     }
-    sem_array[pos].sem->process_last = process;
     return 0;
 }
 
@@ -89,7 +91,6 @@ const PCB* fifo_unqueue(int pos) {
     free(temp);
     return process;
 }
-
 int createSemaphore(char* name, int value ){
     return my_sem_init(name, value);
 }
@@ -168,7 +169,6 @@ int my_sem_wait(int sem_id) {
     if (sem_array[sem_id].sem->value > 0) {
         sem_array[sem_id].sem->value--;
         _leave_region(&sem_array[sem_id].sem->lock);
-        return 0;
     }
     //lo tengo que encolar porque tiene que ponerse a esperar
     else {
@@ -176,8 +176,8 @@ int my_sem_wait(int sem_id) {
         fifo_queue(sem_id, process_pcb);
         _leave_region(&sem_array[sem_id].sem->lock);
         blockCurrentProcess();
-        return 0;
     }
+    return 0;
 }
 //Busca el semaforo, si no lo encuentra sale. Si lo encuentra le aumenta el valor y se fija si hay algún elemento que se
 //necesite desencolar. Si hay alguno le dice al scheduler que lo pase a ready
