@@ -20,7 +20,9 @@ int currentCommandIdx = 0;
 
 static int commandReturnCode = 0;
 
-int semValue=0;
+int64_t global;
+#define SEM_ID "sem"
+#define TOTAL_PAIR_PROCESSES 2
 
 int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
@@ -522,37 +524,74 @@ void commandDestroySemaphore(int argc, char* argv[argc]){
     printf("%5d\n", sem);
     sysExit(SUCCESS);
 }
-void sumSummer(int argc, char* argv[]){
-    int sem=sysOpenSem("t");
-    for (int j=0; j < 10000; j++) {
-        sysWaitSem(sem);
-        if (semValue<10000) {
-            semValue++;
+void slowInc(int64_t *p, int64_t inc) {
+    uint64_t aux = *p;
+    commandChangeProcess(); // This makes the race condition highly probable
+    aux += inc;
+    *p = aux;
+}
+
+void my_process_inc(uint64_t argc, char *argv[]) {
+    uint64_t n;
+    int8_t inc;
+    int8_t use_sem;
+    if (argc != 3)
+        sysExit(MISSING_ARGUMENTS);
+
+    if ((n = argc) <= 0)
+        sysExit(MISSING_ARGUMENTS);
+    if ((inc = strToInt(argv[1])) == 0)
+        sysExit(MISSING_ARGUMENTS);
+    if ((use_sem = strToInt(argv[2])) < 0)
+        sysExit(MISSING_ARGUMENTS);
+    int sem;
+    if (use_sem) {
+        sem = sysOpenSem("sem", 1);
+        if (sem != 0) {
+            printf("test_sync: ERROR opening semaphore\n");
+            sysExit(MISSING_ARGUMENTS);
         }
-        sysPostSem(sem);
     }
-    sysWaitSem(0);
-    printf("%5d\n", semValue);
-    sysPostSem(0);
+    uint64_t i;
+    for (i = 0; i < n; i++) {
+        if (use_sem)
+            sysWaitSem(sem);
+        slowInc(&global, inc);
+        if (use_sem)
+            sysPostSem(sem);
+    }
+
+    //if (use_sem)
+    //    my_sem_close(SEM_ID);
+    printf("THISFinal value: %d\n", global);
     sysExit(SUCCESS);
 }
-void commandTestSem(int argc, char* argv[argc]){
-    if (argc!=2){
-        puts("Usage:");
-        printf("\t\t%s <targetValue>\n", argv[0]);
+void commandTestSem(uint64_t argc, char *argv[]) { //{n, use_sem, 0}
+    if (argc!=3){
         sysExit(MISSING_ARGUMENTS);
     }
-    int sem=sysCreateSemaphore("t", 1);
-    int pid1 = sysCreateProcess(0, NULL, sumSummer);
-    int pid2 = sysCreateProcess(0, NULL, sumSummer);
-    sysWaitPid(pid1);
 
-    printf("%5d\n", pid1);
-    printf("%5d\n", pid2);
-    printf("%5d\n", semValue);
-    sysDestroySemaphore("t");
-    semValue=0;
+    uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
 
+    char *argvDec[] = {argv[0], "-1", argv[1], NULL};
+    char *argvInc[] = {argv[0], "1", argv[1], NULL};
+
+    global = 0;
+
+    uint64_t i;
+    for (i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
+        pids[i] = sysCreateProcess(argc, argvDec, my_process_inc);
+        pids[i + TOTAL_PAIR_PROCESSES] = sysCreateProcess(argc, argvInc, my_process_inc);
+    }
+
+    for (i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
+        sysWaitPid(pids[i]);
+        sysWaitPid(pids[i + TOTAL_PAIR_PROCESSES]);
+    }
+
+    printf("Final value: %d\n", global);
+    sysDestroySemaphore("sem");
     sysExit(SUCCESS);
 }
+
 

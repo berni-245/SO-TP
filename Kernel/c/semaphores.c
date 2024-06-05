@@ -102,8 +102,8 @@ int postSemaphore(int sem_id){
 int waitSemaphore(int sem_id){
     return my_sem_wait(sem_id);
 }
-int openSemaphore(char* name){
-    return my_sem_open(name, -1);
+int openSemaphore(char* name, int value){
+    return my_sem_open(name, value);
 }
 int my_sem_init(char *sem_name, unsigned int init_value) {
     if (sem_finder(sem_name)!=ERROR)
@@ -149,8 +149,9 @@ int my_sem_close(int sem_id) {
     if (sem_id >= MAX_SEMAPHORES || sem_id < 0)
         return ERROR;
     _enter_region(&sem_array[sem_id].sem->lock);
-    while (sem_array[sem_id].sem->process_first != NULL) {
-        fifo_unqueue(sem_id);
+    //NO SE PUEDE CERRAR UN SEMÁFORO QUE TODAVÍA TENGA PROCESOS EN ESPERA
+    if (sem_array[sem_id].sem->process_first != NULL) {
+        return ERROR;
     }
     _leave_region(&sem_array[sem_id].sem->lock);
     free(sem_array[sem_id].sem->name);
@@ -161,7 +162,7 @@ int my_sem_close(int sem_id) {
 //Busca el semaforo, si no lo encuentra sale. Si lo encuentra le decrementa el valor (si es 0 lo manda a la cola del sem)
 //y le dice al scheduler que lo bloquee
 int my_sem_wait(int sem_id) {
-    if (sem_id>=MAX_SEMAPHORES || sem_id <0)
+    if (sem_id>=MAX_SEMAPHORES || sem_id <0 || !sem_array[sem_id].is_used)
         return ERROR;
     _enter_region(&sem_array[sem_id].sem->lock);
     if (sem_array[sem_id].sem->value > 0) {
@@ -182,13 +183,16 @@ int my_sem_wait(int sem_id) {
 //necesite desencolar. Si hay alguno le dice al scheduler que lo pase a ready
 int my_sem_post(int sem_id) {
     if (sem_id>=MAX_SEMAPHORES || sem_id <0 || !sem_array[sem_id].is_used)
+        return ERROR;
     _enter_region(&sem_array[sem_id].sem->lock);
     if (sem_array[sem_id].sem->process_first!=NULL) {
-        PCB* to_ready=fifo_unqueue(sem_id);
+        const PCB* to_ready=fifo_unqueue(sem_id);
+        _leave_region(&sem_array[sem_id].sem->lock);
         readyProcess(to_ready);
-    }else sem_array[sem_id].sem->value++;
-    _leave_region(&sem_array[sem_id].sem->lock);
-
+    }else {
+        sem_array[sem_id].sem->value++;
+        _leave_region(&sem_array[sem_id].sem->lock);
+    }
     return 0;
 }
 

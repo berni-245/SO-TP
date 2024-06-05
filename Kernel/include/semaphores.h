@@ -52,5 +52,5 @@ int createSemaphore(char* name, int value);
 int destroySemaphore(char* name);
 int postSemaphore(int sem_id);
 int waitSemaphore(int sem_id);
-int openSemaphore(char* name);
+int openSemaphore(char* name, int value);
 #endif //SEMPAPHORES_SEMAPHORE_H

@@ -98,5 +98,6 @@ void commandPs();
 void commandCreateSemaphore();
 void commandDestroySemaphore();
 void commandTestSem();
+void commandChangeProcess();
 
 #endif
