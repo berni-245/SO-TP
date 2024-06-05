@@ -32,6 +32,6 @@ extern int sysCreateSemaphore(char* name, int value);
 extern int sysDestroySemaphore(char* name);
 extern int sysWaitSem(int sem_id);
 extern int sysPostSem(int sem_id);
-extern int sysOpenSem(int sem_id);
+extern int sysOpenSem(char* name, int value);
 
 #endif
