@@ -69,6 +69,7 @@ void newPrompt();
 void incFont();
 void decFont();
 void clearLine();
+void clearScreenKeepCommand();
 void addCommand(char* name, char* description, ShellFunction function);
 void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor);
 void autocomplete();

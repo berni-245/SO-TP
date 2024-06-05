@@ -1,4 +1,3 @@
-#include "syscalls.h"
 #include <shellUtils.h>
 
 extern uint8_t bss;
@@ -19,6 +18,7 @@ int historyCurrentCount = 0;
 int currentCommandIdx = 0;
 
 static int commandReturnCode = 0;
+static int currentPromptLen = 0;
 
 int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
@@ -59,10 +59,7 @@ int shell() {
           decFont();
           break;
         case 'l':
-          clearScreen();
-          screenBufWriteIdx = 0;
-          screenBufReadIdx = 0;
-          newPrompt();
+          clearScreenKeepCommand();
           break;
         case 'w':
           deleteWord();
@@ -158,7 +155,6 @@ void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor) 
 
 static const char* const prompt = " > ";
 static const char* const errorPrompt = " >! ";
-static int currentPromptLen = 0;
 void newPrompt() {
   const char* currentPrompt;
   if (commandReturnCode == 0) {
@@ -172,11 +168,16 @@ void newPrompt() {
   currentCommandIdx = screenBufWriteIdx;
 }
 
+void clearScreenKeepCommand() {
+  int currentIdxLocal = currentCommandIdx;
+  decCircularIdxBy(&currentIdxLocal, currentPromptLen, SCREEN_BUFFER_SIZE);
+  screenBufReadIdx = currentIdxLocal;
+  repaint();
+}
+
 void incFont() {
   setFontSize(systemInfo.fontSize + 1);
-  screenBufReadIdx = currentCommandIdx - currentPromptLen;
-  if (screenBufReadIdx < 0) screenBufReadIdx = SCREEN_BUFFER_SIZE + screenBufReadIdx;
-  repaint();
+  clearScreenKeepCommand();
 }
 void decFont() {
   setFontSize(systemInfo.fontSize - 1);
