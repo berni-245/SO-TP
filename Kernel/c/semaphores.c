@@ -24,6 +24,7 @@
 #define ERROR (-1)
 
 semaphores_pos sem_array[MAX_SEMAPHORES];
+int size;
 
 /*-----------AUX. FUNCTIONS-------------------*/ //FUNCIIONES QUE NO ESTÁN EN LOS TEST
 //Se fija si encuentra el valor del semaforo dentro de mi arreglo. Si falla -1
@@ -32,10 +33,13 @@ int my_sem_birth(){
     for (int i = 0; i < MAX_SEMAPHORES; ++i) {
         sem_array[i].is_used=0;
     }
+    size=0;
     return 1;
 }
 
 int sem_finder(char *sem_name) {
+    if (!size)
+        return ERROR;
     for (int i=0; i < MAX_SEMAPHORES; i++) {
         if (sem_array[i].is_used) {
             if (s_strcmp(sem_array[i].sem->name, sem_name) == 0)
@@ -127,7 +131,8 @@ int my_sem_init(char *sem_name, unsigned int init_value) {
     sem_array[pos].sem->lock=0;
     sem_array[pos].is_used = 1;
     sem_array[pos].sem->process_first = NULL;
-    //sem_array[pos].sem->process_last = NULL;
+    sem_array[pos].sem->process_last = NULL;
+    size++;
     return pos;
 }
 
