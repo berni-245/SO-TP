@@ -232,6 +232,8 @@ void exitCurrentProcess(int exitCode) {
 
 extern void asdfInterruption();
 int waitPid(uint32_t pid) {
+  if (pid == pcbList.current->pcb->pid) return pcbList.current->pcb->waitedProcessExitCode;
+
   PCBNode* node = pcbList.head;
   // Note pcbList is orded by pid because new nodes are always added at the end and
   // pid is always increasing..
