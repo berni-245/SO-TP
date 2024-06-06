@@ -3,8 +3,8 @@
 
 typedef enum { false = 0, true = 1 } boolean;
 
-#define ORDER_COUNT 20
-#define MAX_MEMORY_SIZE (1 << (ORDER_COUNT)) // 2^(ORDER_COUNT) bytes
+#define ORDER_COUNT 21
+#define MAX_MEMORY_AVAILABLE (1 << (ORDER_COUNT - 1)) // 2^(ORDER_COUNT-1) bytes
 #define NULL (void *) 0
 
 static const uint64_t addressByteSize = sizeof(void*);
@@ -23,15 +23,15 @@ void initBuddySystem(void* endOfModules) {
     }
 
     Block* initialBlock = (Block*) (((uint64_t)endOfModules + addressByteSize - 1) & ~(addressByteSize - 1));
-    initialBlock->size = MAX_MEMORY_SIZE;
+    initialBlock->size = MAX_MEMORY_AVAILABLE;
     initialBlock->isFree = true;
     initialBlock->next = NULL;
     freeList[ORDER_COUNT - 1] = initialBlock;
 }
 
 static int getOrder(unsigned int size) {
-    // Incluir el tamaño de la estructura Block en el cálculo
-    size += sizeof(Block);
+    // Part of the memory of the block will contain the structure
+    size += sizeof(Block); 
     int order = 0;
     uint64_t iniBlockSize = 1;
     while (iniBlockSize < size) {
@@ -41,11 +41,10 @@ static int getOrder(unsigned int size) {
     return order;
 }
 
-static Block* splitBlock(Block* block, int order) {
-    unsigned int blockSize = block->size;
-    block->size = blockSize / 2;
+static Block* splitBlock(Block* block) {
+    block->size /= 2;
 
-    // Calcular la dirección del buddy
+    // Get the direction of the buddy
     Block* buddy = (Block*)((char*)block + block->size);
     buddy->size = block->size;
     buddy->isFree = true;
@@ -65,13 +64,13 @@ void* buddyAlloc(unsigned int size) {
 
             while (currentOrder > order) {
                 currentOrder--;
-                Block* buddy = splitBlock(block, currentOrder);
+                Block* buddy = splitBlock(block);
                 buddy->next = freeList[currentOrder];
                 freeList[currentOrder] = buddy;
             }
 
             block->isFree = false;
-            return (void*)(block + 1);  // La memoria útil comienza después de la estructura Block
+            return (void*)(block + 1);  // The useful memory will come after the block
         }
     }
 
@@ -103,9 +102,9 @@ static void mergeBlock(Block* block, int order) {
 void buddyFree(void* ptr) {
     if (ptr == NULL) return;
 
-    Block* block = (Block*)ptr - 1;  // La estructura Block está justo antes de la memoria útil
+    Block* block = (Block*)ptr - 1;  // The block structure will be before the address returned to the user
     block->isFree = true;
-    int order = getOrder(block->size);
+    int order = getOrder(block->size - sizeof(Block)); // TODO: use a variable in block for requested size
 
     block->next = freeList[order];
     freeList[order] = block;
