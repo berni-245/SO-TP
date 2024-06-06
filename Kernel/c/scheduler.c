@@ -236,13 +236,14 @@ int waitPid(uint32_t pid) {
   // Note pcbList is orded by pid because new nodes are always added at the end and
   // pid is always increasing..
   while (node->pcb->pid <= pid) {
-    if (node->pcb->pid == pid) {
+    if (node->pcb->pid == pid && node->pcb->state != EXITED) {
       node->pcb->waitingForMe[node->pcb->wfmLen++] = pcbList.current->pcb;
       pcbList.current->pcb->state = BLOCKED;
       asdfInterruption(); // Replace for int 0x20 when schedule gets called there.
       return pcbList.current->pcb->waitedProcessExitCode;
     }
     node = node->next;
+    if (node == pcbList.head) break;
   }
   // Este return value no tiene sentido si el proceso se corrió en el background. Igual
   // casi seguro que tengo que tener en cuenta padres e hijos así que probablemente el
