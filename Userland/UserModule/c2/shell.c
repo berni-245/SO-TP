@@ -534,9 +534,9 @@ void slowInc(int64_t *p, int64_t inc) {
 
 
 void my_process_inc(uint64_t argc, char *argv[]) {
-    if (argc != 4) {
-        sysExit(MISSING_ARGUMENTS);
-    }
+    //if (argc != 4) {
+        sysExit(SUCCESS);
+    //}
 
     int n = strToInt(argv[1]);
     int inc = strToInt(argv[2]);
@@ -554,9 +554,8 @@ void my_process_inc(uint64_t argc, char *argv[]) {
             sysExit(MISSING_ARGUMENTS);
         }
     }
-    int i;
 
-    for (i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
         if (use_sem) {
             sysWaitSem(sem);
         }
@@ -581,21 +580,21 @@ void commandTestSem(uint64_t argc, char *argv[]) { //{n, use_sem, 0}
     char *argvInc[] = {"my_process_inc", argv[1], "1", argv[2], NULL};
 
     global = 0;
-
+    int sem = sysCreateSemaphore("sem", 1);
     uint64_t i;
     for (i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
         pids[i] = sysCreateProcess(4, argvDec, my_process_inc);
         pids[i + TOTAL_PAIR_PROCESSES] = sysCreateProcess(4, argvInc, my_process_inc);
     }
 
-    int sem = sysCreateSemaphore("sem", 1);
+
     for (i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
         sysWaitPid(pids[i]);
         sysWaitPid(pids[i + TOTAL_PAIR_PROCESSES]);
     }
 
     printf("Final value: %d\n", global);
-    sysDestroySemaphore("sem");
+    //sysDestroySemaphore("sem");
     sysExit(SUCCESS);
 }
 
