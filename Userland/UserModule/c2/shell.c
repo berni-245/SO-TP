@@ -531,59 +531,63 @@ void slowInc(int64_t *p, int64_t inc) {
     *p = aux;
 }
 
-void my_process_inc(uint64_t argc, char *argv[]) {
-    uint64_t n;
-    int8_t inc;
-    int8_t use_sem;
-    if (argc != 3)
-        sysExit(MISSING_ARGUMENTS);
 
-    if ((n = argc) <= 0)
+void my_process_inc(uint64_t argc, char *argv[]) {
+    if (argc != 4) {
         sysExit(MISSING_ARGUMENTS);
-    if ((inc = strToInt(argv[1])) == 0)
-        sysExit(MISSING_ARGUMENTS);
-    if ((use_sem = strToInt(argv[2])) < 0)
-        sysExit(MISSING_ARGUMENTS);
-    int sem;
+    }
+
+    int n = strToInt(argv[1]);
+    int inc = strToInt(argv[2]);
+    int use_sem = strToInt(argv[3]);
+
+    if (n <= 0 || inc == 0 || use_sem < 0) {
+        sysExit(ILLEGAL_ARGUMENT);
+    }
+
+    int sem=0;
     if (use_sem) {
-        sem = sysOpenSem("sem", 1);
-        if (sem != 0) {
-            printf("test_sync: ERROR opening semaphore\n");
+        //sem = sysOpenSem("sem", 1);
+        if (sem < 0) {
+            printf("my_process_inc: ERROR opening semaphore\n");
             sysExit(MISSING_ARGUMENTS);
         }
     }
-    uint64_t i;
-    for (i = 0; i < n; i++) {
-        if (use_sem)
-            sysWaitSem(sem);
-        slowInc(&global, inc);
-        if (use_sem)
-            sysPostSem(sem);
-    }
+    int i;
 
+    for (i = 0; i < n; i++) {
+        if (use_sem) {
+            sysWaitSem(sem);
+        }
+        slowInc(&global, inc);
+        if (use_sem) {
+            sysPostSem(sem);
+        }
+    }
     //if (use_sem)
-    //    my_sem_close(SEM_ID);
-    printf("THISFinal value: %d\n", global);
+    //    sysDestroySemaphore("sem");
+    printf("Final value in process: %d\n", global);
     sysExit(SUCCESS);
 }
 void commandTestSem(uint64_t argc, char *argv[]) { //{n, use_sem, 0}
-    if (argc!=3){
+    if (argc!=4){
         sysExit(MISSING_ARGUMENTS);
     }
 
     uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
 
-    char *argvDec[] = {argv[0], "-1", argv[1], NULL};
-    char *argvInc[] = {argv[0], "1", argv[1], NULL};
+    char *argvDec[] = {"my_process_inc", argv[1], "-1", argv[2], NULL};
+    char *argvInc[] = {"my_process_inc", argv[1], "1", argv[2], NULL};
 
     global = 0;
 
     uint64_t i;
     for (i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
-        pids[i] = sysCreateProcess(argc, argvDec, my_process_inc);
-        pids[i + TOTAL_PAIR_PROCESSES] = sysCreateProcess(argc, argvInc, my_process_inc);
+        pids[i] = sysCreateProcess(4, argvDec, my_process_inc);
+        pids[i + TOTAL_PAIR_PROCESSES] = sysCreateProcess(4, argvInc, my_process_inc);
     }
 
+    int sem = sysCreateSemaphore("sem", 1);
     for (i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
         sysWaitPid(pids[i]);
         sysWaitPid(pids[i + TOTAL_PAIR_PROCESSES]);
