@@ -566,10 +566,10 @@ void my_process_inc(uint64_t argc, char *argv[]) {
     }
     //if (use_sem)
     //    sysDestroySemaphore("sem");
-    printf("Final value in process: %d\n", global);
+    printf("Final value in process: %l\n", global);
     sysExit(SUCCESS);
 }
-void commandTestSem(uint64_t argc, char *argv[]) { //{n, use_sem, 0}
+void commandTestSem(int argc, char *argv[]) { //{n, use_sem, 0}
     if (argc!=4){
         sysExit(MISSING_ARGUMENTS);
     }
@@ -593,7 +593,7 @@ void commandTestSem(uint64_t argc, char *argv[]) { //{n, use_sem, 0}
         sysWaitPid(pids[i + TOTAL_PAIR_PROCESSES]);
     }
 
-    printf("Final value: %d\n", global);
+    printf("Final value: %l\n", global);
     //sysDestroySemaphore("sem");
     sysExit(SUCCESS);
 }
