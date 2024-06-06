@@ -95,9 +95,9 @@ void commandTest();
 void commandZeroDivisionError();
 void commandInvalidOpcodeError();
 void commandPs();
-void commandCreateSemaphore();
-void commandDestroySemaphore();
-void commandTestSem();
+void commandCreateSemaphore(int argc, char* argv[argc]);
+void commandDestroySemaphore(int argc, char* argv[argc]);
+void commandTestSem(int argc, char* argv[argc]);
 void commandChangeProcess();
 
 #endif
