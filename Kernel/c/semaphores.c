@@ -165,6 +165,7 @@ int my_sem_close(int sem_id) {
     free(sem_array[sem_id].sem->name);
     free(sem_array[sem_id].sem);
     sem_array[sem_id].is_used = 0;
+    --size;
     return 0;
 }
 //Busca el semaforo, si no lo encuentra sale. Si lo encuentra le decrementa el valor (si es 0 lo manda a la cola del sem)
