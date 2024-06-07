@@ -3,10 +3,10 @@ GLOBAL _leave_region
 
 
 _enter_region:
-  mov rax,1
-  xchg rax,[rdi]
+  mov eax,1
+  xchg eax,[rdi]
   ret
     
 _leave_region:
-   mov qword [rdi], 0
+   mov dword [rdi], 0
    ret
