@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <stdio.h>
+// #include <stdio.h>
 
 typedef enum { false = 0, true = 1 } boolean;
 typedef enum { LEFT = 'L', RIGHT = 'R' } blockAlignment;
@@ -134,19 +134,19 @@ void buddyFree(void* ptr) {
     mergeBlock(block, order);
 }
 
-void getMemoryState(char* buffer) {
-    int offset = 0;
-    for (int i = 0; i < ORDER_COUNT; i++) {
-        Block* block = freeList[i];
-        if (block != NULL) {
-            offset += sprintf(buffer + offset, "Order %2d: ", i);
-            while (block != NULL) {
-                offset += sprintf(buffer + offset, "[Free Block (%c) at %p to %p, size: 2^%d bytes] -> ",
-                                  block->align == LEFT ? 'L' : 'R', block, (char*)block + block->size, i);
-                block = block->next;
-            }
-            offset += sprintf(buffer + offset, "NULL\n");
-        }
-    }
-    buffer[offset] = 0;
-}
+// void getMemoryState(char* buffer) {
+//     int offset = 0;
+//     for (int i = 0; i < ORDER_COUNT; i++) {
+//         Block* block = freeList[i];
+//         if (block != NULL) {
+//             offset += sprintf(buffer + offset, "Order %2d: ", i);
+//             while (block != NULL) {
+//                 offset += sprintf(buffer + offset, "[Free Block (%c) at %p to %p, size: 2^%d bytes] -> ",
+//                                   block->align == LEFT ? 'L' : 'R', block, (char*)block + block->size, i);
+//                 block = block->next;
+//             }
+//             offset += sprintf(buffer + offset, "NULL\n");
+//         }
+//     }
+//     buffer[offset] = 0;
+// }
