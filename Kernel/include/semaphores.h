@@ -2,7 +2,6 @@
 #define SEMPAPHORES_SEMAPHORE_H
 
 #include "stdlib.h"
-#include "semaphores.h"
 #include "scheduler.h"
 #include "utils.h"
 
