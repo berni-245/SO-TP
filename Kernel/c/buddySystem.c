@@ -4,7 +4,7 @@
 typedef enum { false = 0, true = 1 } boolean;
 typedef enum { LEFT = 'L', RIGHT = 'R' } blockAlignment;
 
-#define ORDER_COUNT 21
+#define ORDER_COUNT 27
 // 2^(ORDER_COUNT-1) bytes
 #define MAX_MEMORY_AVAILABLE (1 << (ORDER_COUNT - 1))
 #define NULL (void *) 0
@@ -15,19 +15,19 @@ typedef struct Block {
     struct Block* next;
     uint32_t size;
     boolean isFree;
-    blockAlignment align;
 } Block;
 
 Block* freeList[ORDER_COUNT];
+void* iniAddress;
 
 void initBuddySystem(void* endOfModules) {
+    iniAddress = endOfModules;
     for (int i = 0; i < ORDER_COUNT; i++) {
         freeList[i] = NULL;
     }
     Block* initialBlock = (Block*) (((uint64_t)endOfModules + addressByteSize - 1) & ~(addressByteSize - 1));
     initialBlock->size = MAX_MEMORY_AVAILABLE;
     initialBlock->isFree = true;
-    initialBlock->align = LEFT;
     initialBlock->next = NULL;
     freeList[ORDER_COUNT - 1] = initialBlock;
 }
@@ -45,12 +45,10 @@ static int getOrder(uint32_t size) {
 static Block* splitBlock(Block* block) {
     uint32_t newBlockSize = block->size / 2;
     block->size = newBlockSize;
-    block->align = LEFT;
 
     Block* buddy = (Block*)((char*)block + newBlockSize);
     buddy->size = newBlockSize;
     buddy->isFree = true;
-    buddy->align = RIGHT;
     return buddy;
 }
 
@@ -95,13 +93,21 @@ static void removeFromFreeList(Block* toRemove, uint32_t order) {
     toRemove->next = NULL;
 }
 
+static blockAlignment getAlignment(Block * block) {
+    if((((uint32_t) ((uint8_t *) block - (uint8_t *) iniAddress) / block->size) % 2) == 0)
+        return LEFT;
+    return RIGHT;
+}
+
 static void mergeBlock(Block* block, uint32_t order) {
     if (block->size == MAX_MEMORY_AVAILABLE){
         freeList[order] = block;
         return;
     }
 
-    Block* buddy = (block->align == LEFT)
+    blockAlignment blockAlignment = getAlignment(block);
+    
+    Block* buddy = (blockAlignment == LEFT)
         ? (Block*)((char*)block + block->size)
         : (Block*)((char*)block - block->size);
 
@@ -113,13 +119,11 @@ static void mergeBlock(Block* block, uint32_t order) {
 
     removeFromFreeList(block, order);
     removeFromFreeList(buddy, order);
-
-    if (block->align == RIGHT) {
+    
+    if(blockAlignment == RIGHT)
         block = buddy;
-    }
 
     block->size *= 2;
-    block->align = LEFT;
     block->isFree = true;
     mergeBlock(block, order + 1);
 }
