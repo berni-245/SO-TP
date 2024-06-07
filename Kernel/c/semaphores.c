@@ -154,7 +154,7 @@ int my_sem_open(char *name, int value) {
 int my_sem_close(int sem_id) {
     if (sem_id >= MAX_SEMAPHORES || sem_id < 0)
         return ERROR;
-    while(_enter_region(&sem_array[sem_id].sem->lock));
+    _enter_region(&sem_array[sem_id].sem->lock);
     //NO SE PUEDE CERRAR UN SEMÁFORO QUE TODAVÍA TENGA PROCESOS EN ESPERA
     while (sem_array[sem_id].sem->process_first != NULL) {
         const PCB* to_ready=fifo_unqueue(sem_id);
@@ -173,7 +173,7 @@ int my_sem_close(int sem_id) {
 int my_sem_wait(int sem_id) {
     if (sem_id>=MAX_SEMAPHORES || sem_id <0 || !sem_array[sem_id].is_used)
         return ERROR;
-    while(_enter_region(&sem_array[sem_id].sem->lock));
+    _enter_region(&sem_array[sem_id].sem->lock);
     if (sem_array[sem_id].sem->value > 0) {
         sem_array[sem_id].sem->value--;
         _leave_region(&sem_array[sem_id].sem->lock);
@@ -192,7 +192,7 @@ int my_sem_wait(int sem_id) {
 int my_sem_post(int sem_id) {
     if (sem_id>=MAX_SEMAPHORES || sem_id <0 || !sem_array[sem_id].is_used)
         return ERROR;
-    while(_enter_region(&sem_array[sem_id].sem->lock));
+    _enter_region(&sem_array[sem_id].sem->lock);
     if (sem_array[sem_id].sem->process_first!=NULL) {
         const PCB* to_ready=fifo_unqueue(sem_id);
         _leave_region(&sem_array[sem_id].sem->lock);
