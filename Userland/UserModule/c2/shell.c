@@ -20,10 +20,6 @@ int currentCommandIdx = 0;
 static int commandReturnCode = 0;
 static int currentPromptLen = 0;
 
-int64_t global;
-#define SEM_ID "sem"
-#define TOTAL_PAIR_PROCESSES 2
-
 int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
@@ -44,8 +40,6 @@ int shell() {
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
   addCommand("ps", "Print process list", commandPs);
-  addCommand("createSem", "Creates a semaphore", commandCreateSemaphore);
-  addCommand("destroySem", "Destroys a semaphore", commandDestroySemaphore);
   addCommand("testSem", "Test semaphores by using multiple processes to modifying shared variable", commandTestSem);
 
   char* argv[1] = {"help"};
@@ -498,33 +492,12 @@ void commandPs() {
   sysExit(SUCCESS);
 }
 
-void commandCreateSemaphore(int argc, char* argv[argc]) {
-  if (argc != 3) {
-    puts("Usage:");
-    printf("\t\t%s <semName> <semValue>\n", argv[0]);
-    sysExit(MISSING_ARGUMENTS);
-  }
-  char* semName = argv[1];
-  int semValue = strToInt(argv[2]);
-  int sem_id = sysCreateSemaphore(semName, semValue);
-  if (sem_id == -1) {
-    puts("Error creating semaphore");
-  } else {
-    printf("Semaphore created with ID: %d\n", sem_id);
-  }
-  sysExit(SUCCESS);
-}
-void commandDestroySemaphore(int argc, char* argv[argc]) {
-  if (argc != 2) {
-    puts("Usage:");
-    printf("\t\t%s <semName>\n", argv[0]);
-    sysExit(MISSING_ARGUMENTS);
-  }
-  printf("%s\n", argv[1]);
-  int sem = sysDestroySemaphore(argv[1]);
-  printf("%5d\n", sem);
-  sysExit(SUCCESS);
-}
+///////////// Semaphores stuff /////////////
+
+int64_t globalForSemTest;
+#define SEM_NAME "sem"
+#define TOTAL_PAIR_PROCESSES 2
+
 void slowInc(int64_t* p, int64_t inc) {
   int64_t aux = *p;
   commandChangeProcess(); // This makes the race condition highly probable
@@ -553,14 +526,14 @@ void my_process_inc(uint64_t argc, char* argv[argc]) {
     }
     for (int i = 0; i < n; i++) {
       sysWaitSem(sem);
-      slowInc(&global, inc);
+      slowInc(&globalForSemTest, inc);
       sysPostSem(sem);
     }
   } else {
-    for (int i = 0; i < n; i++) slowInc(&global, inc);
+    for (int i = 0; i < n; i++) slowInc(&globalForSemTest, inc);
   }
   if (use_sem) sysDestroySemaphore("sem");
-  printf("Final value in process: %l\n", global);
+  printf("Final value in process: %l\n", globalForSemTest);
   sysExit(SUCCESS);
 }
 
@@ -577,7 +550,7 @@ void commandTestSem(int argc, char* argv[argc]) {
   char* argvDec[] = {"my_process_dec", argv[1], "-1", argv[2]};
   char* argvInc[] = {"my_process_inc", argv[1], "1", argv[2]};
 
-  global = 0;
+  globalForSemTest = 0;
   int sem = sysCreateSemaphore("sem", 1);
   for (int i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
     pids[i] = sysCreateProcess(sizeof(argvDec) / sizeof(argvDec[0]), argvDec, my_process_inc);
@@ -589,7 +562,7 @@ void commandTestSem(int argc, char* argv[argc]) {
     sysWaitPid(pids[i + TOTAL_PAIR_PROCESSES]);
   }
 
-  printf("Final value: %l\n", global);
+  printf("Final value: %l\n", globalForSemTest);
   sysDestroySemaphore("sem");
   sysExit(SUCCESS);
 }
