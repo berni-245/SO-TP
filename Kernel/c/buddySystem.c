@@ -2,6 +2,8 @@
 #include <stdio.h>
 
 typedef enum { false = 0, true = 1 } boolean;
+// When a block is split, it will be on the left or on the right, the alignment is important for merging
+typedef enum { LEFT = 'L', RIGHT = 'R'} blockAlignment;
 
 #define ORDER_COUNT 21
 // 2^(ORDER_COUNT-1) bytes
@@ -11,11 +13,10 @@ typedef enum { false = 0, true = 1 } boolean;
 static const uint64_t addressByteSize = sizeof(void*);
 
 typedef struct Block {
-    struct Block* currentBuddy;
-    struct Block* nextBuddy;
     struct Block* next;
     uint32_t size;
     boolean isFree;
+    blockAlignment align;
 } Block;
 
 Block* freeList[ORDER_COUNT];
@@ -24,12 +25,10 @@ void initBuddySystem(void* endOfModules) {
     for (int i = 0; i < ORDER_COUNT; i++) {
         freeList[i] = NULL;
     }
-
     Block* initialBlock = (Block*) (((uint64_t)endOfModules + addressByteSize - 1) & ~(addressByteSize - 1));
     initialBlock->size = MAX_MEMORY_AVAILABLE;
     initialBlock->isFree = true;
-    initialBlock->currentBuddy = NULL;
-    initialBlock->nextBuddy = NULL;
+    initialBlock->align = LEFT;
     initialBlock->next = NULL;
     freeList[ORDER_COUNT - 1] = initialBlock;
 }
@@ -53,11 +52,7 @@ static Block* splitBlock(Block* block) {
     buddy->size = newBlockSize;
     buddy->isFree = true;
 
-    buddy->nextBuddy = NULL;
-    buddy->currentBuddy = block;
-
-    block->nextBuddy = block->currentBuddy;
-    block->currentBuddy = buddy;
+    buddy->align = RIGHT;
     return buddy;
 }
 
@@ -110,20 +105,25 @@ static void mergeBlock(Block* block, uint32_t order) {
 
     if(block->size == MAX_MEMORY_AVAILABLE) return;
 
-    Block* buddy = block->currentBuddy;
+    Block* buddy;
+    if(block->align == LEFT)
+        buddy = (Block*)((char*)block + block->size);
+    else
+        buddy = (Block*)((char*)block - block->size);
 
     if (buddy == NULL) return;
     if (!buddy->isFree) return;
     if (buddy->size != block->size) return;
+    
 
     // remove the block and buddy from the free list
     removeFromFreeList(block, order);
     removeFromFreeList(buddy, order);
+    if(block->align == RIGHT)
+        block = buddy;
 
-    block->currentBuddy = block->nextBuddy;
-    block->nextBuddy = block->nextBuddy->nextBuddy;
     block->size *= 2;
-
+    block->isFree = true;
     mergeBlock(block, order + 1);
 }
 
