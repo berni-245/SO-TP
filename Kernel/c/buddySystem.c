@@ -2,8 +2,7 @@
 #include <stdio.h>
 
 typedef enum { false = 0, true = 1 } boolean;
-// When a block is split, it will be on the left or on the right, the alignment is important for merging
-typedef enum { LEFT = 'L', RIGHT = 'R'} blockAlignment;
+typedef enum { LEFT = 'L', RIGHT = 'R' } blockAlignment;
 
 #define ORDER_COUNT 21
 // 2^(ORDER_COUNT-1) bytes
@@ -44,14 +43,13 @@ static int getOrder(uint32_t size) {
 }
 
 static Block* splitBlock(Block* block) {
-    uint32_t newBlockSize = (block->size)/2;
+    uint32_t newBlockSize = block->size / 2;
     block->size = newBlockSize;
+    block->align = LEFT;
 
-    // Get the direction of the buddy
     Block* buddy = (Block*)((char*)block + newBlockSize);
     buddy->size = newBlockSize;
     buddy->isFree = true;
-
     buddy->align = RIGHT;
     return buddy;
 }
@@ -61,8 +59,7 @@ void* buddyAlloc(uint32_t size) {
     int order = getOrder(size + sizeof(Block));
 
     for (int currentOrder = order; currentOrder < ORDER_COUNT; currentOrder++) {
-        // TODO: maybe remove isFree
-        if (freeList[currentOrder] != NULL && freeList[currentOrder]->isFree) { 
+        if (freeList[currentOrder] != NULL && freeList[currentOrder]->isFree) {
             Block* block = freeList[currentOrder];
             freeList[currentOrder] = block->next;
 
@@ -74,7 +71,6 @@ void* buddyAlloc(uint32_t size) {
             }
 
             block->isFree = false;
-            // The useful memory will come after the block
             return (void*)(block + 1);
         }
     }
@@ -84,45 +80,46 @@ void* buddyAlloc(uint32_t size) {
 
 static void removeFromFreeList(Block* toRemove, uint32_t order) {
     toRemove->isFree = false;
-    Block* previousBlock = freeList[order];
-    if(previousBlock == toRemove) {
-        freeList[order] = previousBlock->next;
+    if (freeList[order] == toRemove) {
+        freeList[order] = toRemove->next;
         return;
     }
 
-    Block* currentBlock = previousBlock->next;
-    while(currentBlock != toRemove) { 
-        previousBlock = currentBlock;
-        currentBlock = currentBlock->next;        
+    Block* currentBlock = freeList[order];
+    while (currentBlock != NULL && currentBlock->next != toRemove) {
+        currentBlock = currentBlock->next;
     }
-    previousBlock->next = currentBlock->next;
+    if (currentBlock != NULL) {
+        currentBlock->next = toRemove->next;
+    }
+    toRemove->next = NULL;
 }
 
 static void mergeBlock(Block* block, uint32_t order) {
-    // this always needs to happen, in case there's no merging blocks
-    block->next = freeList[order]; 
-    freeList[order] = block;
+    if (block->size == MAX_MEMORY_AVAILABLE){
+        freeList[order] = block;
+        return;
+    }
 
-    if(block->size == MAX_MEMORY_AVAILABLE) return;
+    Block* buddy = (block->align == LEFT)
+        ? (Block*)((char*)block + block->size)
+        : (Block*)((char*)block - block->size);
 
-    Block* buddy;
-    if(block->align == LEFT)
-        buddy = (Block*)((char*)block + block->size);
-    else
-        buddy = (Block*)((char*)block - block->size);
+    if (buddy == NULL || !buddy->isFree || buddy->size != block->size) {
+        block->next = freeList[order];
+        freeList[order] = block;
+        return;
+    }
 
-    if (buddy == NULL) return;
-    if (!buddy->isFree) return;
-    if (buddy->size != block->size) return;
-    
-
-    // remove the block and buddy from the free list
     removeFromFreeList(block, order);
     removeFromFreeList(buddy, order);
-    if(block->align == RIGHT)
+
+    if (block->align == RIGHT) {
         block = buddy;
+    }
 
     block->size *= 2;
+    block->align = LEFT;
     block->isFree = true;
     mergeBlock(block, order + 1);
 }
@@ -130,10 +127,9 @@ static void mergeBlock(Block* block, uint32_t order) {
 void buddyFree(void* ptr) {
     if (ptr == NULL) return;
 
-    // The block structure will be before the address returned to the user
-    Block* block = (Block*)ptr - 1; 
+    Block* block = (Block*)ptr - 1;
     block->isFree = true;
-    int order = getOrder(block->size); 
+    int order = getOrder(block->size);
 
     mergeBlock(block, order);
 }
@@ -145,7 +141,8 @@ void getMemoryState(char* buffer) {
         if (block != NULL) {
             offset += sprintf(buffer + offset, "Order %2d: ", i);
             while (block != NULL) {
-                offset += sprintf(buffer + offset, "[Free Block (%c) at %p to %p, size: 2^%d bytes] -> ", block->align == LEFT ? 'L' : 'R', block, (char*)block + block->size, i);
+                offset += sprintf(buffer + offset, "[Free Block (%c) at %p to %p, size: 2^%d bytes] -> ",
+                                  block->align == LEFT ? 'L' : 'R', block, (char*)block + block->size, i);
                 block = block->next;
             }
             offset += sprintf(buffer + offset, "NULL\n");
