@@ -4,7 +4,8 @@
 typedef enum { false = 0, true = 1 } boolean;
 
 #define ORDER_COUNT 21
-#define MAX_MEMORY_AVAILABLE (1 << (ORDER_COUNT - 1)) // 2^(ORDER_COUNT-1) bytes
+// 2^(ORDER_COUNT-1) bytes
+#define MAX_MEMORY_AVAILABLE (1 << (ORDER_COUNT - 1))
 #define NULL (void *) 0
 
 static const uint64_t addressByteSize = sizeof(void*);
@@ -34,8 +35,6 @@ void initBuddySystem(void* endOfModules) {
 }
 
 static int getOrder(uint32_t size) {
-    // Part of the memory of the block will contain the structure
-    size += sizeof(Block); 
     uint32_t order = 0;
     uint32_t iniBlockSize = 1;
     while (iniBlockSize < size) {
@@ -63,10 +62,12 @@ static Block* splitBlock(Block* block) {
 }
 
 void* buddyAlloc(uint32_t size) {
-    int order = getOrder(size);
+    // the block will also be allocated in the physical address
+    int order = getOrder(size + sizeof(Block));
 
     for (int currentOrder = order; currentOrder < ORDER_COUNT; currentOrder++) {
-        if (freeList[currentOrder] != NULL && freeList[currentOrder]->isFree) { // TODO: maybe remove isFree
+        // TODO: maybe remove isFree
+        if (freeList[currentOrder] != NULL && freeList[currentOrder]->isFree) { 
             Block* block = freeList[currentOrder];
             freeList[currentOrder] = block->next;
 
@@ -78,7 +79,8 @@ void* buddyAlloc(uint32_t size) {
             }
 
             block->isFree = false;
-            return (void*)(block + 1);  // The useful memory will come after the block
+            // The useful memory will come after the block
+            return (void*)(block + 1);
         }
     }
 
@@ -86,6 +88,7 @@ void* buddyAlloc(uint32_t size) {
 }
 
 static void removeFromFreeList(Block* toRemove, uint32_t order) {
+    toRemove->isFree = false;
     Block* previousBlock = freeList[order];
     if(previousBlock == toRemove) {
         freeList[order] = previousBlock->next;
@@ -93,7 +96,7 @@ static void removeFromFreeList(Block* toRemove, uint32_t order) {
     }
 
     Block* currentBlock = previousBlock->next;
-    while(currentBlock != toRemove) { // if we ever get a NULL, then there was a programming error somewhere
+    while(currentBlock != toRemove) { 
         previousBlock = currentBlock;
         currentBlock = currentBlock->next;        
     }
@@ -101,21 +104,24 @@ static void removeFromFreeList(Block* toRemove, uint32_t order) {
 }
 
 static void mergeBlock(Block* block, uint32_t order) {
-    block->next = freeList[order];
+    // this always needs to happen, in case there's no merging blocks
+    block->next = freeList[order]; 
     freeList[order] = block;
 
     if(block->size == MAX_MEMORY_AVAILABLE) return;
 
     Block* buddy = block->currentBuddy;
 
+    if (buddy == NULL) return;
     if (!buddy->isFree) return;
     if (buddy->size != block->size) return;
 
-    freeList[order] = block->next; // remove the block from the free list
-    removeFromFreeList(buddy, order); // remove the buddy from the free list
+    // remove the block and buddy from the free list
+    removeFromFreeList(block, order);
+    removeFromFreeList(buddy, order);
 
     block->currentBuddy = block->nextBuddy;
-    block->nextBuddy = block->currentBuddy->next;
+    block->nextBuddy = block->nextBuddy->nextBuddy;
     block->size *= 2;
 
     mergeBlock(block, order + 1);
@@ -124,9 +130,10 @@ static void mergeBlock(Block* block, uint32_t order) {
 void buddyFree(void* ptr) {
     if (ptr == NULL) return;
 
-    Block* block = (Block*)ptr - 1;  // The block structure will be before the address returned to the user
+    // The block structure will be before the address returned to the user
+    Block* block = (Block*)ptr - 1; 
     block->isFree = true;
-    int order = getOrder(block->size - sizeof(Block)); // TODO: use a variable in block for requested size
+    int order = getOrder(block->size); 
 
     mergeBlock(block, order);
 }
