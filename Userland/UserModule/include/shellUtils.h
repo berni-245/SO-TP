@@ -9,7 +9,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <syscalls.h>
 #include <sysinfo.h>
 #include <utils.h>
 #include <array.h>
@@ -34,29 +33,6 @@ static const char* const CommandResultStrings[] = {
 };
 
 typedef void (*ShellFunction)(int argc, char* [argc]);
-
-/*
-typedef struct {
-  // Set by user
-  char* name;
-  bool required;
-
-  // Set by parseCommandArgs
-  bool found;
-} CommandArgument;
-typedef struct {
-  // Set by user
-  char* shortName;
-  char* longName;
-  char* description;
-  bool hasArgument;
-  bool required;
-
-  // Set by parseCommandOpts
-  char argument[MAX_ARG_LEN];
-  bool found;
-} CommandOption;
-*/
 
 typedef struct ShellCommand {
   char* name;
