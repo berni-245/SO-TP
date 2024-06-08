@@ -83,6 +83,7 @@ void Array_set(Array a, long idx, void* ele) {
     if (-idx > a->length) exitWithError("@Array_set idx outside of bounds");
     idx += a->length;
   }
+  if (a->freeEleFn != NULL) a->freeEleFn(Array_get(a, idx));
 
   copyEleAt(a, idx, ele);
 }
