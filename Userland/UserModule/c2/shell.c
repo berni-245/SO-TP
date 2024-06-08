@@ -47,7 +47,7 @@ int shell() {
   addCommand("ps", "Print process list", commandPs);
   addCommand("testSem", "Test semaphores by using multiple processes to modifying shared variable", commandTestSem);
 
-  char* argv[1] = {"help"};
+  const char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));
 
   newPrompt();
@@ -200,7 +200,7 @@ void addCommand(char* name, char* description, ShellFunction function) {
   ShellCommand newCommand = {.name = name, .description = description, .function = function};
   commands[commandCount++] = newCommand;
 }
-ShellFunction getCommand(char* name) {
+ShellFunction getCommand(const char* name) {
   for (int i = 0; i < commandCount; ++i) {
     if (strcmp(name, commands[i].name) == 0) return commands[i].function;
   }

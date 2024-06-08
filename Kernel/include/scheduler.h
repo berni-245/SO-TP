@@ -34,7 +34,7 @@ typedef struct {
 // void freePCBNode(PCBNode* node);
 void initializePCBList();
 void* schedule(void* rsp);
-uint32_t createUserProcess(int argc, char* argv[], void* processRip);
+uint32_t createUserProcess(int argc, const char* argv[], void* processRip);
 extern void exit(int exitCode);
 void startFirstProcess(void* processAddress);
 int waitPid(uint32_t pid);

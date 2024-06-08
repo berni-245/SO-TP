@@ -1,6 +1,6 @@
 #include <utils.h>
 
-int strncpy(char* dst, char* src, int max) {
+int strncpy(char* dst, const char* src, int max) {
   int i = 0;
   if (max > 0) for (; i < max && src[i] != 0; ++i) dst[i] = src[i];
   else for (; src[i] != 0; ++i) dst[i] = src[i];

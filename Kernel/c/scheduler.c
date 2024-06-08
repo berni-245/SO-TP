@@ -193,7 +193,7 @@ argc = 3
 0xXXXXX  00 00 00 00 00 00 00 00
  */
 static uint32_t pid = 0;
-void* createProcess(int argc, char* argv[], void* processRip) {
+void* createProcess(int argc, const char* argv[], void* processRip) {
   void* stackStart;
   void* stackEnd;
   stackAlloc(&stackStart, &stackEnd);
@@ -210,13 +210,13 @@ void* createProcess(int argc, char* argv[], void* processRip) {
 }
 
 void* createUserModuleProcess() {
-  char* argv[1] = {"init"};
+  const char* argv[1] = {"init"};
   void* rsp = createProcess(1, argv, userModule);
   nextPCB();
   return rsp;
 }
 
-uint32_t createUserProcess(int argc, char* argv[], void* processRip) {
+uint32_t createUserProcess(int argc, const char* argv[], void* processRip) {
   createProcess(argc, argv, processRip);
   return pid - 1;
 }
