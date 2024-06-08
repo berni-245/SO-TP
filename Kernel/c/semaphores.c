@@ -23,7 +23,7 @@ int size;
 /*-----------AUX. FUNCTIONS-------------------*/ // FUNCIIONES QUE NO ESTÁN EN LOS TEST
 // Se fija si encuentra el valor del semaforo dentro de mi arreglo. Si falla -1
 
-int my_sem_birth() {
+int mySemBirth() {
   for (int i = 0; i < MAX_SEMAPHORES; ++i) {
     sem_array[i].is_used = 0;
   }
@@ -31,7 +31,7 @@ int my_sem_birth() {
   return 1;
 }
 
-int sem_finder(char* sem_name) {
+int semFinder(char* sem_name) {
   if (!size) return ERROR;
   for (int i = 0; i < MAX_SEMAPHORES; i++) {
     if (sem_array[i].is_used) {
@@ -88,7 +88,7 @@ int createSemaphore(char* name, int value) {
   return my_sem_init(name, value);
 }
 int destroySemaphore(char* name) {
-  return my_sem_close(sem_finder(name));
+  return my_sem_close(semFinder(name));
 }
 int postSemaphore(int sem_id) {
   return my_sem_post(sem_id);
@@ -100,7 +100,7 @@ int openSemaphore(char* name, int value) {
   return my_sem_open(name, value);
 }
 int my_sem_init(char* sem_name, unsigned int init_value) {
-  if (sem_finder(sem_name) != ERROR) return ERROR;
+  if (semFinder(sem_name) != ERROR) return ERROR;
   int pos = position_to_init_sem();
   if (pos == ERROR) {
     return ERROR;
@@ -127,7 +127,7 @@ int my_sem_init(char* sem_name, unsigned int init_value) {
 /*--------------------------------------------*/
 
 int my_sem_open(char* name, int value) {
-  int sem_id = sem_finder(name);
+  int sem_id = semFinder(name);
   if (sem_id == ERROR) {
     sem_id = my_sem_init(name, value);
     if (sem_id == ERROR) return ERROR;

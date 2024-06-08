@@ -54,7 +54,7 @@ int main() {
   loadIdt();
   setFontGridValues();
   initializePCBList();
-  my_sem_birth();
+  mySemBirth();
 
   // userModule();
   startUserModule();

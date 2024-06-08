@@ -33,10 +33,10 @@ typedef struct semaphores_pos {
   int is_used;
 } semaphores_pos;
 
-int sem_finder(char* sem_name);
+int semFinder(char* sem_name);
 int position_to_init_sem();
 
-int my_sem_birth();
+int mySemBirth();
 int my_sem_init(char* sem_name, unsigned int value);
 int my_sem_wait(int sem_id);
 int my_sem_post(int sem_id);
