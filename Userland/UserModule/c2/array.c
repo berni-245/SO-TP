@@ -13,7 +13,6 @@ typedef struct ArrayCDT {
   FreeEleFn freeEleFn;
 } ArrayCDT;
 
-void exitWithError(const char* msg);
 void copynEleAt(Array a, unsigned long idx, const void* eleArr, unsigned long n);
 void copyEleAt(Array a, unsigned long idx, const void* ele);
 void growTo(Array a, unsigned long newCapacity);
@@ -219,9 +218,4 @@ void growTo(Array a, unsigned long newCapacity) {
 
 void growBy(Array a, unsigned long extraCapacity) {
   growTo(a, a->capacity + extraCapacity);
-}
-
-void exitWithError(const char* msg) {
-  printf("%s\n", msg);
-  sysExit(1);
 }

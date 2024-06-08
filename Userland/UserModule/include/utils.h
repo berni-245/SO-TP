@@ -6,5 +6,6 @@
 
 bool justCtrlMod(KeyStruct* key);
 void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize);
+void exitWithError(const char* msg);
 
 #endif

@@ -17,3 +17,8 @@ void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize) {
   sysFree(ptr);
   return mem;
 }
+
+void exitWithError(const char* msg) {
+  printf("%s\n", msg);
+  sysExit(1);
+}
