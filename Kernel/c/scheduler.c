@@ -1,6 +1,7 @@
 #include <memory.h>
 #include <scheduler.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <utils.h>
 
 // El priority based scheduling funciona así:
@@ -27,6 +28,7 @@ typedef struct {
 extern void* initializeProcessStack(int argc, char* argv[], void* processRip, void* stackStart);
 extern void idleProc();
 extern void* userModule;
+extern void asdfInterruption();
 
 PCBList pcbList;
 PCBNode* idleProcPCBNode;
@@ -230,29 +232,25 @@ void exitCurrentProcess(int exitCode) {
   }
 }
 
-extern void asdfInterruption();
-int waitPid(uint32_t pid) {
-  if (pid == pcbList.current->pcb->pid) return pcbList.current->pcb->waitedProcessExitCode;
-
+PCB* getPCBByPid(uint32_t pid) {
   PCBNode* node = pcbList.head;
   // Note pcbList is orded by pid because new nodes are always added at the end and
   // pid is always increasing..
-  while (node->pcb->pid <= pid) {
-    if (node->pcb->pid == pid && node->pcb->state != EXITED) {
-      node->pcb->waitingForMe[node->pcb->wfmLen++] = pcbList.current->pcb;
-      pcbList.current->pcb->state = BLOCKED;
-      asdfInterruption(); // Replace for int 0x20 when schedule gets called there.
-      return pcbList.current->pcb->waitedProcessExitCode;
-    }
+  do {
+    if (node->pcb->pid == pid) return node->pcb;
     node = node->next;
-    if (node == pcbList.head) break;
-  }
-  // Este return value no tiene sentido si el proceso se corrió en el background. Igual
-  // casi seguro que tengo que tener en cuenta padres e hijos así que probablemente el
-  // exit solo me mande el pcb del proceso hijo a una lista en el padre, y recién una
-  // vez que el padre termina se libera todo lo relacionado a los hijos que terminaron.
-  // Y ahí sí podría conseguir la referencia al hijo aunque ya haya terminado.
-  // If no process with the specified pid is found then current process is not blocked.
+  } while (node->pcb->pid <= pid && node != pcbList.head);
+  return NULL;
+}
+
+int waitPid(uint32_t pid) {
+  if (pid == pcbList.current->pcb->pid) return pcbList.current->pcb->waitedProcessExitCode;
+
+  PCB* pcb = getPCBByPid(pid);
+  if (pcb == NULL || pcb->state == EXITED) return pcbList.current->pcb->waitedProcessExitCode;
+  pcb->waitingForMe[pcb->wfmLen++] = pcbList.current->pcb;
+  pcbList.current->pcb->state = BLOCKED;
+  asdfInterruption(); // Replace for int 0x20 when schedule gets called there.
   return pcbList.current->pcb->waitedProcessExitCode;
 }
 
