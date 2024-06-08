@@ -1,3 +1,4 @@
+#include <array.h>
 #include <shellUtils.h>
 
 extern uint8_t bss;
@@ -20,9 +21,13 @@ int currentCommandIdx = 0;
 static int commandReturnCode = 0;
 static int currentPromptLen = 0;
 
+Array currentCommand;
+
 int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
+
+  currentCommand = Array_initialize(sizeof(char), 100, NULL, NULL);
 
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
@@ -79,24 +84,28 @@ int shell() {
           printChar(key.character);
           commandReturnCode = parseCommand();
           newPrompt();
+          Array_clear(currentCommand);
         } else if (key.character == '\b') {
           if (screenBufWriteIdx != currentCommandIdx) {
             printChar(key.character);
+            Array_pop(currentCommand);
           }
         } else if (key.character == '\t') {
           autocomplete();
         } else {
           printChar(key.character);
+          Array_push(currentCommand, &key.character);
         }
       }
     }
-  };
+  }
 
   return 1;
 }
 
 void clearLine() {
   while (screenBufWriteIdx != currentCommandIdx) printChar('\b');
+  Array_clear(currentCommand);
 }
 
 void resetHistoryCurrentVals() {
@@ -108,27 +117,26 @@ void historyPush() {
   incCircularIdx(&historyNewIdx, MAX_HISTORY_LEN);
   if (historyCount < MAX_HISTORY_LEN) ++historyCount;
 }
-void historyPrev() {
-  if (historyCurrentCount == 0) return;
-  decCircularIdx(&historyCurrentIdx, MAX_HISTORY_LEN);
-  --historyCurrentCount;
+void historyCopy() {
   int i = commandHistory[historyCurrentIdx];
   clearLine();
   while (screenBuffer[i] != '\n') {
     printChar(screenBuffer[i]);
+    Array_push(currentCommand, screenBuffer + i);
     incCircularIdx(&i, SCREEN_BUFFER_SIZE);
   }
+}
+void historyPrev() {
+  if (historyCurrentCount == 0) return;
+  decCircularIdx(&historyCurrentIdx, MAX_HISTORY_LEN);
+  --historyCurrentCount;
+  historyCopy();
 }
 void historyNext() {
   if (historyCurrentCount >= historyCount - 1) return;
   incCircularIdx(&historyCurrentIdx, MAX_HISTORY_LEN);
   ++historyCurrentCount;
-  int i = commandHistory[historyCurrentIdx];
-  clearLine();
-  while (screenBuffer[i] != '\n') {
-    printChar(screenBuffer[i]);
-    incCircularIdx(&i, SCREEN_BUFFER_SIZE);
-  }
+  historyCopy();
 }
 
 int getCurrentChar() {
@@ -206,6 +214,7 @@ void autocomplete() {
     char* command = commands[i].name;
     bool match = true;
     int k = 0;
+    // Needs to be updated to use currentCommand array.
     for (int j = currentCommandIdx; screenBuffer[j] != 0 && command[k] != 0 && match; ++j, ++k) {
       if (screenBuffer[j] == ' ') return;
       else if (screenBuffer[j] != command[k]) match = false;
@@ -221,59 +230,72 @@ void autocomplete() {
   printString(commands[matchIdx].name + len);
 }
 
-ExitCode parseCommand() {
-  // MAX_ARG_COUNT is large enough for me to ignore the error of the user going
-  // over it. It's a pain to take it into account. If it has to be done I'd rather
-  // make a dynamic sized array.
-  char* argv[MAX_ARG_COUNT];
-  int argc = 0, len = 0;
-  int i = currentCommandIdx;
-  incCircularIdxBy(&i, strTrimStartOffset(screenBuffer + i), SCREEN_BUFFER_SIZE);
-  argv[0] = sysMalloc(MAX_ARG_LEN + 1);
-  ShellFunction command;
-  char c;
-  do {
-    c = screenBuffer[i];
-    if (c == ' ') {
-      argv[argc++][len] = 0;
-      len = 0;
-      incCircularIdxBy(&i, strTrimStartOffset(screenBuffer + i), SCREEN_BUFFER_SIZE);
-      c = screenBuffer[i];
-      if (c != '\n') argv[argc] = sysMalloc(MAX_ARG_LEN + 1);
-    } else if (c == '\n') {
-      argv[argc++][len] = 0;
-      len = 0;
-    } else {
-      if (len >= MAX_ARG_LEN) {
-        argv[argc][MAX_ARG_LEN] = 0;
-        printf("%s: %s...\n", CommandResultStrings[ARGUMENT_TOO_LONG], argv[argc]);
-        for (int i = 0; i < argc; ++i) sysFree(argv[i]);
-        return ARGUMENT_TOO_LONG;
-      }
-      argv[argc][len++] = c;
-      incCircularIdx(&i, SCREEN_BUFFER_SIZE);
-    }
-  } while (c != '\n');
-
-  if (argv[0][0] == 0) return SUCCESS;
-  // It's inefficient checking if the command is valid after parsing all the arguments.
-  // But doing it right after parsing the first word was annoying because there're two
-  // cases: `command arg1 ...\n` and `command\n`
-  command = getCommand(argv[0]);
+ShellFunction verifyCommand(Array argv) {
+  Array arg = *(Array*)Array_get(argv, 0);
+  const char* argv0 = Array_getVanillaArray(arg);
+  ShellFunction command = getCommand(argv0);
   if (command == NULL) {
-    printf("%s: %s\n", CommandResultStrings[COMMAND_NOT_FOUND], argv[0]);
-    sysFree(argv[0]);
-    return COMMAND_NOT_FOUND;
+    printf("%s: %s\n", CommandResultStrings[COMMAND_NOT_FOUND], argv0);
+    Array_free(argv);
+    return NULL;
+  }
+  return command;
+}
+
+void freeArrayPtr(Array* ele) {
+  Array_free(*ele);
+}
+
+ExitCode parseCommand() {
+  Array argv = Array_initialize(sizeof(Array), 10, NULL, (FreeEleFn)freeArrayPtr);
+  ShellFunction command;
+  Array arg = NULL;
+  const char* cc = Array_getVanillaArray(currentCommand);
+  int commandLength = Array_getLen(currentCommand);
+  bool newWord = true;
+  for (int i = 0; i < commandLength; ++i) {
+    if (cc[i] == ' ') newWord = true;
+    else {
+      if (newWord) {
+        if (arg != NULL) {
+          char end = 0;
+          Array_push(arg, &end);
+        }
+        // Added this check here too so we can exit immediately if the first argument
+        // parsed isn't a valid command.
+        if (Array_getLen(argv) == 1) {
+          command = verifyCommand(argv);
+          if (!command) return COMMAND_NOT_FOUND;
+        }
+        arg = Array_initialize(sizeof(char), 30, NULL, NULL);
+        Array_push(argv, &arg);
+        newWord = false;
+      }
+      Array_push(arg, cc + i);
+    }
   }
 
-  if (strcmp(argv[argc - 1], "&") == 0) {
-    int pid = sysCreateProcess(argc - 1, argv, command);
-    for (int i = 0; i < argc; ++i) sysFree(argv[i]);
-    printf("Running in background '%s', pid: %d\n", argv[0], pid);
+  int argc = Array_getLen(argv);
+  if (argc == 0) return SUCCESS;
+  else if (argc == 1) {
+    command = verifyCommand(argv);
+    if (!command) return COMMAND_NOT_FOUND;
+  }
+
+  const char** realArgv = sysMalloc(sizeof(char*) * argc);
+  for (int i = 0; i < argc; ++i) {
+    realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
+  }
+  if (strcmp(realArgv[argc - 1], "&") == 0) {
+    int pid = sysCreateProcess(Array_getLen(argv) - 1, realArgv, command);
+    Array_free(argv);
+    sysFree(realArgv);
+    printf("Running in background '%s', pid: %d\n", realArgv[0], pid);
     return SUCCESS;
   } else {
-    int pid = sysCreateProcess(argc, argv, command);
-    for (int i = 0; i < argc; ++i) sysFree(argv[i]);
+    int pid = sysCreateProcess(argc, realArgv, command);
+    Array_free(argv);
+    sysFree(realArgv);
     return sysWaitPid(pid);
   }
 }
