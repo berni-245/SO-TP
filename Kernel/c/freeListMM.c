@@ -1,4 +1,7 @@
-#include <memory.h>
+#include <memoryManager.h>
+
+#ifndef BUDDY
+
 #include <stdint.h>
 
 // extern uint8_t endOfBinary;
@@ -183,3 +186,5 @@ void free(void* ptr) {
       }
   }
 }
+
+#endif

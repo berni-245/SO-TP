@@ -1,5 +1,8 @@
+#include <memoryManager.h>
+
+#ifdef BUDDY
+
 #include <stdint.h>
-// #include <stdio.h>
 
 typedef enum { false = 0, true = 1 } boolean;
 typedef enum { LEFT = 'L', RIGHT = 'R' } blockAlignment;
@@ -20,7 +23,7 @@ typedef struct Block {
 Block* freeList[ORDER_COUNT];
 void* iniAddress;
 
-void initBuddySystem(void* endOfModules) {
+void memoryInit(void* endOfModules) {
     iniAddress = endOfModules;
     for (int i = 0; i < ORDER_COUNT; i++) {
         freeList[i] = NULL;
@@ -52,7 +55,7 @@ static Block* splitBlock(Block* block) {
     return buddy;
 }
 
-void* buddyAlloc(uint32_t size) {
+void* malloc(uint64_t size) {
     // the block will also be allocated in the physical address
     int order = getOrder(size + sizeof(Block));
 
@@ -128,7 +131,7 @@ static void mergeBlock(Block* block, uint32_t order) {
     mergeBlock(block, order + 1);
 }
 
-void buddyFree(void* ptr) {
+void free(void* ptr) {
     if (ptr == NULL) return;
 
     Block* block = (Block*)ptr - 1;
@@ -154,3 +157,5 @@ void buddyFree(void* ptr) {
 //     }
 //     buffer[offset] = 0;
 // }
+
+#endif

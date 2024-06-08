@@ -1,7 +1,7 @@
 #include <clock.h>
 #include <interruptions.h>
 #include <keyboard.h>
-#include <memory.h>
+#include <memoryManager.h>
 #include <pcSpeaker.h>
 #include <registers.h>
 #include <syscalls.h>
