@@ -12,6 +12,7 @@
 #include <syscalls.h>
 #include <sysinfo.h>
 #include <utils.h>
+#include <array.h>
 
 #define MAX_ARG_COUNT 20
 #define MAX_ARG_LEN 50
