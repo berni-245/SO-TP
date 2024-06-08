@@ -13,7 +13,7 @@
 #define MAX_PIPES 20
 
 
-int pipe_size;
+int pipes_amount;
 pipe_pos pipeArray[MAX_PIPES];
 
 int check_pipe(int pipe) {
@@ -24,11 +24,11 @@ void pipes_birth() {
     for (int i = 0; i < MAX_PIPES; i++) {
         pipeArray[i].is_used = 0;
     }
-    pipe_size = 0;
+    pipes_amount = 0;
 }
 
 int find_available_pipe() {
-    if (pipe_size >= MAX_PIPES) {
+    if (pipes_amount >= MAX_PIPES) {
         return -1;
     }
     for (int i = 0; i < MAX_PIPES; ++i) {
@@ -40,6 +40,8 @@ int find_available_pipe() {
 }
 
 int find_pipe(const char* name) {
+    if(pipes_amount == 0)
+        return -1;
     for (int i = 0; i < MAX_PIPES; i++) {
         if (pipeArray[i].is_used && strcmp(pipeArray[i].pipe->name, name) == 0) {
             return i;
@@ -48,8 +50,9 @@ int find_pipe(const char* name) {
     return -1;
 }
 //Si no quiero asignar el proceso todavía le mando 0 y con el join lo puedo agregar
+
 int create_pipe(char* name, int process_write, int process_read) {
-    if (process_write < 0 || process_read < 0) {
+    if (process_write < 0 && process_read < 0) {
         return -1;
     }
     if (find_pipe(name) != -1) {
@@ -59,22 +62,18 @@ int create_pipe(char* name, int process_write, int process_read) {
     if (available_pipe == -1) {
         return -1;
     }
-    pipeArray[available_pipe].is_used = 1;
-    pipe_size++;
     pipeArray[available_pipe].pipe = malloc(sizeof(pipe_t));
     if (pipeArray[available_pipe].pipe == NULL) {
-        pipeArray[available_pipe].is_used = 0;
-        pipe_size--;
         return -1;
     }
+    pipeArray[available_pipe].is_used = 1;
+    pipes_amount++;
     strcpy(pipeArray[available_pipe].pipe->name, name);
     pipeArray[available_pipe].pipe->producingIndex = 0;
     pipeArray[available_pipe].pipe->consumingIndex = 0;
     pipeArray[available_pipe].pipe->mutex = my_sem_init(strcat("pipe_m_", name), 1);
     pipeArray[available_pipe].pipe->empty = my_sem_init(strcat("pipe_e_", name), BUFFER_SIZE);
     pipeArray[available_pipe].pipe->full = my_sem_init(strcat("pipe_f_", name), 0);
-
-
     pipeArray[available_pipe].pipe->read = process_read;
     pipeArray[available_pipe].pipe->write = process_write;
     return available_pipe;
@@ -95,8 +94,9 @@ int join_pipe(const char* pipe_name, int process_write, int process_read) {
     } else if (process_read != 0) {
         return -1;
     }
-    return 1;
+    return pipe_id;
 }
+
 
 int write_pipe(int pipe, const char* info, int size) {
     if (check_pipe(pipe)) {
@@ -116,6 +116,9 @@ int write_pipe(int pipe, const char* info, int size) {
     }
     return -1;
 }
+
+
+
 
 int read_pipe(int pipe, char* info, int size) {
     if (check_pipe(pipe)) {
