@@ -1,7 +1,9 @@
 #ifndef SHELL_COMMANDS_H
 #define SHELL_COMMANDS_H
 
+#include <array.h>
 #include <circularBuffer.h>
+#include <circularHistoryBuffer.h>
 #include <colors.h>
 #include <draw.h>
 #include <snake.h>
@@ -11,7 +13,6 @@
 #include <stdlib.h>
 #include <sysinfo.h>
 #include <utils.h>
-#include <array.h>
 
 #define MAX_ARG_COUNT 20
 #define MAX_ARG_LEN 50
@@ -55,7 +56,6 @@ void addCommand(char* name, char* description, ShellFunction function);
 void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor);
 void autocomplete();
 void deleteWord();
-void historyPush();
 void historyPrev();
 void historyNext();
 void resetHistoryCurrentVals();

@@ -1,21 +1,10 @@
 #include <array.h>
+#include <circularHistoryBuffer.h>
 #include <shellUtils.h>
 
 extern uint8_t bss;
 
-// Circular buffer. Stores just the command indexes in the global screenBuffer.
-int commandHistory[MAX_HISTORY_LEN];
-// Where in the commandHistory the new command's index should go.
-int historyNewIdx = 0;
-// Stores where in the commandHistory we are standing while traversing it with
-// historyPrev and historyNext.
-int historyCurrentIdx = 0;
-// How many commands have been stored. Can't go back more than this.
-int historyCount = 0;
-// How many elements remain to go back through while traversing the commandHistory.
-int historyCurrentCount = 0;
-
-// Index in the screenBuffer of the start of the current command.
+CircularHistoryBuffer commandHistory;
 int currentCommandIdx = 0;
 
 int commandReturnCode = 0;
@@ -23,11 +12,16 @@ static int currentPromptLen = 0;
 
 Array currentCommand;
 
+void freeArrayPtr(Array* ele) {
+  Array_free(*ele);
+}
+
 int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
 
   currentCommand = Array_initialize(sizeof(char), 100, NULL, NULL);
+  commandHistory = CHB_initialize(sizeof(Array), MAX_HISTORY_LEN, (FreeEleFn)freeArrayPtr, NULL);
 
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
@@ -79,8 +73,6 @@ int shell() {
         }
       } else {
         if (key.character == '\n') {
-          if (screenBufWriteIdx != currentCommandIdx) historyPush();
-          resetHistoryCurrentVals();
           printChar(key.character);
           commandReturnCode = parseCommand();
           newPrompt();
@@ -108,35 +100,39 @@ void clearLine() {
   Array_clear(currentCommand);
 }
 
-void resetHistoryCurrentVals() {
-  historyCurrentIdx = historyNewIdx;
-  historyCurrentCount = historyCount;
-}
-void historyPush() {
-  commandHistory[historyNewIdx] = currentCommandIdx;
-  incCircularIdx(&historyNewIdx, MAX_HISTORY_LEN);
-  if (historyCount < MAX_HISTORY_LEN) ++historyCount;
-}
-void historyCopy() {
-  int i = commandHistory[historyCurrentIdx];
+void historyCopy(Array argv) {
   clearLine();
-  while (screenBuffer[i] != '\n') {
-    printChar(screenBuffer[i]);
-    Array_push(currentCommand, screenBuffer + i);
-    incCircularIdx(&i, SCREEN_BUFFER_SIZE);
+  int argc = Array_getLen(argv);
+  for (int i = 0; i < argc; ++i) {
+    const char* arg = Array_getVanillaArray(*(Array*)Array_get(argv, i));
+    for (int i = 0; arg[i] != 0; ++i) {
+      printChar(arg[i]);
+      Array_push(currentCommand, arg + i);
+    }
+    if (i < argc - 1) {
+      char c = ' ';
+      printChar(c);
+      Array_push(currentCommand, &c);
+    }
   }
+  // while (screenBuffer[i] != '\n') {
+  //   printChar(screenBuffer[i]);
+  //   Array_push(currentCommand, screenBuffer + i);
+  //   incCircularIdx(&i, SCREEN_BUFFER_SIZE);
+  // }
 }
 void historyPrev() {
-  if (historyCurrentCount == 0) return;
-  decCircularIdx(&historyCurrentIdx, MAX_HISTORY_LEN);
-  --historyCurrentCount;
-  historyCopy();
+  Array* argv = CHB_readPrev(commandHistory);
+  if (argv == NULL) return;
+  historyCopy(*argv);
 }
 void historyNext() {
-  if (historyCurrentCount >= historyCount - 1) return;
-  incCircularIdx(&historyCurrentIdx, MAX_HISTORY_LEN);
-  ++historyCurrentCount;
-  historyCopy();
+  Array* argv = CHB_readNext(commandHistory);
+  if (argv == NULL) {
+    clearLine();
+    return;
+  }
+  historyCopy(*argv);
 }
 
 int getCurrentChar() {
@@ -148,10 +144,12 @@ void deleteWord() {
   if (!strContains(wordSeps, getCurrentChar())) {
     do {
       printChar('\b');
+      Array_pop(currentCommand);
     } while (!strContains(wordSeps, getCurrentChar()));
   } else {
     do {
       printChar('\b');
+      Array_pop(currentCommand);
     } while (strContains(wordSeps, getCurrentChar()) && (screenBufWriteIdx != currentCommandIdx));
   }
 }
@@ -209,15 +207,17 @@ ShellFunction getCommand(const char* name) {
 
 void autocomplete() {
   int matchCount = 0, matchIdx = 0, len = 0;
-  screenBuffer[screenBufWriteIdx] = 0;
+  // screenBuffer[screenBufWriteIdx] = 0;
+  const char* cc= Array_getVanillaArray(currentCommand);
+  int ccLen = Array_getLen(currentCommand);
   for (int i = 0; i < commandCount; ++i) {
     char* command = commands[i].name;
     bool match = true;
     int k = 0;
     // Needs to be updated to use currentCommand array.
-    for (int j = currentCommandIdx; screenBuffer[j] != 0 && command[k] != 0 && match; ++j, ++k) {
-      if (screenBuffer[j] == ' ') return;
-      else if (screenBuffer[j] != command[k]) match = false;
+    for (int j = 0; j < ccLen && command[k] != 0 && match; ++j, ++k) {
+      if (cc[j] == ' ') return;
+      else if (cc[j] != command[k]) match = false;
     }
     if (match && command[k] != 0) {
       ++matchCount;
@@ -227,7 +227,11 @@ void autocomplete() {
     }
   }
   if (matchCount == 0) return;
-  printString(commands[matchIdx].name + len);
+  // printString(commands[matchIdx].name + len);
+  for (int i = len; commands[matchIdx].name[i] != 0; ++i) {
+    printChar(commands[matchIdx].name[i]);
+    Array_push(currentCommand, commands[matchIdx].name + i);
+  }
 }
 
 ShellFunction verifyCommand(Array argv) {
@@ -240,10 +244,6 @@ ShellFunction verifyCommand(Array argv) {
     return NULL;
   }
   return command;
-}
-
-void freeArrayPtr(Array* ele) {
-  Array_free(*ele);
 }
 
 ExitCode parseCommand() {
@@ -286,14 +286,16 @@ ExitCode parseCommand() {
   for (int i = 0; i < argc; ++i) {
     realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
   }
+  int ret;
   if (strcmp(realArgv[argc - 1], "&") == 0) {
     int pid = sysCreateProcess(Array_getLen(argv) - 1, realArgv, command);
-    Array_free(argv);
     printf("Running in background '%s', pid: %d\n", realArgv[0], pid);
-    return SUCCESS;
+    ret = SUCCESS;
   } else {
     int pid = sysCreateProcess(argc, realArgv, command);
-    Array_free(argv);
-    return sysWaitPid(pid);
+    ret = sysWaitPid(pid);
   }
+  // Array_free(argv);
+  CHB_push(commandHistory, &argv);
+  return ret;
 }
