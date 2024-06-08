@@ -23,5 +23,6 @@ extern void sysGetCurrentTime(Time* currentTime);
 extern void sysGetRegisters(Register* registers);
 extern void* sysMalloc(uint64_t size);
 extern void sysFree(void* ptr);
+extern char* sysGetMemoryState();
 
 #endif

@@ -31,6 +31,7 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)getRegisters,
     (SyscallFunction)malloc,
     (SyscallFunction)free,
+    (SyscallFunction)getMemoryState,
 };
 
 SyscallFunction* getSyscallsArray() {

@@ -8,5 +8,8 @@
 void* malloc(uint64_t size);
 void free(void* ptr);
 void memoryInit(void* heapStart);
+// must be freed upon finishing it's use
+char * getMemoryState();
+
 
 #endif

@@ -18,6 +18,7 @@ global sysGetCurrentTime
 global sysGetRegisters
 global sysMalloc
 global sysFree
+global sysGetMemoryState
 
 %macro syscall 1
   mov r9, %1
@@ -59,4 +60,6 @@ sysMalloc:
   syscall 15
 sysFree:
   syscall 16
+sysGetMemoryState:
+  syscall 17
 

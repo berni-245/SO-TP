@@ -39,7 +39,7 @@ int shell() {
   addCommand("snake", "Play snake.", commandSnake);
   addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
-  addCommand("commandMallocTest", "Test malloc syscall", commandMallocTest);
+  addCommand("mem", "View the state of the memory", commandGetMemoryState);
   commandHelp();
 
   newPrompt();
@@ -459,18 +459,13 @@ ExitCode commandZeroDivisionError() {
 #pragma GCC diagnostic pop
 }
 
-ExitCode commandMallocTest(){
-  char * str = sysMalloc(13);
-  char temp[] = "hello world!";
-
-  int i = 0;
-  for(; i < 12; i++){
-    str[i] = temp[i];
+ExitCode commandGetMemoryState(){
+  char* memState = sysGetMemoryState();
+  if(memState == NULL){
+    printf("All the memory is being used\n");
+    return SUCCESS;
   }
-  str[i] = 0;
-
-  printf("%s\n", str);
-
-  sysFree(str);
+  printf("%s\n", memState);
+  sysFree(memState);
   return SUCCESS;
 }

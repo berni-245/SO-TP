@@ -26,6 +26,7 @@ typedef enum {
   MISSING_ARGUMENTS,
   ILLEGAL_ARGUMENT,
   OUT_OF_BOUNDS,
+  NO_MEMORY_AVAILABLE,
 } ExitCode;
 static const char* const CommandResultStrings[] = {
     "Success",           "Too many arguments", "Argument too long",  "Command not found",
@@ -94,6 +95,6 @@ ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]);
 ExitCode commandTest();
 ExitCode commandZeroDivisionError();
 ExitCode commandInvalidOpcodeError();
-ExitCode commandMallocTest();
+ExitCode commandGetMemoryState();
 
 #endif
