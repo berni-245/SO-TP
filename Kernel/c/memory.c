@@ -42,7 +42,7 @@ void memoryInit(void* endOfModules) {
 void* malloc(uint64_t size) {
   if (heapCurrent + size - heapStart > heapSize) return NULL;
   void* heapRet = heapCurrent;
-  heapCurrent += size;
+  heapCurrent += (size + addressByteSize - 1) & ~(addressByteSize - 1);
   return heapRet;
 }
 
