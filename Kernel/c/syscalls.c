@@ -1,15 +1,16 @@
 #include <clock.h>
 #include <interruptions.h>
 #include <keyboard.h>
+#include <lib.h>
 #include <memory.h>
 #include <pcSpeaker.h>
 #include <registers.h>
 #include <scheduler.h>
+#include <semaphores.h>
 #include <syscalls.h>
 #include <sysinfo.h>
 #include <timer.h>
 #include <videoDriver.h>
-#include <semaphores.h>
 
 /*
  * There should be stdin, stdout and stderr global variables and read/write syscalls that get/set them.
@@ -41,6 +42,7 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)waitSemaphore,
     (SyscallFunction)postSemaphore,
     (SyscallFunction)openSemaphore,
+    (SyscallFunction)memcpy,
 };
 
 SyscallFunction* getSyscallsArray() {

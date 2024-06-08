@@ -26,6 +26,7 @@ global sysDestroySemaphore
 global sysWaitSem
 global sysPostSem
 global sysOpenSem
+global sysMemcpy
 
 %macro syscall 1
   mov r9, %1
@@ -83,3 +84,5 @@ sysPostSem:
   syscall 23
 sysOpenSem:
   syscall 24
+sysMemcpy:
+  syscall 25

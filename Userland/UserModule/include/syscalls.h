@@ -33,5 +33,6 @@ extern int sysDestroySemaphore(char* name);
 extern int sysWaitSem(int sem_id);
 extern int sysPostSem(int sem_id);
 extern int sysOpenSem(char* name, int value);
+extern void* sysMemcpy(void* destination, const void* source, uint64_t length);
 
 #endif
