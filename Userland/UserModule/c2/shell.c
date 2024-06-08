@@ -282,20 +282,18 @@ ExitCode parseCommand() {
     if (!command) return COMMAND_NOT_FOUND;
   }
 
-  const char** realArgv = sysMalloc(sizeof(char*) * argc);
+  const char* realArgv[argc];
   for (int i = 0; i < argc; ++i) {
     realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
   }
   if (strcmp(realArgv[argc - 1], "&") == 0) {
     int pid = sysCreateProcess(Array_getLen(argv) - 1, realArgv, command);
     Array_free(argv);
-    sysFree(realArgv);
     printf("Running in background '%s', pid: %d\n", realArgv[0], pid);
     return SUCCESS;
   } else {
     int pid = sysCreateProcess(argc, realArgv, command);
     Array_free(argv);
-    sysFree(realArgv);
     return sysWaitPid(pid);
   }
 }
