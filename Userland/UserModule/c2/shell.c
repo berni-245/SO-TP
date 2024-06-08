@@ -381,7 +381,7 @@ void commandSetColors(int argc, char* argv[argc]) {
   if (argc < 4) {
     puts("Usage:");
     printf("\t\t%s <fontColor> <backgroundColor> <cursorColor>\n", argv[0]);
-    printf("Where all arguments should be hex colors.\n");
+    printf("Where all arguments should be numeric representations of rgb colors (can use '0x' prefix for hexa).\n");
     sysExit(MISSING_ARGUMENTS);
   }
   int fontColor = strToInt(argv[1]);
