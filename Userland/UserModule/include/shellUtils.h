@@ -66,6 +66,10 @@ typedef struct ShellCommand {
   // CommandOption options[];
 } ShellCommand;
 
+extern int commandReturnCode;
+extern int commandCount;
+extern ShellCommand commands[MAX_COMMAND_COUNT];
+
 void newPrompt();
 void incFont();
 void decFont();
