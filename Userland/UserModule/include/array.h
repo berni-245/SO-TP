@@ -10,7 +10,7 @@ typedef void (*PrintEleFn)(void* ele);
 typedef void (*MapFn)(void* mappedEle, void* ele, unsigned long idx);
 
 void* Array_initialize(
-    unsigned long elementSize, unsigned long initialCapacity, PrintEleFn printEleFn, FreeEleFn freeFn
+    unsigned long elementSize, unsigned long initialCapacity, FreeEleFn freeFn, PrintEleFn printEleFn
 );
 void Array_free(Array a);
 void Array_push(Array a, const void* ele);

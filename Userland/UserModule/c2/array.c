@@ -19,7 +19,7 @@ void growTo(Array a, unsigned long newCapacity);
 void growBy(Array a, unsigned long extraCapacity);
 
 void* Array_initialize(
-    unsigned long elementSize, unsigned long initialCapacity, PrintEleFn printEleFn, FreeEleFn freeEleFn
+    unsigned long elementSize, unsigned long initialCapacity, FreeEleFn freeEleFn, PrintEleFn printEleFn
 ) {
   if (elementSize == 0) exitWithError("@Array_initialize elementSize can't be 0");
   ArrayCDT* a = sysMalloc(sizeof(ArrayCDT));
@@ -141,7 +141,7 @@ void Array_printInfo(Array a) {
 Array Array_map(Array a, MapFn mapFn, unsigned long newElemSize, PrintEleFn newPrintEleFn, FreeEleFn freeFn) {
   if (a == NULL) exitWithError("@Array_map Array instance can't be NULL");
   if (mapFn == NULL) exitWithError("@Array_map map function can't be NULL");
-  Array mapped = Array_initialize(newElemSize, a->length, newPrintEleFn, freeFn);
+  Array mapped = Array_initialize(newElemSize, a->length, freeFn, newPrintEleFn);
   for (int i = 0; i < a->length; ++i) {
     void* mappedEle = sysMalloc(newElemSize);
     if (mappedEle == NULL) exitWithError("@Array_map malloc error");
@@ -156,7 +156,7 @@ Array Array_map(Array a, MapFn mapFn, unsigned long newElemSize, PrintEleFn newP
 Array Array_fromVanillaArray(
     const void* array, unsigned long length, unsigned long elementSize, PrintEleFn printEleFn, FreeEleFn freeFn
 ) {
-  Array a = Array_initialize(elementSize, length, printEleFn, freeFn);
+  Array a = Array_initialize(elementSize, length, freeFn, printEleFn);
   a->length = length;
   copynEleAt(a, 0, array, length);
   return a;

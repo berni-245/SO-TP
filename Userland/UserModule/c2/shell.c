@@ -247,7 +247,7 @@ void freeArrayPtr(Array* ele) {
 }
 
 ExitCode parseCommand() {
-  Array argv = Array_initialize(sizeof(Array), 10, NULL, (FreeEleFn)freeArrayPtr);
+  Array argv = Array_initialize(sizeof(Array), 10, (FreeEleFn)freeArrayPtr, NULL);
   ShellFunction command;
   Array arg = NULL;
   const char* cc = Array_getVanillaArray(currentCommand);
