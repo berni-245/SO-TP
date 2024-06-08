@@ -1,6 +1,7 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #define MAX_NAME_LENGTH 60
@@ -42,5 +43,7 @@ PCBForUserland* getPCBList(int* len);
 const PCB* getCurrentPCB();
 void blockCurrentProcess();
 void readyProcess(const PCB* pcb);
+uint32_t getpid();
+bool kill(uint32_t pid);
 
 #endif

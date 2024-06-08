@@ -30,6 +30,9 @@ extern void idleProc();
 extern void* userModule;
 extern void asdfInterruption();
 
+PCB* getPCBByPid(uint32_t pid);
+void exitProcessByPCB(PCB* pcb);
+
 PCBList pcbList;
 PCBNode* idleProcPCBNode;
 
@@ -223,13 +226,17 @@ uint32_t createUserProcess(int argc, const char* argv[], void* processRip) {
   return pid - 1;
 }
 
-void exitCurrentProcess(int exitCode) {
-  pcbList.current->pcb->state = EXITED;
-  for (int i = 0; i < pcbList.current->pcb->wfmLen; ++i) {
-    PCB* pcb = pcbList.current->pcb->waitingForMe[i];
-    pcb->state = READY;
-    pcb->waitedProcessExitCode = exitCode;
+void exitProcessByPCB(PCB* pcb) {
+  pcb->state = EXITED;
+  for (int i = 0; i < pcb->wfmLen; ++i) {
+    PCB* pcb2 = pcb->waitingForMe[i];
+    pcb2->state = READY;
+    pcb2->waitedProcessExitCode = 1;
   }
+}
+
+void exitCurrentProcess(int exitCode) {
+  exitProcessByPCB(pcbList.current->pcb);
 }
 
 PCB* getPCBByPid(uint32_t pid) {
@@ -285,4 +292,15 @@ void blockCurrentProcess() {
 
 void readyProcess(const PCB* pcb) {
   ((PCB*)pcb)->state = READY;
+}
+
+uint32_t getpid() {
+  return pcbList.current->pcb->pid;
+}
+
+bool kill(uint32_t pid) {
+  PCB* pcb = getPCBByPid(pid);
+  if (pcb == NULL || pcb->state == EXITED) return false;
+  exitProcessByPCB(pcb);
+  return true;
 }

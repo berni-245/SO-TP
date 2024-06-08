@@ -27,6 +27,8 @@ global sysWaitSem
 global sysPostSem
 global sysOpenSem
 global sysMemcpy
+global sysGetPid
+global sysKill
 
 %macro syscall 1
   mov r9, %1
@@ -86,3 +88,7 @@ sysOpenSem:
   syscall 24
 sysMemcpy:
   syscall 25
+sysGetPid:
+  syscall 26
+sysKill:
+  syscall 27
