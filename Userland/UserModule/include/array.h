@@ -19,6 +19,7 @@ void Array_pop(Array a);
 void Array_clear(Array a);
 unsigned long Array_getLen(Array a);
 void* Array_get(Array a, long idx);
+void Array_setn(Array a, long idx, const void* eleArray, unsigned long length);
 void Array_set(Array a, long idx, void* ele);
 void Array_print(Array a);
 void Array_printInfo(Array a);

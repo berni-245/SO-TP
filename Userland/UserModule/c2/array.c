@@ -76,16 +76,24 @@ void Array_pop(Array a) {
   --a->length;
 }
 
-void Array_set(Array a, long idx, void* ele) {
-  if (a == NULL) exitWithError("@Array_set Array instance can't be NULL");
-  if (idx >= a->length) exitWithError("@Array_set idx outside of bounds");
+void Array_setn(Array a, long idx, const void* eleArray, unsigned long length) {
+  if (a == NULL) exitWithError("@Array_setn Array instance can't be NULL");
+  if (idx >= a->length) exitWithError("@Array_setn idx outside of bounds");
   if (idx < 0) {
-    if (-idx > a->length) exitWithError("@Array_set idx outside of bounds");
+    if (-idx > a->length) exitWithError("@Array_setn idx outside of bounds");
     idx += a->length;
   }
-  if (a->freeEleFn != NULL) a->freeEleFn(Array_get(a, idx));
+  if (a->freeEleFn != NULL) {
+    for (int i = idx; i < idx + length; ++i) {
+      sysFree(Array_get(a, i));
+    }
+  }
+  if (length > a->length - idx) growBy(a, length - (a->length - idx));
+  copynEleAt(a, idx, eleArray, length);
+}
 
-  copyEleAt(a, idx, ele);
+void Array_set(Array a, long idx, void* ele) {
+  Array_setn(a, idx, ele, 1);
 }
 
 void* Array_get(Array a, long idx) {
