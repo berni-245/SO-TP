@@ -20,7 +20,6 @@ void Array_clear(Array a);
 unsigned long Array_getLen(Array a);
 void* Array_get(Array a, long idx);
 void Array_set(Array a, long idx, void* ele);
-void Array_setn(Array a, unsigned long idx, void* eleArray, unsigned long length);
 void Array_print(Array a);
 void Array_printInfo(Array a);
 Array Array_map(Array a, MapFn mapFn, unsigned long newElemSize, PrintEleFn newPrintEleFn, FreeEleFn freeFn);

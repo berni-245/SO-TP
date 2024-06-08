@@ -76,14 +76,6 @@ void Array_pop(Array a) {
   --a->length;
 }
 
-void Array_setn(Array a, unsigned long idx, void* eleArray, unsigned long length) {
-  if (a == NULL) exitWithError("@Array_setn Array instance can't be NULL");
-  if (idx >= a->length) exitWithError("@Array_setn idx outside of bounds");
-  unsigned long extraCapacity = length - (a->length - idx);
-  if (extraCapacity > 0) growBy(a, extraCapacity);
-  copynEleAt(a, idx, eleArray, length);
-}
-
 void Array_set(Array a, long idx, void* ele) {
   if (a == NULL) exitWithError("@Array_set Array instance can't be NULL");
   if (idx >= a->length) exitWithError("@Array_set idx outside of bounds");
