@@ -87,5 +87,6 @@ void commandChangeProcess(); // Arreglar. Esto no es un command...
 void commandGetPid();
 void commandKill(int argc, char* argv[argc]);
 void commandGetMemoryState();
+void commandLoop(int argc, char* argv[argc]);
 
 #endif

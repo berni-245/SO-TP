@@ -45,5 +45,6 @@ void blockCurrentProcess();
 void readyProcess(const PCB* pcb);
 uint32_t getpid();
 bool kill(uint32_t pid);
+void killCurrentProcess();
 
 #endif

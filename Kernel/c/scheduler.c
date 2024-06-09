@@ -31,7 +31,7 @@ extern void* userModule;
 extern void asdfInterruption();
 
 PCB* getPCBByPid(uint32_t pid);
-void exitProcessByPCB(PCB* pcb);
+void exitProcessByPCB(PCB* pcb, int exitCode);
 
 PCBList pcbList;
 PCBNode* idleProcPCBNode;
@@ -226,17 +226,17 @@ uint32_t createUserProcess(int argc, const char* argv[], void* processRip) {
   return pid - 1;
 }
 
-void exitProcessByPCB(PCB* pcb) {
+void exitProcessByPCB(PCB* pcb, int exitCode) {
   pcb->state = EXITED;
   for (int i = 0; i < pcb->wfmLen; ++i) {
     PCB* pcb2 = pcb->waitingForMe[i];
     pcb2->state = READY;
-    pcb2->waitedProcessExitCode = 1;
+    pcb2->waitedProcessExitCode = exitCode;
   }
 }
 
 void exitCurrentProcess(int exitCode) {
-  exitProcessByPCB(pcbList.current->pcb);
+  exitProcessByPCB(pcbList.current->pcb, exitCode);
 }
 
 PCB* getPCBByPid(uint32_t pid) {
@@ -301,6 +301,11 @@ uint32_t getpid() {
 bool kill(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
   if (pcb == NULL || pcb->state == EXITED) return false;
-  exitProcessByPCB(pcb);
+  exitProcessByPCB(pcb, 1);
   return true;
+}
+
+void killCurrentProcess(){
+  exitCurrentProcess(1);
+  asdfInterruption();
 }

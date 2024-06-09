@@ -2,6 +2,7 @@
 #include <layouts.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <scheduler.h>
 
 void copyModifierKeys(ModifierKeys src, ModifierKeys* dest);
 
@@ -66,6 +67,10 @@ void readKeyToBuffer() {
       key.key = layoutShiftMaps[kbLayout][code];
     else key.key = layoutMaps[kbLayout][code];
     if (key.key == 0) return;
+    if(md.ctrlPressed == true && (key.key == 'C' || key.key == 'c' )){
+      killCurrentProcess();
+      return;
+    }
     copyModifierKeys(md, &key.md);
     int prevWriteIdx = writeIdx;
     buffer[writeIdx++] = key;
