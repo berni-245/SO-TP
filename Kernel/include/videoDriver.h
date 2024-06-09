@@ -10,6 +10,8 @@ typedef struct {
   uint8_t red;
 } RGBColor;
 
+void initializeFrameBuffer();
+
 void printPixel(int x, int y, RGBColor color);
 void fillRectangle(int x, int y, int width, int height, RGBColor color);
 
@@ -29,7 +31,7 @@ void setFontGridValues();
 int setFontSize(int fs);
 void printCharXY(int x, int y, char c, int fontSize);
 void printChar(int col, int row, char c);
-int printNextChar(char c);
+void printNextChar(char c);
 void printNextString(const char* str);
 void printNextBase(uint64_t value, uint32_t base);
 void printNextDec(uint64_t value);

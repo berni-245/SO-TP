@@ -47,13 +47,11 @@ void jumpLine() {
   }
   if (screenBuffer[i] == '\n') ++length;
   incReadIdxBy(length);
-  repaint();
 }
 
 void printScreenBuffer() {
   for (int i = screenBufReadIdx; i != screenBufWriteIdx; i = (i + 1) % SCREEN_BUFFER_SIZE) {
-    /* int endOfScreen = */ sysWriteCharNext(screenBuffer[i]);
-    // if (endOfScreen) jumpLine();
+    sysWriteCharNext(screenBuffer[i]);
   }
 }
 
@@ -63,14 +61,13 @@ void repaint() {
 }
 
 void printChar(char c) {
-  int endOfScreen = sysWriteCharNext(c);
+  sysWriteCharNext(c);
   if (c == '\b') {
     decWriteIdx();
   } else {
     screenBuffer[screenBufWriteIdx] = c;
     incWriteIdx();
   }
-  if (endOfScreen) jumpLine();
 }
 
 void printString(const char* s) {

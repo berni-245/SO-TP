@@ -7,6 +7,7 @@
 #include <videoDriver.h>
 #include <scheduler.h>
 #include <semaphores.h>
+#include <videoDriver.h>
 
 // extern uint8_t kernelText;
 // extern uint8_t kernelRodata;
@@ -52,6 +53,7 @@ void* initializeKernelBinary() {
 
 int main() {
   loadIdt();
+  initializeFrameBuffer();
   setFontGridValues();
   initializePCBList();
   mySemBirth();
