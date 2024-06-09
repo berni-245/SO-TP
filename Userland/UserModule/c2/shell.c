@@ -46,7 +46,7 @@ int shell() {
   addCommand("kill", "Kill process by pid.", commandKill);
   addCommand("getpid", "Print pid for current process.", commandGetPid);
   addCommand("loop", "Sends a message with the PID every given seconds", commandLoop);
-
+  addCommand("phylo", "Starts the philosophers problem, exit with e, a to add philosopher and remove with r", commandPhylo);
   const char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));
 
