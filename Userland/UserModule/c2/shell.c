@@ -10,6 +10,7 @@ int currentCommandIdx = 0;
 int commandReturnCode = 0;
 static int currentPromptLen = 0;
 
+int commandCount = 0;
 Array currentCommand;
 
 void freeArrayPtr(Array* ele) {
@@ -20,6 +21,7 @@ int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
 
+  commandCount = 0;
   currentCommand = Array_initialize(sizeof(char), 100, NULL, NULL);
   commandHistory = CHB_initialize(sizeof(Array), MAX_HISTORY_LEN, (FreeEleFn)freeArrayPtr, NULL);
 
@@ -196,7 +198,6 @@ void decFont() {
 }
 
 ShellCommand commands[MAX_COMMAND_COUNT];
-int commandCount = 0;
 void addCommand(char* name, char* description, ShellFunction function) {
   if (commandCount >= MAX_COMMAND_COUNT) return;
   ShellCommand newCommand = {.name = name, .description = description, .function = function};

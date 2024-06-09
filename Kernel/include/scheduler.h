@@ -40,6 +40,7 @@ void* schedule(void* rsp);
 uint32_t createUserProcess(int argc, const char* argv[], void* processRip);
 extern void exit(int exitCode);
 void startFirstProcess(void* processAddress);
+void exitCurrentProcess(int exitCode);
 int waitPid(uint32_t pid);
 PCBForUserland* getPCBList(int* len);
 const PCB* getCurrentPCB();

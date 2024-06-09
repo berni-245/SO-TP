@@ -238,6 +238,7 @@ void exitProcessByPCB(PCB* pcb, int exitCode) {
     pcb2->state = READY;
     pcb2->waitedProcessExitCode = exitCode;
   }
+  asdfInterruption();
 }
 
 void exitCurrentProcess(int exitCode) {
