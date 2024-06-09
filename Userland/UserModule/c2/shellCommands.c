@@ -234,7 +234,6 @@ void commandKill(int argc, char* argv[argc]) {
 }
 
 void commandGetMemoryState() {
-  sysSleep(3000);
   char* memState = sysGetMemoryState();
   if (memState == NULL) {
     printf("All the memory is being used\n");
@@ -252,9 +251,11 @@ void commandLoop(int argc, char* argv[argc]) {
     sysExit(MISSING_ARGUMENTS);
   } 
   int secs = strToInt(argv[1]);
-  while(1) {
-    sysSleep(secs*1000);
-    printf("Hola! Soy el proceso: %d\n", sysGetPid());
+  if(secs > 0){
+    while(1) {
+      sysSleep(secs*1000);
+      printf("Hola! Soy el proceso: %d\n", sysGetPid());
+    }
   }
   sysExit(PROCESS_FAILURE);
 }
