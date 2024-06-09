@@ -36,7 +36,7 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)free,
     (SyscallFunction)getMemoryState,
     (SyscallFunction)createUserProcess,
-    (SyscallFunction)exit,
+    (SyscallFunction)exitCurrentProcess,
     (SyscallFunction)waitPid,
     (SyscallFunction)getPCBList,
     (SyscallFunction)createSemaphore,

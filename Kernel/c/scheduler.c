@@ -233,6 +233,7 @@ void exitProcessByPCB(PCB* pcb, int exitCode) {
     pcb2->state = READY;
     pcb2->waitedProcessExitCode = exitCode;
   }
+  asdfInterruption();
 }
 
 void exitCurrentProcess(int exitCode) {
@@ -305,7 +306,7 @@ bool kill(uint32_t pid) {
   return true;
 }
 
-void killCurrentProcess(){
+void killCurrentProcess() {
   exitCurrentProcess(1);
   asdfInterruption();
 }
