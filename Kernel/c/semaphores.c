@@ -8,7 +8,7 @@ semaphores_pos sem_array[MAX_SEMAPHORES];
 uint32_t size;
 
 
-int32_t semFinder(char* sem_name) {
+sem_t semFinder(char* sem_name) {
   if (!size) return ERROR;
   for (int i = 0; i < MAX_SEMAPHORES; i++) {
     if (sem_array[i].is_used) {
@@ -18,7 +18,7 @@ int32_t semFinder(char* sem_name) {
   return ERROR;
 }
 
-int32_t positionToInitSem() {
+sem_t positionToInitSem() {
   for (int i = 0; i < MAX_SEMAPHORES; i++) {
     if (!sem_array[i].is_used) {
       return i;
@@ -27,7 +27,7 @@ int32_t positionToInitSem() {
   return ERROR;
 }
 
-int32_t fifoQueue(uint32_t pos, const PCB* process_by_pcb) {
+int32_t fifoQueue(sem_t pos, const PCB* process_by_pcb) {
   process_by_PCB* process = malloc(sizeof(process_by_PCB));
   if (process == NULL) {
     return ERROR;
@@ -44,7 +44,7 @@ int32_t fifoQueue(uint32_t pos, const PCB* process_by_pcb) {
   return 0;
 }
 
-const PCB* fifoUnqueue(uint32_t pos) {
+const PCB* fifoUnqueue(sem_t pos) {
   if (sem_array[pos].sem->process_first == NULL) return NULL;
   const PCB* process = sem_array[pos].sem->process_first->process_pcb;
   process_by_PCB* temp = sem_array[pos].sem->process_first;
@@ -64,7 +64,7 @@ void mySemBirth() {
   size = 0;
 }
 //If semaphore with that name exists it returns the semaphore else it creates it
-int32_t openSemaphore(char* name, uint32_t value) {
+sem_t openSemaphore(char* name, uint32_t value) {
   int32_t sem_id = semFinder(name);
   if (sem_id == ERROR) {
     sem_id = createSemaphore(name, value);
@@ -72,7 +72,7 @@ int32_t openSemaphore(char* name, uint32_t value) {
   }
   return sem_id;
 }
-int32_t createSemaphore(char* sem_name, uint32_t init_value) {
+sem_t createSemaphore(char* sem_name, uint32_t init_value) {
   if (semFinder(sem_name) != ERROR) return ERROR;
   int pos = positionToInitSem();
   if (pos == ERROR) {
@@ -114,7 +114,7 @@ int32_t destroySemaphore(char *sem_name) {
   return 0;
 }
 //If process can't decrement the semaphore the process enqueues itself
-int32_t waitSemaphore(uint32_t sem_id) {
+int32_t waitSemaphore(sem_t sem_id) {
   if (sem_id >= MAX_SEMAPHORES || !sem_array[sem_id].is_used) return ERROR;
   _enter_region(&sem_array[sem_id].sem->lock);
   if (sem_array[sem_id].sem->value > 0) {
@@ -130,7 +130,7 @@ int32_t waitSemaphore(uint32_t sem_id) {
   return 0;
 }
 //If process can increment the semaphore the process checks if there is a process to unqueue
-int32_t postSemaphore(uint32_t sem_id) {
+int32_t postSemaphore(sem_t sem_id) {
   if (sem_id >= MAX_SEMAPHORES || !sem_array[sem_id].is_used) return ERROR;
   _enter_region(&sem_array[sem_id].sem->lock);
   if (sem_array[sem_id].sem->process_first != NULL) {
