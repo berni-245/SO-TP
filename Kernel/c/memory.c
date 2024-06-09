@@ -1,10 +1,7 @@
 #include <memoryManager.h>
 
-// 64MB max heap size
-static const int heapSize = (1 << 20) * 64;
 // 4KB stack size
 static const int stackSize = (1 << 10) * 4;
-
 static const uint64_t addressByteSize = sizeof(void*);
 
 /*
