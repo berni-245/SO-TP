@@ -36,10 +36,12 @@ int shell() {
       "getRegisters", "Get the values of the saved registers. \n    Available flags: --help", commandGetRegisters
   );
   addCommand("snake", "Play snake.", commandSnake);
-  addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
-  addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
-  addCommand("ps", "Print process list", commandPs);
-  addCommand("testSem", "Test semaphores by using multiple processes to modifying shared variable", commandTestSem);
+  addCommand("zeroDivisionError", "Test the zero division error.", commandZeroDivisionError);
+  addCommand("invalidOpcodeError", "Test the invalid opcode error.", commandInvalidOpcodeError);
+  addCommand("ps", "Print process list.", commandPs);
+  addCommand("testSem", "Test semaphores by using multiple processes to modifying shared variable.", commandTestSem);
+  addCommand("kill", "Kill process by pid.", commandKill);
+  addCommand("getpid", "Print pid for current process.", commandGetPid);
 
   const char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));

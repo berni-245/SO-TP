@@ -80,6 +80,8 @@ void commandPs();
 void commandCreateSemaphore(int argc, char* argv[argc]);
 void commandDestroySemaphore(int argc, char* argv[argc]);
 void commandTestSem(int argc, char* argv[argc]);
-void commandChangeProcess();
+void commandChangeProcess(); // Arreglar. Esto no es un command...
+void commandGetPid();
+void commandKill(int argc, char* argv[argc]);
 
 #endif

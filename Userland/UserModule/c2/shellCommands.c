@@ -1,4 +1,5 @@
 #include <shellUtils.h>
+#include <syscalls.h>
 
 void commandEcho(int argc, char* argv[argc]) {
   // Starts at 1 because first arg is the command name
@@ -212,4 +213,22 @@ void commandPs() {
   }
   sysFree(pcbList);
   sysExit(SUCCESS);
+}
+
+void commandGetPid() {
+  printf("Current process pid: %d\n", sysGetPid());
+  sysExit(SUCCESS);
+}
+
+void commandKill(int argc, char* argv[argc]) {
+  if (argc < 2) {
+    printf("Usage: kill <pid>\n");
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+  int pid = strToInt(argv[1]);
+  if (sysKill(pid)) sysExit(SUCCESS);
+  else {
+    printf("Process with pid %d not found or has already exited\n", pid);
+    sysExit(OUT_OF_BOUNDS);
+  }
 }
