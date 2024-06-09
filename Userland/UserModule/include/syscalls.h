@@ -15,7 +15,7 @@ extern void sysSetColor(FontColors c, uint32_t hexColor);
 extern int sysRead(KeyStruct* buf, int len);
 extern int sysWrite(int col, int row, char c);
 extern int sysWriteCharXY(int x, int y, char c, int fontSize);
-extern int sysWriteCharNext(char c);
+extern void sysWriteCharNext(char c);
 extern int sysMoveCursor(int col, int row);
 extern void sysPrintPixel(int x, int y, RGBColor color);
 extern void sysFillRectangle(int x, int y, int width, int height, RGBColor color);

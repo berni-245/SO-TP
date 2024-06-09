@@ -1,3 +1,4 @@
+#include <lib.h>
 #include <videoDriver.h>
 
 struct vbe_mode_info_structure {
@@ -81,8 +82,12 @@ int getCharSeparation() {
   return charSeparation;
 }
 
+static RGBColor* framebuffer;
+void initializeFrameBuffer() {
+  framebuffer = (RGBColor*)VBE_mode_info->framebuffer;
+}
+
 void printPixel(int x, int y, RGBColor color) {
-  RGBColor* framebuffer = (RGBColor*)VBE_mode_info->framebuffer;
   uint64_t offset = x + (y * VBE_mode_info->pitch / (VBE_mode_info->bpp / 8));
   framebuffer[offset] = color;
 }
@@ -139,8 +144,7 @@ void eraseChar() {
   }
 }
 
-// 0 if was able to print char, 1 othwerwise (if cursor reached end of screen).
-int printNextChar(char c) {
+void printNextChar(char c) {
   if (c == '\b') {
     eraseChar();
   } else if (c == '\n') {
@@ -149,15 +153,20 @@ int printNextChar(char c) {
     cursorCol = 0;
   } else {
     if (!cursorHasNext()) {
-      return 1;
+      cursorCol = 0;
+      cursorRow = fontRows - 1;
+      int pixelsInCharRow = (ASCII_BF_HEIGHT * fontSize + charSeparation) * VBE_mode_info->width;
+      int pixelsInScreen = VBE_mode_info->width * VBE_mode_info->height;
+      for (int i = 0; i < pixelsInScreen - pixelsInCharRow; ++i) {
+        framebuffer[i] = framebuffer[i + pixelsInCharRow];
+      }
+      for (int i = pixelsInScreen - pixelsInCharRow; i < pixelsInScreen; ++i) {
+        framebuffer[i] = bgColor;
+      }
     }
     printChar(cursorCol, cursorRow, c);
-    int endOfScreen = cursorNext();
-    if (endOfScreen) {
-      return endOfScreen;
-    }
+    cursorNext();
   }
-  return 0;
 }
 
 void printNextString(const char* str) {
