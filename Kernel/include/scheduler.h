@@ -19,6 +19,7 @@ typedef struct PCB {
   // int exitCode;
   int waitedProcessExitCode;
   struct PCB* waitingForMe[10]; // This should be of dynamic length
+  struct PCB* parentProc;
   int wfmLen;
   void* stack;
 } PCB;
@@ -30,6 +31,7 @@ typedef struct {
   void* rsp;
   void* rbp;
   char name[MAX_NAME_LENGTH + 1];
+  // char location[MAX_NAME_LENGTH + 1];
 } PCBForUserland;
 
 // void freePCBNode(PCBNode* node);
@@ -45,6 +47,6 @@ void blockCurrentProcess();
 void readyProcess(const PCB* pcb);
 uint32_t getpid();
 bool kill(uint32_t pid);
-void killCurrentProcess();
+void killCurrentProcessInForeground();
 
 #endif

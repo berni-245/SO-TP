@@ -33,6 +33,7 @@ extern void asdfInterruption();
 PCB* getPCBByPid(uint32_t pid);
 void exitProcessByPCB(PCB* pcb, int exitCode);
 
+PCB* processInForeground;
 PCBList pcbList;
 PCBNode* idleProcPCBNode;
 
@@ -46,6 +47,7 @@ PCB* createPCB(uint32_t pid, uint8_t priority, State state, void* stack, void* r
   pcb->rbp = rbp;
   pcb->name = name;
   // pcb->exitCode = 0;
+  pcb->parentProc = pcbList.current->pcb;
   pcb->wfmLen = 0;
 
   return pcb;
@@ -113,7 +115,6 @@ void initializePCBList() {
   stackAlloc(&stackStart, &stackEnd);
   void* rsp = initializeProcessStack(0, NULL, idleProc, stackStart);
   idleProcPCBNode = createPCBNode(-1, 1, READY, stackEnd, rsp, rsp, NULL);
-
   pcbList.head = NULL;
   pcbList.tail = NULL;
   pcbList.current = NULL;
@@ -218,6 +219,8 @@ void* createUserModuleProcess() {
   const char* argv[1] = {"init"};
   void* rsp = createProcess(1, argv, userModule);
   nextPCB();
+  processInForeground = pcbList.current->pcb;
+  pcbList.current->pcb->parentProc = NULL;
   return rsp;
 }
 
@@ -228,6 +231,8 @@ uint32_t createUserProcess(int argc, const char* argv[], void* processRip) {
 
 void exitProcessByPCB(PCB* pcb, int exitCode) {
   pcb->state = EXITED;
+  if(pcb->pid == processInForeground->pid)
+    processInForeground = pcb->parentProc;
   for (int i = 0; i < pcb->wfmLen; ++i) {
     PCB* pcb2 = pcb->waitingForMe[i];
     pcb2->state = READY;
@@ -237,6 +242,10 @@ void exitProcessByPCB(PCB* pcb, int exitCode) {
 
 void exitCurrentProcess(int exitCode) {
   exitProcessByPCB(pcbList.current->pcb, exitCode);
+}
+
+void exitCurrentProcessInForeground(int exitCode) {
+  exitProcessByPCB(processInForeground, exitCode);
 }
 
 PCB* getPCBByPid(uint32_t pid) {
@@ -257,6 +266,8 @@ int waitPid(uint32_t pid) {
   if (pcb == NULL || pcb->state == EXITED) return pcbList.current->pcb->waitedProcessExitCode;
   pcb->waitingForMe[pcb->wfmLen++] = pcbList.current->pcb;
   pcbList.current->pcb->state = BLOCKED;
+  if(pcbList.current->pcb->pid == processInForeground->pid)
+    processInForeground = pcb;
   asdfInterruption(); // Replace for int 0x20 when schedule gets called there.
   return pcbList.current->pcb->waitedProcessExitCode;
 }
@@ -305,7 +316,7 @@ bool kill(uint32_t pid) {
   return true;
 }
 
-void killCurrentProcess(){
-  exitCurrentProcess(1);
+void killCurrentProcessInForeground(){
+  exitCurrentProcessInForeground(1);
   asdfInterruption();
 }
