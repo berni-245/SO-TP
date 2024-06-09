@@ -47,6 +47,7 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)memcpy,
     (SyscallFunction)getpid,
     (SyscallFunction)kill,
+    (SyscallFunction)sleep,
 };
 
 SyscallFunction* getSyscallsArray() {

@@ -31,6 +31,7 @@ global sysOpenSem
 global sysMemcpy
 global sysGetPid
 global sysKill
+global sysSleep
 
 %macro syscall 1
   mov r9, %1
@@ -99,3 +100,5 @@ sysGetPid:
   syscall 28
 sysKill:
   syscall 29
+sysSleep:
+  syscall 30
