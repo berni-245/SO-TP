@@ -3,15 +3,15 @@ GLOBAL _leave_region
 
 
 _enter_region:
-  mov rax,1
-  xchg rax,[rdi]
-  cmp rax,0
-  je _exit
-  int 22h
+  mov eax,1
+  xchg eax,[rdi]
+  cmp eax, 0
+  je .exit
+  int 0x22
   jmp _enter_region
-_exit:
+.exit:
   ret
     
 _leave_region:
-   mov qword [rdi], 0
+   mov dword [rdi], 0
    ret

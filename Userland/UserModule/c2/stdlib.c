@@ -221,12 +221,20 @@ int printf(const char* fmt, ...) {
         paddingLen = 0;
         break;
       case 'l':
-        if (fmt[i + 1] == 'x') {
-          ++i;
+        switch (fmt[++i]) {
+        case 'x':
           printString("0x");
           printUintAsBaseWithPadding(va_arg(p, long), 16);
-        } else {
-          printAsBaseWithPadding(va_arg(p, long), 10);
+          break;
+        case 'i':
+          printAsBaseWithPadding(va_arg(p, int), 10);
+          break;
+        case 'u':
+          printUintAsBaseWithPadding(va_arg(p, long), 10);
+          break;
+        default:
+          printf("...\nUnkown identifier `l`. Did you mean `li`, `lu` or `lx`?.\n");
+          return 1;
         }
         break;
       case 'f':
@@ -270,7 +278,7 @@ int printf(const char* fmt, ...) {
           while (IS_DIGIT(fmt[i]) && j < MAX_PADDING_DIGITS) nbr[j++] = fmt[i++];
           if (IS_DIGIT(fmt[i])) {
             printf("...\nFormat error: \"%s\"\n", fmt);
-            printf("Maximum padding of %l exceeded\n", pow(10, MAX_PADDING_DIGITS) - 1);
+            printf("Maximum padding of %li exceeded\n", pow(10, MAX_PADDING_DIGITS) - 1);
             return 1;
           }
           nbr[j] = 0;

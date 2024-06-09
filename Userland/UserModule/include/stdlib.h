@@ -16,7 +16,7 @@
 
 // Should be larger than the real max amount of characters
 // of fontCols*fontRows = 2117 for smallest font size.
-#define SCREEN_BUFFER_SIZE 30000
+#define SCREEN_BUFFER_SIZE 7000
 extern char screenBuffer[SCREEN_BUFFER_SIZE];
 extern int screenBufWriteIdx;
 extern int screenBufReadIdx;

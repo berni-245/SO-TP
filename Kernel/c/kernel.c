@@ -1,12 +1,12 @@
 #include <clock.h>
 #include <interruptions.h>
 #include <lib.h>
-#include <memory.h>
+#include <memoryManager.h>
 #include <moduleLoader.h>
 #include <stdint.h>
 #include <videoDriver.h>
 #include <scheduler.h>
-#include <semaphore.h>
+#include <semaphores.h>
 
 // extern uint8_t kernelText;
 // extern uint8_t kernelRodata;
@@ -54,7 +54,7 @@ int main() {
   loadIdt();
   setFontGridValues();
   initializePCBList();
-  my_sem_birth();
+  mySemBirth();
 
   // userModule();
   startUserModule();
