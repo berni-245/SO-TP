@@ -27,7 +27,7 @@ void my_process_inc(uint64_t argc, char* argv[argc]) {
   }
 
   if (use_sem) {
-    int sem = sysOpenSem("sem", 1);
+    int sem = sysOpenSem(SEM_NAME, 1);
     if (sem < 0) {
       printf("my_process_inc: ERROR opening semaphore\n");
       sysExit(MISSING_ARGUMENTS);
@@ -40,8 +40,6 @@ void my_process_inc(uint64_t argc, char* argv[argc]) {
   } else {
     for (int i = 0; i < n; i++) slowInc(&globalForSemTest, inc);
   }
-  // Destroy needs to be fixed so sem isn't destroyed if another process is using it.
-  // if (use_sem) sysDestroySemaphore("sem");
   printf("Final value in process: %li\n", globalForSemTest);
   sysExit(SUCCESS);
 }
@@ -61,7 +59,7 @@ void commandTestSem(int argc, char* argv[argc]) {
   const char* argvInc[] = {"my_process_inc", argv[1], "1", argv[2]};
 
   globalForSemTest = strToInt(argv[3]);
-  sysCreateSemaphore("sem", 1);
+  sysCreateSemaphore(SEM_NAME, 1);
   for (int i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
     pids[i] = sysCreateProcess(sizeof(argvDec) / sizeof(argvDec[0]), argvDec, my_process_inc);
     pids[i + TOTAL_PAIR_PROCESSES] = sysCreateProcess(sizeof(argvDec) / sizeof(argvDec[0]), argvInc, my_process_inc);
@@ -73,6 +71,6 @@ void commandTestSem(int argc, char* argv[argc]) {
   }
 
   printf("Final value: %li\n", globalForSemTest);
-  sysDestroySemaphore("sem");
+  sysDestroySemaphore(SEM_NAME);
   sysExit(SUCCESS);
 }
