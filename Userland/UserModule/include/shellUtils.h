@@ -26,10 +26,11 @@ typedef enum {
   MISSING_ARGUMENTS,
   ILLEGAL_ARGUMENT,
   OUT_OF_BOUNDS,
+  PROCESS_FAILURE,
 } ExitCode;
 static const char* const CommandResultStrings[] = {
     "Success",           "Too many arguments", "Argument too long",  "Command not found",
-    "Missing arguments", "Illegal argument",   "Argument of bounds",
+    "Missing arguments", "Illegal argument",   "Argument of bounds", "Process failure"
 };
 
 typedef void (*ShellFunction)(int argc, char* [argc]);

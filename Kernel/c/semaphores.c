@@ -2,47 +2,23 @@
 #include <semaphores.h>
 #include <utils.h>
 
-// Supongamos que un semáforo se comporta como una lista
-// un arreglo con todos los elems inicializados y si estan
-// siendo usados me importa que pasa con ellos, si no los
-// dejo vacíos y los puedo ir ocupando y vaciando a medida
-// que necesite
-
-// Los semaforos no los puede gestionar cada proceso como tal
-// porque tienen que ser accesibles por varios procesos entonces
-// hay que usar nombre
-
-// usando solamente indices puedo encapsular los semaforos de forma que solo se puedan acceder desde aca
-// en cada llamada se debe usar el nombre del semaforo y a la vez el pid del proceso que lo llama
-
 #define ERROR (-1)
 
 semaphores_pos sem_array[MAX_SEMAPHORES];
-int size;
+uint32_t size;
 
-/*-----------AUX. FUNCTIONS-------------------*/ // FUNCIIONES QUE NO ESTÁN EN LOS TEST
-// Se fija si encuentra el valor del semaforo dentro de mi arreglo. Si falla -1
 
-int mySemBirth() {
-  for (int i = 0; i < MAX_SEMAPHORES; ++i) {
-    sem_array[i].is_used = 0;
-  }
-  size = 0;
-  return 1;
-}
-
-int semFinder(char* sem_name) {
+int32_t semFinder(char* sem_name) {
   if (!size) return ERROR;
   for (int i = 0; i < MAX_SEMAPHORES; i++) {
     if (sem_array[i].is_used) {
-      if (s_strcmp(sem_array[i].sem->name, sem_name) == 0) return i;
+      if (strcmp(sem_array[i].sem->name, sem_name) == 0) return i;
     }
   }
   return ERROR;
 }
 
-// Devuelve una posicion para iniciar un nuevo semaforo, si falla retorna -1
-int positionToInitSem() {
+int32_t positionToInitSem() {
   for (int i = 0; i < MAX_SEMAPHORES; i++) {
     if (!sem_array[i].is_used) {
       return i;
@@ -51,53 +27,52 @@ int positionToInitSem() {
   return ERROR;
 }
 
-int fifo_queue(int pos, const PCB* process_by_pcb) {
+int32_t fifoQueue(uint32_t pos, const PCB* process_by_pcb) {
   process_by_PCB* process = malloc(sizeof(process_by_PCB));
   if (process == NULL) {
     return ERROR;
   }
   process->process_pcb = process_by_pcb;
   process->next = NULL;
-  process->before = NULL;
   if (sem_array[pos].sem->process_first == NULL) {
     sem_array[pos].sem->process_first = process;
     sem_array[pos].sem->process_last = process;
   } else {
-    process->before = sem_array[pos].sem->process_last;
     sem_array[pos].sem->process_last->next = process;
     sem_array[pos].sem->process_last = process;
   }
   return 0;
 }
 
-const PCB* fifo_unqueue(int pos) {
+const PCB* fifoUnqueue(uint32_t pos) {
   if (sem_array[pos].sem->process_first == NULL) return NULL;
   const PCB* process = sem_array[pos].sem->process_first->process_pcb;
   process_by_PCB* temp = sem_array[pos].sem->process_first;
   if (sem_array[pos].sem->process_first->next == NULL) {
     sem_array[pos].sem->process_first = NULL;
-    // sem_array[pos].sem->process_last = NULL;
   } else {
     sem_array[pos].sem->process_first = sem_array[pos].sem->process_first->next;
-    sem_array[pos].sem->process_first->before = NULL;
   }
   free(temp);
   return process;
 }
-
-int destroySemaphore(char* name) {
-  return my_sem_close(semFinder(name));
+//To ensure semaphores are initialized to 0
+void mySemBirth() {
+  for (int i = 0; i < MAX_SEMAPHORES; ++i) {
+    sem_array[i].is_used = 0;
+  }
+  size = 0;
 }
-int postSemaphore(int sem_id) {
-  return my_sem_post(sem_id);
+//If semaphore with that name exists it returns the semaphore else it creates it
+int32_t openSemaphore(char* name, uint32_t value) {
+  int32_t sem_id = semFinder(name);
+  if (sem_id == ERROR) {
+    sem_id = createSemaphore(name, value);
+    if (sem_id == ERROR) return ERROR;
+  }
+  return sem_id;
 }
-int waitSemaphore(int sem_id) {
-  return my_sem_wait(sem_id);
-}
-int openSemaphore(char* name, int value) {
-  return my_sem_open(name, value);
-}
-int createSemaphore(char* sem_name, unsigned int init_value) {
+int32_t createSemaphore(char* sem_name, uint32_t init_value) {
   if (semFinder(sem_name) != ERROR) return ERROR;
   int pos = positionToInitSem();
   if (pos == ERROR) {
@@ -107,7 +82,7 @@ int createSemaphore(char* sem_name, unsigned int init_value) {
   if (sem_array[pos].sem == NULL) {
     return ERROR;
   }
-  sem_array[pos].sem->name = malloc(s_strlen(sem_name) + 1);
+  sem_array[pos].sem->name = malloc(strlen(sem_name) + 1);
   if (sem_array[pos].sem->name == NULL) {
     free(sem_array[pos].sem);
     return ERROR;
@@ -121,24 +96,13 @@ int createSemaphore(char* sem_name, unsigned int init_value) {
   size++;
   return pos;
 }
-
-/*--------------------------------------------*/
-
-int my_sem_open(char* name, int value) {
-  int sem_id = semFinder(name);
-  if (sem_id == ERROR) {
-    sem_id = createSemaphore(name, value);
-    if (sem_id == ERROR) return ERROR;
-  }
-  return sem_id;
-}
-
-int my_sem_close(int sem_id) {
-  if (sem_id >= MAX_SEMAPHORES || sem_id < 0) return ERROR;
+//Semaphores with processes left to unqueue can't be destroyed
+int32_t destroySemaphore(char *sem_name) {
+  int32_t sem_id = semFinder(sem_name);
+  if (sem_id == ERROR) return ERROR;
   _enter_region(&sem_array[sem_id].sem->lock);
-  // NO SE PUEDE CERRAR UN SEMÁFORO QUE TODAVÍA TENGA PROCESOS EN ESPERA
   while (sem_array[sem_id].sem->process_first != NULL) {
-    const PCB* to_ready = fifo_unqueue(sem_id);
+    const PCB* to_ready = fifoUnqueue(sem_id);
     _leave_region(&sem_array[sem_id].sem->lock);
     readyProcess(to_ready);
   }
@@ -149,31 +113,28 @@ int my_sem_close(int sem_id) {
   --size;
   return 0;
 }
-// Busca el semaforo, si no lo encuentra sale. Si lo encuentra le decrementa el valor (si es 0 lo manda a la cola del
-// sem) y le dice al scheduler que lo bloquee
-int my_sem_wait(int sem_id) {
-  if (sem_id >= MAX_SEMAPHORES || sem_id < 0 || !sem_array[sem_id].is_used) return ERROR;
+//If process can't decrement the semaphore the process enqueues itself
+int32_t waitSemaphore(uint32_t sem_id) {
+  if (sem_id >= MAX_SEMAPHORES || !sem_array[sem_id].is_used) return ERROR;
   _enter_region(&sem_array[sem_id].sem->lock);
   if (sem_array[sem_id].sem->value > 0) {
     sem_array[sem_id].sem->value--;
     _leave_region(&sem_array[sem_id].sem->lock);
   }
-  // lo tengo que encolar porque tiene que ponerse a esperar
   else {
     const PCB* process_pcb = getCurrentPCB();
-    fifo_queue(sem_id, process_pcb);
+    fifoQueue(sem_id, process_pcb);
     _leave_region(&sem_array[sem_id].sem->lock);
     blockCurrentProcess();
   }
   return 0;
 }
-// Busca el semaforo, si no lo encuentra sale. Si lo encuentra le aumenta el valor y se fija si hay algún elemento que
-// se necesite desencolar. Si hay alguno le dice al scheduler que lo pase a ready
-int my_sem_post(int sem_id) {
-  if (sem_id >= MAX_SEMAPHORES || sem_id < 0 || !sem_array[sem_id].is_used) return ERROR;
+//If process can increment the semaphore the process checks if there is a process to unqueue
+int32_t postSemaphore(uint32_t sem_id) {
+  if (sem_id >= MAX_SEMAPHORES || !sem_array[sem_id].is_used) return ERROR;
   _enter_region(&sem_array[sem_id].sem->lock);
   if (sem_array[sem_id].sem->process_first != NULL) {
-    const PCB* to_ready = fifo_unqueue(sem_id);
+    const PCB* to_ready = fifoUnqueue(sem_id);
     _leave_region(&sem_array[sem_id].sem->lock);
     readyProcess(to_ready);
   } else {
@@ -182,3 +143,7 @@ int my_sem_post(int sem_id) {
   }
   return 0;
 }
+
+
+
+

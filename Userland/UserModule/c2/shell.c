@@ -534,30 +534,26 @@ void my_process_inc(uint64_t argc, char* argv[argc]) {
   if (argc != 4) {
     sysExit(SUCCESS);
   }
-
-  int n = strToInt(argv[1]);
-  int inc = strToInt(argv[2]);
-  int use_sem = strToInt(argv[3]);
-
+  uint64_t n = strToInt(argv[1]);
+  int32_t inc = strToInt(argv[2]);
+  int32_t use_sem = strToInt(argv[3]);
   if (n <= 0 || inc == 0 || use_sem < 0) {
     sysExit(ILLEGAL_ARGUMENT);
   }
-
   if (use_sem) {
-    int sem = sysOpenSem("sem", 1);
-    if (sem < 0) {
-      printf("my_process_inc: ERROR opening semaphore\n");
-      sysExit(MISSING_ARGUMENTS);
+    int32_t sem = sysOpenSem("sem", 1);
+    if (sem == -1) {
+      printf("my_process_inc: ERROR creating or opening semaphore\n");
+      sysExit(PROCESS_FAILURE);
     }
-    for (int i = 0; i < n; i++) {
+    for (uint32_t i = 0; i < n; i++) {
       sysWaitSem(sem);
       slowInc(&global, inc);
       sysPostSem(sem);
     }
   } else {
-    for (int i = 0; i < n; i++) slowInc(&global, inc);
+    for (uint32_t i = 0; i < n; i++) slowInc(&global, inc);
   }
-  if (use_sem) sysDestroySemaphore("sem");
   printf("Final value in process: %l\n", global);
   sysExit(SUCCESS);
 }
@@ -570,24 +566,30 @@ void commandTestSem(int argc, char* argv[argc]) {
     sysExit(MISSING_ARGUMENTS);
   }
 
+  int use_sem = strToInt(argv[2]);
   uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
 
   char* argvDec[] = {"my_process_dec", argv[1], "-1", argv[2]};
   char* argvInc[] = {"my_process_inc", argv[1], "1", argv[2]};
 
   global = 0;
-  int sem = sysCreateSemaphore("sem", 1);
-  for (int i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
+
+  for (uint64_t i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
     pids[i] = sysCreateProcess(sizeof(argvDec) / sizeof(argvDec[0]), argvDec, my_process_inc);
     pids[i + TOTAL_PAIR_PROCESSES] = sysCreateProcess(sizeof(argvDec) / sizeof(argvDec[0]), argvInc, my_process_inc);
   }
 
-  for (int i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
+  for (uint64_t i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
     sysWaitPid(pids[i]);
     sysWaitPid(pids[i + TOTAL_PAIR_PROCESSES]);
   }
 
-  printf("Final value: %l\n", global);
-  sysDestroySemaphore("sem");
+  printf("\nFinal value: %l\n", global);
+  if (use_sem) {
+    if (sysDestroySemaphore("sem") == -1) {
+      printf("commandTestSem: ERROR destroying semaphore\n");
+      sysExit(PROCESS_FAILURE);
+    }
+  }
   sysExit(SUCCESS);
 }

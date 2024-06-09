@@ -3,6 +3,6 @@
 
 int strncpy(char* dst, char* src, int max);
 int strcpy(char* dst, char* src);
-unsigned int s_strlen(char* s);
-int s_strcmp(const char* s1, const char* s2);
+unsigned int strlen(char* s);
+int strcmp(const char* s1, const char* s2);
 #endif
