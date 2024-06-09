@@ -3,11 +3,10 @@
 
 #define PHILO_AMOUNT 5
 #define PHILO_MAX_AMOUNT 10
-#define PHILO_MIN_AMOUNT 3
+#define PHILO_MIN_AMOUNT 2
 
 #define PHYLO_MUTEX "phylo"
 #define PHILO_NAME_LENGTH 5
-#define RIGHT_FORK(i) ((i+1)%PHILO_AMOUNT)
 
 
 int philos_on_table;
@@ -23,8 +22,18 @@ enum phylo{
   THINKING
 };
 
+int right_fork(int i){
+  return (i+1)%philos_on_table;
+}
+int left_fork(int i){
+  return (i-1)%philos_on_table;
+}
 
-
+void change_philo_action(int value, int pos, int mutex_sem){
+  sysWaitSem(mutex_sem);
+  philo_state[pos]=value;
+  sysPostSem(mutex_sem);
+}
 
 void monitor(int mutex_sem){
   sysWaitSem(mutex_sem);
@@ -37,32 +46,27 @@ void monitor(int mutex_sem){
 
 
 void take_forks(int i, int mutex_sem){
-  sysWaitSem(mutex_sem);
-  philo_state[i]=HUNGRY;
-  sysPostSem(mutex_sem);
+  change_philo_action(HUNGRY,i, mutex_sem);
   if(i % 2){
-    sysWaitSem(forks[RIGHT_FORK(i)]);
+    sysWaitSem(forks[right_fork(i)]);
     sysWaitSem(forks[i]);
   } else {
     sysWaitSem(forks[i]);
-    sysWaitSem(forks[RIGHT_FORK(i)]);
+    sysWaitSem(forks[right_fork(i)]);
   }
 }
 void leave_forks(int i){
   sysPostSem(forks[i]);
-  sysPostSem(forks[RIGHT_FORK(i)]);
+  sysPostSem(forks[right_fork(i)]);
 }
 void think(int i, int mutex_sem){
-  sysWaitSem(mutex_sem);
-  philo_state[i]=THINKING;
-  sysPostSem(mutex_sem);
-  sysSleep(randBetween(1000, 1500));
+  change_philo_action(THINKING,i, mutex_sem);
+  sysSleep(randBetween(1000, 2000));
 }
 void eat(int i, int mutex_sem){
-  sysWaitSem(mutex_sem);
-  philo_state[i]=EATING;
-  sysPostSem(mutex_sem);
-  sysSleep(randBetween(1000, 1500));
+  change_philo_action(EATING,i, mutex_sem);
+  sysSleep(randBetween(1000, 2000));
+  monitor(mutex_sem);
 }
 
 
@@ -76,13 +80,12 @@ void my_phylo_process(uint64_t argc, char* argv[argc]) {
     printf("my_process_inc: ERROR opening semaphore\n");
     sysExit(MISSING_ARGUMENTS);
   }
-  sysWaitSem(mutex_sem);
+
   while(1) {
-    think(n,mutex_sem);
+    think(n, mutex_sem);
     take_forks(n, mutex_sem);
     eat(n, mutex_sem);
     leave_forks(n);
-    monitor(mutex_sem);
   }
   sysExit(SUCCESS);
 }
@@ -103,26 +106,24 @@ int add_Phylo(int pos){
   if(forks[pos]==-1){
     sysExit(PROCESS_FAILURE);
   }
-  philo_name[pos]=sem_name;
-  sem_name[3]=sem_name[3]+1;
-  if ((forks[pos-1] = sysCreateSemaphore(sem_name, 1)) == -1){
-    printf("Error creating Philosopher's semaphore.\n");
-    sysExit(PROCESS_FAILURE);
-  }
+  philo_name[pos]= sysMalloc(MAX_NAME_LENGTH);
+  strcpy(philo_name[pos], sem_name);
   philo_state[pos]=THINKING;
   char phylo_num[3];
-  uintToBase(philos_on_table++, phylo_num, 10);
+  uintToBase(pos, phylo_num, 10);
   const char* argvPhylo[] = {"my_phylo_process", phylo_num};
   printf("Philosopher number %d has joined the game\n", pos);
-  sysPostSem(mutex_sem);
   philos_on_table++;
+  sysPostSem(mutex_sem);
+
   pids[pos] = sysCreateProcess(sizeof(argvPhylo) / sizeof(argvPhylo[0]), argvPhylo, my_phylo_process);
   return 0;
 }
 int rem_Phylo(int pos){
-  int mutex_sem= sysOpenSem(PHYLO_MUTEX, 1);
   if (check_phylo_pos(pos))return -1;
+  int mutex_sem= sysOpenSem(PHYLO_MUTEX, 1);
   sysWaitSem(mutex_sem);
+  --philos_on_table;
   if (philo_state[pos] == EATING){
     leave_forks(pos);
   }
@@ -130,9 +131,7 @@ int rem_Phylo(int pos){
     printf("Error destroying Philosopher´s semaphore.\n");
   sysFree(philo_name[pos]);
   sysKill(pids[pos]);
-  philos_on_table--;
   sysPostSem(mutex_sem);
-
   return 0;
 }
 void end_phylos(){
@@ -141,10 +140,14 @@ void end_phylos(){
     sysWaitSem(mutex_sem);
     if (sysDestroySemaphore(philo_name[philos_on_table-1]) == -1 || !sysKill(pids[philos_on_table - 1])){
       printf("Error deleting phylo\n");
-      return;
+      sysExit(PROCESS_FAILURE);
     }
     philos_on_table--;
     sysPostSem(mutex_sem);
+  }
+  if (sysDestroySemaphore(PHYLO_MUTEX)==-1){
+    printf("Error deleting mutex\n");
+    return;
   }
   printf("Phylo has been ended\n");
   sysExit(SUCCESS);
@@ -165,19 +168,21 @@ void commandPhylo(int argc, char* argv[argc]) {
     sem_name[3]=sem_name[3]+1;
   }
   int mutex_sem=sysCreateSemaphore(PHYLO_MUTEX, 1);
+  sysWaitSem(mutex_sem);
   for (int i = 0; i < PHILO_AMOUNT; i++) {
     char philo_num[3];
     uintToBase(i, philo_num, 10);
     const char* argvPhylo[] = {"my_phylo_process", philo_num};
-    philos_on_table++;
+    philo_state[i]=THINKING;
     pids[i] = sysCreateProcess(sizeof(argvPhylo) / sizeof(argvPhylo[0]), argvPhylo, my_phylo_process);
+    philos_on_table++;
     printf("Philosopher number %d has joined the game\n", i);
   }
-  for (int i = 0; i < PHILO_AMOUNT; i++){
-    sysPostSem(mutex_sem);
-  }
+  sysPostSem(mutex_sem);
+
   KeyStruct key;
   while (1) {
+    sysHalt();
     if (getKey(&key) != EOF){
       if (key.character == 'a' || key.character=='A'){
         add_Phylo(philos_on_table);
