@@ -1,7 +1,9 @@
 #ifndef SHELL_COMMANDS_H
 #define SHELL_COMMANDS_H
 
+#include <array.h>
 #include <circularBuffer.h>
+#include <circularHistoryBuffer.h>
 #include <colors.h>
 #include <draw.h>
 #include <snake.h>
@@ -9,7 +11,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <syscalls.h>
 #include <sysinfo.h>
 #include <utils.h>
 
@@ -27,36 +28,15 @@ typedef enum {
   ILLEGAL_ARGUMENT,
   OUT_OF_BOUNDS,
   PROCESS_FAILURE,
+  NO_MEMORY_AVAILABLE,
 } ExitCode;
 static const char* const CommandResultStrings[] = {
     "Success",           "Too many arguments", "Argument too long",  "Command not found",
-    "Missing arguments", "Illegal argument",   "Argument of bounds", "Process failure"
+    "Missing arguments", "Illegal argument",   "Argument of bounds", "Process failure",
+    "No memory available"
 };
 
 typedef void (*ShellFunction)(int argc, char* [argc]);
-
-/*
-typedef struct {
-  // Set by user
-  char* name;
-  bool required;
-
-  // Set by parseCommandArgs
-  bool found;
-} CommandArgument;
-typedef struct {
-  // Set by user
-  char* shortName;
-  char* longName;
-  char* description;
-  bool hasArgument;
-  bool required;
-
-  // Set by parseCommandOpts
-  char argument[MAX_ARG_LEN];
-  bool found;
-} CommandOption;
-*/
 
 typedef struct ShellCommand {
   char* name;
@@ -66,15 +46,19 @@ typedef struct ShellCommand {
   // CommandOption options[];
 } ShellCommand;
 
+extern int commandReturnCode;
+extern int commandCount;
+extern ShellCommand commands[MAX_COMMAND_COUNT];
+
 void newPrompt();
 void incFont();
 void decFont();
 void clearLine();
+void clearScreenKeepCommand();
 void addCommand(char* name, char* description, ShellFunction function);
 void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor);
 void autocomplete();
 void deleteWord();
-void historyPush();
 void historyPrev();
 void historyNext();
 void resetHistoryCurrentVals();
@@ -99,6 +83,9 @@ void commandPs();
 void commandCreateSemaphore(int argc, char* argv[argc]);
 void commandDestroySemaphore(int argc, char* argv[argc]);
 void commandTestSem(int argc, char* argv[argc]);
-void commandChangeProcess();
+void commandChangeProcess(); // Arreglar. Esto no es un command...
+void commandGetPid();
+void commandKill(int argc, char* argv[argc]);
+void commandGetMemoryState();
 
 #endif

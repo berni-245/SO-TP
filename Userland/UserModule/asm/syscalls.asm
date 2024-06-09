@@ -17,6 +17,8 @@ global sysPlaySound
 global sysGetCurrentTime
 global sysGetRegisters
 global sysMalloc
+global sysFree
+global sysGetMemoryState
 global sysCreateProcess
 global sysExit
 global sysWaitPid
@@ -26,12 +28,16 @@ global sysDestroySemaphore
 global sysWaitSem
 global sysPostSem
 global sysOpenSem
+global sysMemcpy
+global sysGetPid
+global sysKill
 
 %macro syscall 1
   mov r9, %1
   int 0x80
   ret
 %endmacro
+
 
 sysHalt:
   syscall 0
@@ -65,21 +71,31 @@ sysGetRegisters:
   syscall 14
 sysMalloc:
   syscall 15
-sysCreateProcess:
+sysFree:
   syscall 16
-sysExit:
+sysGetMemoryState:
   syscall 17
-sysWaitPid:
+sysCreateProcess:
   syscall 18
-sysPCBList:
+sysExit:
   syscall 19
-sysCreateSemaphore:
+sysWaitPid:
   syscall 20
-sysDestroySemaphore:
+sysPCBList:
   syscall 21
-sysWaitSem:
+sysCreateSemaphore:
   syscall 22
-sysPostSem:
+sysDestroySemaphore:
   syscall 23
-sysOpenSem:
+sysWaitSem:
   syscall 24
+sysPostSem:
+  syscall 25
+sysOpenSem:
+  syscall 26
+sysMemcpy:
+  syscall 27
+sysGetPid:
+  syscall 28
+sysKill:
+  syscall 29

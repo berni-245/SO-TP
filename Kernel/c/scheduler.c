@@ -1,6 +1,7 @@
-#include <memory.h>
+#include <memoryManager.h>
 #include <scheduler.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <utils.h>
 
 // El priority based scheduling funciona así:
@@ -27,6 +28,10 @@ typedef struct {
 extern void* initializeProcessStack(int argc, char* argv[], void* processRip, void* stackStart);
 extern void idleProc();
 extern void* userModule;
+extern void asdfInterruption();
+
+PCB* getPCBByPid(uint32_t pid);
+void exitProcessByPCB(PCB* pcb);
 
 PCBList pcbList;
 PCBNode* idleProcPCBNode;
@@ -193,7 +198,7 @@ argc = 3
 0xXXXXX  00 00 00 00 00 00 00 00
  */
 static uint32_t pid = 0;
-void* createProcess(int argc, char* argv[], void* processRip) {
+void* createProcess(int argc, const char* argv[], void* processRip) {
   void* stackStart;
   void* stackEnd;
   stackAlloc(&stackStart, &stackEnd);
@@ -210,49 +215,49 @@ void* createProcess(int argc, char* argv[], void* processRip) {
 }
 
 void* createUserModuleProcess() {
-  char* argv[1] = {"init"};
+  const char* argv[1] = {"init"};
   void* rsp = createProcess(1, argv, userModule);
   nextPCB();
   return rsp;
 }
 
-uint32_t createUserProcess(int argc, char* argv[], void* processRip) {
+uint32_t createUserProcess(int argc, const char* argv[], void* processRip) {
   createProcess(argc, argv, processRip);
   return pid - 1;
 }
 
-void exitCurrentProcess(int exitCode) {
-  pcbList.current->pcb->state = EXITED;
-  for (int i = 0; i < pcbList.current->pcb->wfmLen; ++i) {
-    PCB* pcb = pcbList.current->pcb->waitingForMe[i];
-    pcb->state = READY;
-    pcb->waitedProcessExitCode = exitCode;
+void exitProcessByPCB(PCB* pcb) {
+  pcb->state = EXITED;
+  for (int i = 0; i < pcb->wfmLen; ++i) {
+    PCB* pcb2 = pcb->waitingForMe[i];
+    pcb2->state = READY;
+    pcb2->waitedProcessExitCode = 1;
   }
 }
 
-extern void asdfInterruption();
-int waitPid(uint32_t pid) {
-  if (pid == pcbList.current->pcb->pid) return pcbList.current->pcb->waitedProcessExitCode;
+void exitCurrentProcess(int exitCode) {
+  exitProcessByPCB(pcbList.current->pcb);
+}
 
+PCB* getPCBByPid(uint32_t pid) {
   PCBNode* node = pcbList.head;
   // Note pcbList is orded by pid because new nodes are always added at the end and
   // pid is always increasing..
-  while (node->pcb->pid <= pid) {
-    if (node->pcb->pid == pid && node->pcb->state != EXITED) {
-      node->pcb->waitingForMe[node->pcb->wfmLen++] = pcbList.current->pcb;
-      pcbList.current->pcb->state = BLOCKED;
-      asdfInterruption(); // Replace for int 0x20 when schedule gets called there.
-      return pcbList.current->pcb->waitedProcessExitCode;
-    }
+  do {
+    if (node->pcb->pid == pid) return node->pcb;
     node = node->next;
-    if (node == pcbList.head) break;
-  }
-  // Este return value no tiene sentido si el proceso se corrió en el background. Igual
-  // casi seguro que tengo que tener en cuenta padres e hijos así que probablemente el
-  // exit solo me mande el pcb del proceso hijo a una lista en el padre, y recién una
-  // vez que el padre termina se libera todo lo relacionado a los hijos que terminaron.
-  // Y ahí sí podría conseguir la referencia al hijo aunque ya haya terminado.
-  // If no process with the specified pid is found then current process is not blocked.
+  } while (node->pcb->pid <= pid && node != pcbList.head);
+  return NULL;
+}
+
+int waitPid(uint32_t pid) {
+  if (pid == pcbList.current->pcb->pid) return pcbList.current->pcb->waitedProcessExitCode;
+
+  PCB* pcb = getPCBByPid(pid);
+  if (pcb == NULL || pcb->state == EXITED) return pcbList.current->pcb->waitedProcessExitCode;
+  pcb->waitingForMe[pcb->wfmLen++] = pcbList.current->pcb;
+  pcbList.current->pcb->state = BLOCKED;
+  asdfInterruption(); // Replace for int 0x20 when schedule gets called there.
   return pcbList.current->pcb->waitedProcessExitCode;
 }
 
@@ -287,4 +292,15 @@ void blockCurrentProcess() {
 
 void readyProcess(const PCB* pcb) {
   ((PCB*)pcb)->state = READY;
+}
+
+uint32_t getpid() {
+  return pcbList.current->pcb->pid;
+}
+
+bool kill(uint32_t pid) {
+  PCB* pcb = getPCBByPid(pid);
+  if (pcb == NULL || pcb->state == EXITED) return false;
+  exitProcessByPCB(pcb);
+  return true;
 }
