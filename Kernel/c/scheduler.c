@@ -306,7 +306,7 @@ bool kill(uint32_t pid) {
   return true;
 }
 
-void killCurrentProcess(){
+void killCurrentProcess() {
   exitCurrentProcess(1);
   asdfInterruption();
 }
