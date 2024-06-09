@@ -49,5 +49,6 @@ void readyProcess(const PCB* pcb);
 uint32_t getpid();
 bool kill(uint32_t pid);
 void killCurrentProcessInForeground();
+void changePriority(uint32_t pid, uint32_t newPriority);
 
 #endif

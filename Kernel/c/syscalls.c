@@ -48,6 +48,7 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)getpid,
     (SyscallFunction)kill,
     (SyscallFunction)sleep,
+    (SyscallFunction)changePriority,
 };
 
 SyscallFunction* getSyscallsArray() {

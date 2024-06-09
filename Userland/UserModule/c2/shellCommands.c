@@ -22,12 +22,26 @@ void commandRealTime() {
   sysExit(SUCCESS);
 }
 
-void commandHelp() {
-  printString("Available commands:\n");
-  for (int i = 0; i < commandCount; ++i) {
+void commandHelp(int argc, char* argv[argc]) {
+  printString("Available commands ");
+  if(argc >= 2 && strToInt(argv[1]) == 2) {
+    printString("(Page 2):\n");
+    for (int i = commandCount/2 + 1; i < commandCount; ++i) {
+      printf("\t- %s: %s\n", commands[i].name, commands[i].description);
+    }
+    printf("Switch between pages with help <1 or 2>\n");
+    sysExit(SUCCESS);
+  }
+  if(argc >= 2 && strToInt(argv[1]) != 1){
+    printString("No such page\n");
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+  printString("(Page 1):\n");
+  for (int i = 0; i < commandCount/2; ++i) {
     printf("\t- %s: %s\n", commands[i].name, commands[i].description);
   }
-  sysExit(0);
+  printf("Switch between pages with help <1 or 2>\n");
+  sysExit(SUCCESS);
 }
 
 void commandGetKeyInfo() {
@@ -258,4 +272,18 @@ void commandLoop(int argc, char* argv[argc]) {
     }
   }
   sysExit(PROCESS_FAILURE);
+}
+
+void commandNice(int argc, char* argv[argc]) {
+  if(argc < 3) {
+    puts("Usage:");
+    printf("\t\t%s <pid> <priority between 1-9>\n", argv[0]);
+    sysExit(MISSING_ARGUMENTS); 
+  }
+  int newPriority = strToInt(argv[2]);
+  if (newPriority <= 0 || newPriority >= 10)
+    sysExit(ILLEGAL_ARGUMENT);
+
+  sysChangePriority(strToInt(argv[1]), newPriority);
+  sysExit(SUCCESS);
 }

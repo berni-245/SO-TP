@@ -44,6 +44,7 @@ int shell() {
   addCommand("ps", "Print process list.", commandPs);
   addCommand("testSem", "Test semaphores by using multiple processes to modifying shared variable.", commandTestSem);
   addCommand("kill", "Kill process by pid.", commandKill);
+  addCommand("nice", "Change priority of a process by pid", commandNice);
   addCommand("getpid", "Print pid for current process.", commandGetPid);
   addCommand("loop", "Sends a message with the PID every given seconds", commandLoop);
   addCommand("phylo", "Starts the philosophers problem, exit with e, a to add philosopher and remove with r", commandPhylo);

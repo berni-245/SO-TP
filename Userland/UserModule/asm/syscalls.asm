@@ -32,6 +32,7 @@ global sysMemcpy
 global sysGetPid
 global sysKill
 global sysSleep
+global sysChangePriority
 
 %macro syscall 1
   mov r9, %1
@@ -102,3 +103,5 @@ sysKill:
   syscall 29
 sysSleep:
   syscall 30
+sysChangePriority:
+  syscall 31
