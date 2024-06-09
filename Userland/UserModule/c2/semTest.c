@@ -15,7 +15,7 @@ void slowInc(int64_t* p, int64_t inc) {
 
 void my_process_inc(uint64_t argc, char* argv[argc]) {
   if (argc != 4) {
-    sysExit(SUCCESS);
+    sysExit(MISSING_ARGUMENTS);
   }
 
   int n = strToInt(argv[1]);

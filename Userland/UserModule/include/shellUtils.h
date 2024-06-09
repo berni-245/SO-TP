@@ -88,5 +88,6 @@ void commandGetPid();
 void commandKill(int argc, char* argv[argc]);
 void commandGetMemoryState();
 void commandLoop(int argc, char* argv[argc]);
+void commandPhylo();
 
 #endif
