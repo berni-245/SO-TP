@@ -280,6 +280,7 @@ void copyPCBToPCBForUserland(PCBForUserland* userlandPcb, PCB* kernelPcb) {
   userlandPcb->rbp = kernelPcb->rbp;
   userlandPcb->state = StateStrings[kernelPcb->state];
   userlandPcb->priority = kernelPcb->priority;
+  userlandPcb->location = (kernelPcb->pid == processInForeground->pid? "Fg" : "Bg");
 }
 PCBForUserland* getPCBList(int* len) {
   *len = pcbList.len;

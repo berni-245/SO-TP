@@ -31,7 +31,7 @@ typedef struct {
   void* rsp;
   void* rbp;
   char name[MAX_NAME_LENGTH + 1];
-  // char location[MAX_NAME_LENGTH + 1];
+  char* location;
 } PCBForUserland;
 
 // void freePCBNode(PCBNode* node);

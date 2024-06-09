@@ -206,10 +206,10 @@ void commandZeroDivisionError() {
 void commandPs() {
   int len;
   PCB* pcbList = sysPCBList(&len);
-  printf("%3s, %-10s, %-10s, %10s, %10s, %10s\n", "PID", "Name", "State", "rsp", "rbp", "Priority");
+  printf("%3s, %-10s, %-9s, %-9s, %10s, %10s, %8s\n", "PID", "Name", "State", "Location", "rsp", "rbp", "Priority");
   for (int i = 0; i < len; ++i) {
     PCB* pcb = pcbList + i;
-    printf("%3d, %-10s, %-10s, %p, %p, %10d\n", pcb->pid, pcb->name, pcb->state, pcb->rsp, pcb->rbp, pcb->priority);
+    printf("%3d, %-10s, %-9s, %-9s, %p, %p, %8d\n", pcb->pid, pcb->name, pcb->state, pcb->location, pcb->rsp, pcb->rbp, pcb->priority);
   }
   sysFree(pcbList);
   sysExit(SUCCESS);

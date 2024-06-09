@@ -1,7 +1,6 @@
 #include <interruptions.h>
 #include <timer.h>
 #include <scheduler.h>
-#include <scheduler.h>
 #include <memoryManager.h>
 
 static double freq = 65536 / 3600.0; // interruptions/second
