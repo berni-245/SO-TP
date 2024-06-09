@@ -234,6 +234,7 @@ void commandKill(int argc, char* argv[argc]) {
 }
 
 void commandGetMemoryState() {
+  sysSleep(3000);
   char* memState = sysGetMemoryState();
   if (memState == NULL) {
     printf("All the memory is being used\n");

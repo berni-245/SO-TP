@@ -7,13 +7,13 @@
 static double freq = 65536 / 3600.0; // interruptions/second
 static unsigned long ticks = 0;
 
-SleptProcess* first = NULL;
-
 typedef struct SleptProcess{
   unsigned long ticksRemaining;
-  PCB* process;
-  struct sleptProcess* next;
+  const PCB* process;
+  struct SleptProcess* next;
 }SleptProcess;
+
+SleptProcess* first = NULL;
 
 void incTicks() {
     ticks++;
