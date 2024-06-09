@@ -43,6 +43,7 @@ int shell() {
   addCommand("testSem", "Test semaphores by using multiple processes to modifying shared variable.", commandTestSem);
   addCommand("kill", "Kill process by pid.", commandKill);
   addCommand("getpid", "Print pid for current process.", commandGetPid);
+  addCommand("loop", "Sends a message with the PID every given seconds", commandLoop);
 
   const char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));
