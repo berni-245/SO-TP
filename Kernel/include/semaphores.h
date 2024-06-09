@@ -34,16 +34,16 @@ typedef struct semaphores_pos {
 } semaphores_pos;
 
 int semFinder(char* sem_name);
-int position_to_init_sem();
+int positionToInitSem();
 
 int mySemBirth();
-int my_sem_init(char* sem_name, unsigned int value);
+
 int my_sem_wait(int sem_id);
 int my_sem_post(int sem_id);
 int my_sem_open(char* name, int value);
 int my_sem_close(int sem_id);
 
-int createSemaphore(char* name, int value);
+int createSemaphore(char* name, unsigned int value);
 int destroySemaphore(char* name);
 int postSemaphore(int sem_id);
 int waitSemaphore(int sem_id);

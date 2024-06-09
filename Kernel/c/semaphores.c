@@ -42,7 +42,7 @@ int semFinder(char* sem_name) {
 }
 
 // Devuelve una posicion para iniciar un nuevo semaforo, si falla retorna -1
-int position_to_init_sem() {
+int positionToInitSem() {
   for (int i = 0; i < MAX_SEMAPHORES; i++) {
     if (!sem_array[i].is_used) {
       return i;
@@ -84,9 +84,7 @@ const PCB* fifo_unqueue(int pos) {
   free(temp);
   return process;
 }
-int createSemaphore(char* name, int value) {
-  return my_sem_init(name, value);
-}
+
 int destroySemaphore(char* name) {
   return my_sem_close(semFinder(name));
 }
@@ -99,9 +97,9 @@ int waitSemaphore(int sem_id) {
 int openSemaphore(char* name, int value) {
   return my_sem_open(name, value);
 }
-int my_sem_init(char* sem_name, unsigned int init_value) {
+int createSemaphore(char* sem_name, unsigned int init_value) {
   if (semFinder(sem_name) != ERROR) return ERROR;
-  int pos = position_to_init_sem();
+  int pos = positionToInitSem();
   if (pos == ERROR) {
     return ERROR;
   }
@@ -129,7 +127,7 @@ int my_sem_init(char* sem_name, unsigned int init_value) {
 int my_sem_open(char* name, int value) {
   int sem_id = semFinder(name);
   if (sem_id == ERROR) {
-    sem_id = my_sem_init(name, value);
+    sem_id = createSemaphore(name, value);
     if (sem_id == ERROR) return ERROR;
   }
   return sem_id;
