@@ -14,7 +14,62 @@ registers_to_show = [
     # "cr0", "cr2", "cr3", "cr4", "cr8", "efer",
 ]
 gdb.execute(f"dashboard registers -style list '{' '.join(registers_to_show)}'")
- 
+
+end
+
+define watchpcbstack
+    dashboard memory -style full ''
+    dashboard memory -style width 8
+
+    set var $rsp1 = $arg0->pcb->rsp
+    set var $rbp1 = $arg0->pcb->rbp
+    set var $stacklen = $rbp1 - $rsp1 + 8
+
+    if $stacklen > 8*100
+        printf "Stack too long\n"
+        return
+    end
+
+    dashboard memory watch $rsp1 $stacklen
+
+    # This breaks when the initial stack changes after
+    # the process is executed.
+    # set var $asdf_argc = *(int*)($rbp1 - 12 * 8)
+
+    # if $asdf_argc <= 0
+    #     return
+    # end
+
+    # set var $asdf_argv = *(char***)($rbp1 - 11 * 8)
+
+    # dashboard memory watch $asdf_argv (3*$asdf_argc * 8)
+end
+
+define ppcbnode
+    p *$arg0
+    p *$arg0->pcb
+end
+
+define ppcblist
+    set $n = pcbList.head
+    if $n == 0
+        printf "List is empty\n"
+        return
+    end
+    set $gdbIsFuckingStupid = 0
+    while !$gdbIsFuckingStupid
+        ppcbnode $n
+        printf "\n"
+        if $n == pcbList.tail
+            set $gdbIsFuckingStupid = 1
+        else
+            set $n = $n->next
+        end
+    end
+end
+
+define pcurrent
+    ppcbnode pcbList.current
 end
 
 # vim: set ft=python:

@@ -1,7 +1,9 @@
 #ifndef SHELL_COMMANDS_H
 #define SHELL_COMMANDS_H
 
+#include <array.h>
 #include <circularBuffer.h>
+#include <circularHistoryBuffer.h>
 #include <colors.h>
 #include <draw.h>
 #include <snake.h>
@@ -9,12 +11,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <syscalls.h>
 #include <sysinfo.h>
 #include <utils.h>
 
 #define MAX_ARG_COUNT 20
-#define MAX_ARG_LEN 50 + 1
+#define MAX_ARG_LEN 50
 #define MAX_COMMAND_COUNT 50
 #define MAX_HISTORY_LEN 50
 
@@ -33,30 +34,7 @@ static const char* const CommandResultStrings[] = {
     "Missing arguments", "Illegal argument",   "Argument of bounds",
 };
 
-typedef ExitCode (*ShellFunction)(int argc, char[argc][MAX_ARG_LEN]);
-
-/*
-typedef struct {
-  // Set by user
-  char* name;
-  bool required;
-
-  // Set by parseCommandArgs
-  bool found;
-} CommandArgument;
-typedef struct {
-  // Set by user
-  char* shortName;
-  char* longName;
-  char* description;
-  bool hasArgument;
-  bool required;
-
-  // Set by parseCommandOpts
-  char argument[MAX_ARG_LEN];
-  bool found;
-} CommandOption;
-*/
+typedef void (*ShellFunction)(int argc, char* [argc]);
 
 typedef struct ShellCommand {
   char* name;
@@ -66,35 +44,46 @@ typedef struct ShellCommand {
   // CommandOption options[];
 } ShellCommand;
 
+extern int commandReturnCode;
+extern int commandCount;
+extern ShellCommand commands[MAX_COMMAND_COUNT];
+
 void newPrompt();
 void incFont();
 void decFont();
 void clearLine();
+void clearScreenKeepCommand();
 void addCommand(char* name, char* description, ShellFunction function);
 void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor);
 void autocomplete();
 void deleteWord();
-void historyPush();
 void historyPrev();
 void historyNext();
 void resetHistoryCurrentVals();
 // void parseCommandOpts(int argc, char argv[argc][MAX_ARG_LEN], int flagCount, CommandOption flags[]);
 
 ExitCode parseCommand();
-ExitCode commandEcho(int argc, char argv[argc][MAX_ARG_LEN]);
-ExitCode commandGetReturnCode();
-ExitCode commandRealTime();
-ExitCode commandHelp();
-ExitCode commandGetKeyInfo();
-ExitCode commandRand(int argc, char argv[argc][MAX_ARG_LEN]);
-ExitCode commandLayout(int argc, char argv[argc][MAX_ARG_LEN]);
-ExitCode commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]);
-ExitCode commandSysInfo();
-ExitCode commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]);
-ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]);
-ExitCode commandTest();
-ExitCode commandZeroDivisionError();
-ExitCode commandInvalidOpcodeError();
-ExitCode commandGetMemoryState();
+void commandEcho(int argc, char* argv[argc]);
+void commandGetReturnCode();
+void commandRealTime();
+void commandHelp();
+void commandGetKeyInfo();
+void commandRand(int argc, char* argv[argc]);
+void commandLayout(int argc, char* argv[argc]);
+void commandSetColors(int argc, char* argv[argc]);
+void commandSysInfo();
+void commandGetRegisters(int argc, char* argv[argc]);
+void commandSnake(int argc, char* argv[argc]);
+void commandTest();
+void commandZeroDivisionError();
+void commandInvalidOpcodeError();
+void commandPs();
+void commandCreateSemaphore(int argc, char* argv[argc]);
+void commandDestroySemaphore(int argc, char* argv[argc]);
+void commandTestSem(int argc, char* argv[argc]);
+void commandChangeProcess(); // Arreglar. Esto no es un command...
+void commandGetPid();
+void commandKill(int argc, char* argv[argc]);
+void commandGetMemoryState();
 
 #endif

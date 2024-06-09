@@ -2,8 +2,11 @@
 #include <interruptions.h>
 #include <keyboard.h>
 #include <memoryManager.h>
+#include <lib.h>
 #include <pcSpeaker.h>
 #include <registers.h>
+#include <scheduler.h>
+#include <semaphores.h>
 #include <syscalls.h>
 #include <sysinfo.h>
 #include <timer.h>
@@ -32,6 +35,18 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)malloc,
     (SyscallFunction)free,
     (SyscallFunction)getMemoryState,
+    (SyscallFunction)createUserProcess,
+    (SyscallFunction)exit,
+    (SyscallFunction)waitPid,
+    (SyscallFunction)getPCBList,
+    (SyscallFunction)createSemaphore,
+    (SyscallFunction)destroySemaphore,
+    (SyscallFunction)waitSemaphore,
+    (SyscallFunction)postSemaphore,
+    (SyscallFunction)openSemaphore,
+    (SyscallFunction)memcpy,
+    (SyscallFunction)getpid,
+    (SyscallFunction)kill,
 };
 
 SyscallFunction* getSyscallsArray() {

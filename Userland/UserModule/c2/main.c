@@ -9,7 +9,11 @@
 int main() {
   getSysInfo();
 
-  shell();
+  while (true) {
+    const char* argv[] = {"shell", "test arg 1", "test arg 2"};
+    int pid = sysCreateProcess(sizeof(argv) / sizeof(argv[0]), argv, shell);
+    sysWaitPid(pid);
+  }
 
   return 1;
 }

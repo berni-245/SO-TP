@@ -1,4 +1,6 @@
-section .text
+%include "asm/include/interruptions_macros.asm"
+%include "asm/include/processes_macros.asm"
+
 
 global disableInterruptions
 global enableInterruptions
@@ -6,121 +8,78 @@ global haltTillNextInterruption
 	
 global picMask
 
-global irq00Handler
-global irq01Handler
-global irq02Handler
-global irq03Handler
-global irq04Handler
-global irq05Handler
-global irq06Handler
-global irq07Handler
+global timerTickIrqHandler
+global keyboardIrqHandler
 
 global exception00Handler
 global exception01Handler
+
+global asdf
+global asdfInterruption
 
 extern irqDispatcher
 extern readKeyCode
 extern saveRegisters
 extern exceptionDispatcher
 extern getStackBase
+extern schedule
 
-%macro pushState 0
-	push r15
-  lea r15, [rsp + 8] ; me guardo el stack pointer al entrar a la interrupción
-	push r14
-	push r13
-	push r12
-	push r11
-	push r10
-	push r9
-	push r8
-	push rsi
-	push rdi
-  push qword [r15 + 24] ; el rsp del contexto anterior (que se encuentra en el interrupt stack)
-	push rbp
-	push rdx
-	push rcx
-	push rbx
-	push rax
-  push qword [r15] ; el rip
-%endmacro
 
-%macro popState 0
-  pop r15 ; será sobreescrito
-	pop rax
-	pop rbx
-	pop rcx
-	pop rdx
-	pop rbp
-  pop r15 ; será sobreescrito
-	pop rdi
-	pop rsi
-	pop r8
-	pop r9
-	pop r10
-	pop r11
-	pop r12
-	pop r13
-	pop r14
-	pop r15
-%endmacro
+section .text
 
-%macro irqHandler 1
-  push rax
-  mov rdi, %1
+timerTickIrqHandler:
+  ; irqHandler 0
+  pushGpr
+
+  mov rdi, rsp
+  call schedule
+  mov rsp, rax
+
+  ; Increase timer tick
+  mov rdi, 0
   call irqDispatcher
-  mov al, 0x20
-  out 0x20, al
-  pop rax
-  iretq
-%endmacro
 
-irq00Handler:
-  irqHandler 0
-irq01Handler:
+  popGpr
+  eoi
+  iretq
+
+asdfInterruption:
+  int 0x22
+  ret
+
+asdf:
+  pushGpr
+  mov rdi, rsp
+  call schedule
+  mov rsp, rax
+  popGpr
+  eoi
+  iretq
+
+keyboardIrqHandler:
+.captureRegisters:
   push rax
   call readKeyCode
   cmp al, 0x3b ; f1 para sacar captura de los registros
+  jne .nextProcess
   pop rax
-  jne .skip
   pushState
   push qword normalRegistersCode
   call saveRegisters
-  pop rax
+  add rsp, 8 ; remove the pushed normalRegistersCode from stack
   popState
-.skip:
-  irqHandler 1
-irq02Handler:
-  irqHandler 2
-irq03Handler:
-  irqHandler 3
-irq04Handler:
-  irqHandler 4
-irq05Handler:
-  irqHandler 5
-irq06Handler:
-  irqHandler 6
-irq07Handler:
-  irqHandler 7
-
-%macro exceptionHandler 1
-  pushState
-  push qword exceptionRegistersCode ; código para guardarlos en el arreglo de registros para excepciones, no el de hotkey
-  call saveRegisters
-  pop rax
-  popState
-  push rax
-  mov rdi, %1
-  call exceptionDispatcher
-  mov al, 0x20
-  out 0x20, al
-  pop rax
-  call getStackBase
-  mov [rsp+24], rax
-  mov rax, userland
-  mov [rsp], rax
+  eoi
   iretq
-%endmacro
+.nextProcess: ; Just for testing
+  cmp al, 0x3c ; f2
+  pop rax
+  jne .regularKeyPress
+.f2Press:
+  int 0x22
+  eoi
+  iretq
+.regularKeyPress:
+  irqHandler 1
 
 exception00Handler:
   exceptionHandler 0

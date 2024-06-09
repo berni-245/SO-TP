@@ -1,28 +1,27 @@
+#include <array.h>
+#include <circularHistoryBuffer.h>
 #include <shellUtils.h>
 
 extern uint8_t bss;
 
-// Circular buffer. Stores just the command indexes in the global screenBuffer.
-int commandHistory[MAX_HISTORY_LEN];
-// Where in the commandHistory the new command's index should go.
-int historyNewIdx = 0;
-// Stores where in the commandHistory we are standing while traversing it with
-// historyPrev and historyNext.
-int historyCurrentIdx = 0;
-// How many commands have been stored. Can't go back more than this.
-int historyCount = 0;
-// How many elements remain to go back through while traversing the commandHistory.
-int historyCurrentCount = 0;
-
-// Index in the screenBuffer of the start of the current command.
+CircularHistoryBuffer commandHistory;
 int currentCommandIdx = 0;
 
-static int commandReturnCode = 0;
+int commandReturnCode = 0;
+static int currentPromptLen = 0;
+
+Array currentCommand;
+
+void freeArrayPtr(Array* ele) {
+  Array_free(*ele);
+}
 
 int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
 
+  currentCommand = Array_initialize(sizeof(char), 100, NULL, NULL);
+  commandHistory = CHB_initialize(sizeof(Array), MAX_HISTORY_LEN, (FreeEleFn)freeArrayPtr, NULL);
 
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
@@ -37,10 +36,16 @@ int shell() {
       "getRegisters", "Get the values of the saved registers. \n    Available flags: --help", commandGetRegisters
   );
   addCommand("snake", "Play snake.", commandSnake);
-  addCommand("zeroDivisionError", "Test the zero division error", commandZeroDivisionError);
-  addCommand("invalidOpcodeError", "Test the invalid opcode error", commandInvalidOpcodeError);
   addCommand("mem", "View the state of the memory", commandGetMemoryState);
-  commandHelp();
+  addCommand("zeroDivisionError", "Test the zero division error.", commandZeroDivisionError);
+  addCommand("invalidOpcodeError", "Test the invalid opcode error.", commandInvalidOpcodeError);
+  addCommand("ps", "Print process list.", commandPs);
+  addCommand("testSem", "Test semaphores by using multiple processes to modifying shared variable.", commandTestSem);
+  addCommand("kill", "Kill process by pid.", commandKill);
+  addCommand("getpid", "Print pid for current process.", commandGetPid);
+
+  const char* argv[1] = {"help"};
+  sysWaitPid(sysCreateProcess(1, argv, commandHelp));
 
   newPrompt();
 
@@ -57,10 +62,7 @@ int shell() {
           decFont();
           break;
         case 'l':
-          clearScreen();
-          screenBufWriteIdx = 0;
-          screenBufReadIdx = 0;
-          newPrompt();
+          clearScreenKeepCommand();
           break;
         case 'w':
           deleteWord();
@@ -74,61 +76,66 @@ int shell() {
         }
       } else {
         if (key.character == '\n') {
-          if (screenBufWriteIdx != currentCommandIdx) historyPush();
-          resetHistoryCurrentVals();
           printChar(key.character);
           commandReturnCode = parseCommand();
           newPrompt();
+          Array_clear(currentCommand);
         } else if (key.character == '\b') {
           if (screenBufWriteIdx != currentCommandIdx) {
             printChar(key.character);
+            Array_pop(currentCommand);
           }
         } else if (key.character == '\t') {
           autocomplete();
         } else {
           printChar(key.character);
+          Array_push(currentCommand, &key.character);
         }
       }
     }
-  };
+  }
 
   return 1;
 }
 
 void clearLine() {
   while (screenBufWriteIdx != currentCommandIdx) printChar('\b');
+  Array_clear(currentCommand);
 }
 
-void resetHistoryCurrentVals() {
-  historyCurrentIdx = historyNewIdx;
-  historyCurrentCount = historyCount;
-}
-void historyPush() {
-  commandHistory[historyNewIdx] = currentCommandIdx;
-  incCircularIdx(&historyNewIdx, MAX_HISTORY_LEN);
-  if (historyCount < MAX_HISTORY_LEN) ++historyCount;
+void historyCopy(Array argv) {
+  clearLine();
+  int argc = Array_getLen(argv);
+  for (int i = 0; i < argc; ++i) {
+    const char* arg = Array_getVanillaArray(*(Array*)Array_get(argv, i));
+    for (int i = 0; arg[i] != 0; ++i) {
+      printChar(arg[i]);
+      Array_push(currentCommand, arg + i);
+    }
+    if (i < argc - 1) {
+      char c = ' ';
+      printChar(c);
+      Array_push(currentCommand, &c);
+    }
+  }
+  // while (screenBuffer[i] != '\n') {
+  //   printChar(screenBuffer[i]);
+  //   Array_push(currentCommand, screenBuffer + i);
+  //   incCircularIdx(&i, SCREEN_BUFFER_SIZE);
+  // }
 }
 void historyPrev() {
-  if (historyCurrentCount == 0) return;
-  decCircularIdx(&historyCurrentIdx, MAX_HISTORY_LEN);
-  --historyCurrentCount;
-  int i = commandHistory[historyCurrentIdx];
-  clearLine();
-  while (screenBuffer[i] != '\n') {
-    printChar(screenBuffer[i]);
-    incCircularIdx(&i, SCREEN_BUFFER_SIZE);
-  }
+  Array* argv = CHB_readPrev(commandHistory);
+  if (argv == NULL) return;
+  historyCopy(*argv);
 }
 void historyNext() {
-  if (historyCurrentCount >= historyCount - 1) return;
-  incCircularIdx(&historyCurrentIdx, MAX_HISTORY_LEN);
-  ++historyCurrentCount;
-  int i = commandHistory[historyCurrentIdx];
-  clearLine();
-  while (screenBuffer[i] != '\n') {
-    printChar(screenBuffer[i]);
-    incCircularIdx(&i, SCREEN_BUFFER_SIZE);
+  Array* argv = CHB_readNext(commandHistory);
+  if (argv == NULL) {
+    clearLine();
+    return;
   }
+  historyCopy(*argv);
 }
 
 int getCurrentChar() {
@@ -140,10 +147,12 @@ void deleteWord() {
   if (!strContains(wordSeps, getCurrentChar())) {
     do {
       printChar('\b');
+      Array_pop(currentCommand);
     } while (!strContains(wordSeps, getCurrentChar()));
   } else {
     do {
       printChar('\b');
+      Array_pop(currentCommand);
     } while (strContains(wordSeps, getCurrentChar()) && (screenBufWriteIdx != currentCommandIdx));
   }
 }
@@ -156,7 +165,6 @@ void setShellColors(uint32_t fontColor, uint32_t bgColor, uint32_t cursorColor) 
 
 static const char* const prompt = " > ";
 static const char* const errorPrompt = " >! ";
-static int currentPromptLen = 0;
 void newPrompt() {
   const char* currentPrompt;
   if (commandReturnCode == 0) {
@@ -170,25 +178,30 @@ void newPrompt() {
   currentCommandIdx = screenBufWriteIdx;
 }
 
+void clearScreenKeepCommand() {
+  int currentIdxLocal = currentCommandIdx;
+  decCircularIdxBy(&currentIdxLocal, currentPromptLen, SCREEN_BUFFER_SIZE);
+  screenBufReadIdx = currentIdxLocal;
+  repaint();
+}
+
 void incFont() {
   setFontSize(systemInfo.fontSize + 1);
-  screenBufReadIdx = currentCommandIdx - currentPromptLen;
-  if (screenBufReadIdx < 0) screenBufReadIdx = SCREEN_BUFFER_SIZE + screenBufReadIdx;
-  repaint();
+  clearScreenKeepCommand();
 }
 void decFont() {
   setFontSize(systemInfo.fontSize - 1);
   repaint();
 }
 
-static ShellCommand commands[MAX_COMMAND_COUNT];
-static int commandCount = 0;
+ShellCommand commands[MAX_COMMAND_COUNT];
+int commandCount = 0;
 void addCommand(char* name, char* description, ShellFunction function) {
   if (commandCount >= MAX_COMMAND_COUNT) return;
   ShellCommand newCommand = {.name = name, .description = description, .function = function};
   commands[commandCount++] = newCommand;
 }
-ShellFunction getCommand(char* name) {
+ShellFunction getCommand(const char* name) {
   for (int i = 0; i < commandCount; ++i) {
     if (strcmp(name, commands[i].name) == 0) return commands[i].function;
   }
@@ -197,14 +210,17 @@ ShellFunction getCommand(char* name) {
 
 void autocomplete() {
   int matchCount = 0, matchIdx = 0, len = 0;
-  screenBuffer[screenBufWriteIdx] = 0;
+  // screenBuffer[screenBufWriteIdx] = 0;
+  const char* cc= Array_getVanillaArray(currentCommand);
+  int ccLen = Array_getLen(currentCommand);
   for (int i = 0; i < commandCount; ++i) {
     char* command = commands[i].name;
     bool match = true;
     int k = 0;
-    for (int j = currentCommandIdx; screenBuffer[j] != 0 && command[k] != 0 && match; ++j, ++k) {
-      if (screenBuffer[j] == ' ') return;
-      else if (screenBuffer[j] != command[k]) match = false;
+    // Needs to be updated to use currentCommand array.
+    for (int j = 0; j < ccLen && command[k] != 0 && match; ++j, ++k) {
+      if (cc[j] == ' ') return;
+      else if (cc[j] != command[k]) match = false;
     }
     if (match && command[k] != 0) {
       ++matchCount;
@@ -214,258 +230,75 @@ void autocomplete() {
     }
   }
   if (matchCount == 0) return;
-  printString(commands[matchIdx].name + len);
+  // printString(commands[matchIdx].name + len);
+  for (int i = len; commands[matchIdx].name[i] != 0; ++i) {
+    printChar(commands[matchIdx].name[i]);
+    Array_push(currentCommand, commands[matchIdx].name + i);
+  }
+}
+
+ShellFunction verifyCommand(Array argv) {
+  Array arg = *(Array*)Array_get(argv, 0);
+  const char* argv0 = Array_getVanillaArray(arg);
+  ShellFunction command = getCommand(argv0);
+  if (command == NULL) {
+    printf("%s: %s\n", CommandResultStrings[COMMAND_NOT_FOUND], argv0);
+    Array_free(argv);
+    return NULL;
+  }
+  return command;
 }
 
 ExitCode parseCommand() {
-  // Upto MAX_ARG_COUNT arguments (including the actual command)
-  // of MAX_COMMAND_LEN characters each (+1 for null termination).
-  char argv[MAX_ARG_COUNT][MAX_ARG_LEN];
-  int i = currentCommandIdx;
-  int len = 0;
-  int argc = 0;
+  Array argv = Array_initialize(sizeof(Array), 10, (FreeEleFn)freeArrayPtr, NULL);
   ShellFunction command;
-  incCircularIdxBy(&i, strTrimStartOffset(screenBuffer + i), SCREEN_BUFFER_SIZE);
-  while (argc < MAX_ARG_COUNT) {
-    if (screenBuffer[i] != ' ' && screenBuffer[i] != '\n' && len < MAX_ARG_LEN) {
-      argv[argc][len++] = screenBuffer[i];
-      incCircularIdx(&i, SCREEN_BUFFER_SIZE);
-    } else {
-      argv[argc][len] = 0;
-      if (len == MAX_ARG_LEN) {
-        printf("%s: %s...\n", CommandResultStrings[ARGUMENT_TOO_LONG], argv[argc]);
-        return ARGUMENT_TOO_LONG;
-      }
-      if (argc == 0) {
-        if (argv[0][0] == 0) return SUCCESS;
-        command = getCommand(argv[0]);
-        if (command == NULL) {
-          printf("%s: %s\n", CommandResultStrings[COMMAND_NOT_FOUND], argv[0]);
-          return COMMAND_NOT_FOUND;
+  Array arg = NULL;
+  const char* cc = Array_getVanillaArray(currentCommand);
+  int commandLength = Array_getLen(currentCommand);
+  bool newWord = true;
+  for (int i = 0; i < commandLength; ++i) {
+    if (cc[i] == ' ') newWord = true;
+    else {
+      if (newWord) {
+        if (arg != NULL) {
+          char end = 0;
+          Array_push(arg, &end);
         }
+        // Added this check here too so we can exit immediately if the first argument
+        // parsed isn't a valid command.
+        if (Array_getLen(argv) == 1) {
+          command = verifyCommand(argv);
+          if (!command) return COMMAND_NOT_FOUND;
+        }
+        arg = Array_initialize(sizeof(char), 30, NULL, NULL);
+        Array_push(argv, &arg);
+        newWord = false;
       }
-      if (len != 0) {
-        ++argc;
-        len = 0;
-      }
-      if (screenBuffer[i] == '\n') {
-        return command(argc, argv);
-      }
-      incCircularIdx(&i, SCREEN_BUFFER_SIZE);
-      incCircularIdxBy(&i, strTrimStartOffset(screenBuffer + i), SCREEN_BUFFER_SIZE);
+      Array_push(arg, cc + i);
     }
   }
-  puts(CommandResultStrings[TOO_MANY_ARGUMENTS]);
-  return TOO_MANY_ARGUMENTS;
-}
 
-ExitCode commandEcho(int argc, char argv[argc][MAX_ARG_LEN]) {
-  // Starts at 1 because first arg is the command name
-  for (int i = 1; i < argc; ++i) {
-    printf("%s ", argv[i]);
+  int argc = Array_getLen(argv);
+  if (argc == 0) return SUCCESS;
+  else if (argc == 1) {
+    command = verifyCommand(argv);
+    if (!command) return COMMAND_NOT_FOUND;
   }
-  printChar('\n');
-  return SUCCESS;
-}
 
-ExitCode commandGetReturnCode() {
-  printf("%s - Code: %d\n", CommandResultStrings[commandReturnCode], commandReturnCode);
-  return SUCCESS;
-}
-
-ExitCode commandRealTime() {
-  Time currentTime;
-  sysGetCurrentTime(&currentTime);
-  printf("%s\n", currentTime.string);
-  return SUCCESS;
-}
-
-ExitCode commandHelp() {
-  printString("Available commands:\n");
-  for (int i = 0; i < commandCount; ++i) {
-    printf("\t- %s: %s\n", commands[i].name, commands[i].description);
+  const char* realArgv[argc];
+  for (int i = 0; i < argc; ++i) {
+    realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
   }
-  return SUCCESS;
-}
-
-ExitCode commandGetKeyInfo() {
-  KeyStruct key;
-  while (1) {
-    sysHalt();
-    if (getKey(&key) != EOF) {
-      if (justCtrlMod(&key) && key.character == 'c') return SUCCESS;
-      else {
-        printKey(&key);
-      }
-    }
-  }
-  return SUCCESS;
-}
-
-ExitCode commandRand(int argc, char argv[argc][MAX_ARG_LEN]) {
-  static bool randInitialized = false;
-  if (!randInitialized) {
-    setSrand(sysGetTicks());
-    randInitialized = true;
-  }
-  if (argc < 3) {
-    puts("Usage:");
-    printf("\t\t%s <min> <max> [count]\n", argv[0]);
-    printf("Where all arguments are integers and count is optional.\n");
-    return MISSING_ARGUMENTS;
-  }
-  int min = strToInt(argv[1]);
-  int max = strToInt(argv[2]);
-  if (max < min) {
-    printf("Error: min (%d) can't be greater than max (%d)\n", min, max);
-    return ILLEGAL_ARGUMENT;
-  }
-  int count = (argc > 3) ? strToInt(argv[3]) : 1;
-  while (count--) {
-    printf("%d%s", randBetween(min, max), (count == 0) ? "" : ", ");
-  }
-  printf("\n");
-  return SUCCESS;
-}
-
-ExitCode commandLayout(int argc, char argv[argc][MAX_ARG_LEN]) {
-  if (argc == 1) {
-    printf("Current layout: %s - %d\n", LayoutStrings[systemInfo.layout], systemInfo.layout);
-    return SUCCESS;
-  }
-  if (strcmp(argv[1], "--help") == 0) {
-    printf("Usage\n");
-    printf("\t\t%s [option] [layout]\n", argv[0]);
-    printf("Options:\n");
-    printf("\t\t--help    print this help message.\n");
-    printf("\t\t--list    list all available layouts.\n");
-    printf("If `layout` is not included then get current layout. If `layout` included then set system layout.\n");
-    printf("`layout` should be a valid code. To see valid values for the"
-           "`layout` argument use the --list option\n");
-  } else if (strcmp(argv[1], "--list") == 0) {
-    printf("- %s: %d\n", LayoutStrings[QWERTY_LATAM], QWERTY_LATAM);
-    printf("- %s: %d\n", LayoutStrings[QWERTY_US], QWERTY_US);
+  int ret;
+  if (strcmp(realArgv[argc - 1], "&") == 0) {
+    int pid = sysCreateProcess(Array_getLen(argv) - 1, realArgv, command);
+    printf("Running in background '%s', pid: %d\n", realArgv[0], pid);
+    ret = SUCCESS;
   } else {
-    int code = strToInt(argv[1]);
-    if (code != QWERTY_LATAM && code != QWERTY_US) {
-      printf("Layout not available: %s\n", argv[1]);
-      return ILLEGAL_ARGUMENT;
-    }
-    setLayout(code);
-    printf("Layout set to %s\n", LayoutStrings[code]);
+    int pid = sysCreateProcess(argc, realArgv, command);
+    ret = sysWaitPid(pid);
   }
-  return SUCCESS;
-}
-
-ExitCode commandSetColors(int argc, char (*argv)[MAX_ARG_LEN]) {
-  if (argc < 4) {
-    puts("Usage:");
-    printf("\t\t%s <fontColor> <backgroundColor> <cursorColor>\n", argv[0]);
-    printf("Where all arguments should be hex colors.\n");
-    return MISSING_ARGUMENTS;
-  }
-  int fontColor = strToInt(argv[1]);
-  int bgColor = strToInt(argv[2]);
-  int cursorColor = strToInt(argv[3]);
-  setFontColor(fontColor);
-  setBgColor(bgColor);
-  setCursorColor(cursorColor);
-  repaint();
-  return SUCCESS;
-}
-
-ExitCode commandSysInfo() {
-  printf("screenWidth: %d\n", systemInfo.screenWidth);
-  printf("screenHeight: %d\n", systemInfo.screenHeight);
-  printf("charWidth: %d\n", systemInfo.charWidth);
-  printf("charHeight: %d\n", systemInfo.charHeight);
-  printf("layout: %d\n", systemInfo.layout);
-  printf("fontSize: %d\n", systemInfo.fontSize);
-  printf("charSeparation: %d\n", systemInfo.charSeparation);
-  printf("fontCols: %d\n", systemInfo.fontCols);
-  printf("fontRows: %d\n", systemInfo.fontRows);
-  return SUCCESS;
-}
-
-ExitCode commandGetRegisters(int argc, char argv[argc][MAX_ARG_LEN]) {
-  if (argc >= 2 && strcmp(argv[1], "--help") == 0) {
-    puts("Usage:");
-    printf("\t\t%s\n", argv[0]);
-    printf("You can save the values of the registers at any time by pressing F1 "
-           "and by running this command without this flag it will print the saved "
-           "values of the registers.\n");
-    return SUCCESS;
-  }
-  Register registers[REGISTER_QUANTITY];
-  sysGetRegisters(registers);
-  // Print 3 registers per row.
-  for (int i = 0; i < REGISTER_QUANTITY; i++) {
-    printf("%s %016lx ", registers[i].name, registers[i].value);
-    if (i % 3 == 0) printf("\n");
-  }
-  printf("\n");
-  printf("For more info add --help to the command\n");
-  return SUCCESS;
-}
-
-void commandSnakeUsage(char* commandName) {
-  puts("Usage:");
-  printf("\t\t%s [options] <player1Name> [player2Name]\n", commandName);
-  printf("Options:\n");
-  printf("\t\t--mute    don't play any sounds.\n");
-  printf("Player 1 moves with wasd, player 2 with ijkl. Other keybinds are:\n");
-  printf(" ctrl + r: reset game\n");
-  printf(" ctrl + x: lose game\n");
-  printf(" ctrl + c: exit game\n");
-}
-
-ExitCode commandSnake(int argc, char argv[argc][MAX_ARG_LEN]) {
-  if (argc < 2) {
-    commandSnakeUsage(argv[0]);
-    return MISSING_ARGUMENTS;
-  } else {
-    int argIdx = 1;
-    int playerCount = argc - 1;
-    bool mute = false;
-    if (strcmp(argv[argIdx], "--mute") == 0) {
-      mute = true;
-      ++argIdx;
-      --playerCount;
-    }
-    if (playerCount < 1) {
-      commandSnakeUsage(argv[0]);
-      return MISSING_ARGUMENTS;
-    }
-    uint32_t fontColor = getFontColor();
-    uint32_t bgColor = getBgColor();
-    uint32_t cursorColor = getCursorColor();
-    if (playerCount == 1) {
-      snake(false, argv[argIdx], "", mute);
-    } else {
-      snake(true, argv[argIdx], argv[argIdx + 1], mute);
-    }
-    setShellColors(fontColor, bgColor, cursorColor);
-  }
-  repaint();
-  return SUCCESS;
-}
-ExitCode commandZeroDivisionError() {
-  // Always set srand because after the exception the modules starts anew
-  // and srand is zero again.
-  setSrand(sysGetTicks());
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiv-by-zero"
-  return rand() / 0;
-#pragma GCC diagnostic pop
-}
-
-ExitCode commandGetMemoryState(){
-  char* memState = sysGetMemoryState();
-  if(memState == NULL){
-    printf("All the memory is being used\n");
-    return SUCCESS;
-  }
-  printf("%s\n", memState);
-  sysFree(memState);
-  return SUCCESS;
+  // Array_free(argv);
+  CHB_push(commandHistory, &argv);
+  return ret;
 }

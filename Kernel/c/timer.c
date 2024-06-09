@@ -1,10 +1,11 @@
 #include <interruptions.h>
 #include <timer.h>
+#include <scheduler.h>
 
 static double freq = 65536 / 3600.0; // interruptions/second
 static unsigned long ticks = 0;
 
-void timerTick() {
+void incTicks() {
   ticks++;
 }
 

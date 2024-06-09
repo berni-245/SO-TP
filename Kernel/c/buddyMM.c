@@ -11,7 +11,6 @@ typedef enum { LEFT = 'L', RIGHT = 'R' } blockAlignment;
 #define ORDER_COUNT 27
 // 2^(ORDER_COUNT-1) bytes
 #define MAX_MEMORY_AVAILABLE (1 << (ORDER_COUNT - 1))
-#define NULL (void *) 0
 
 static const uint64_t addressByteSize = sizeof(void*);
 

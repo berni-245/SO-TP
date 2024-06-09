@@ -1,0 +1,8 @@
+# Documentation: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+PointerAlignment: Left
+AlignAfterOpenBracket: BlockIndent
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: true
+ColumnLimit: 120
+AllowShortFunctionsOnASingleLine: None

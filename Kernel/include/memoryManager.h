@@ -5,11 +5,13 @@
 
 #include <stdint.h>
 
+#define NULL (void*)0
+
 void* malloc(uint64_t size);
 void free(void* ptr);
 void memoryInit(void* heapStart);
 // must be freed upon finishing it's use
-char * getMemoryState();
-
+char* getMemoryState();
+void stackAlloc(void** stackStart, void** stackEnd);
 
 #endif
