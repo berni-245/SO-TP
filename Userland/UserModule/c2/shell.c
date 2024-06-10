@@ -43,6 +43,7 @@ int shell() {
   addCommand("invalidOpcodeError", "Test the invalid opcode error.", commandInvalidOpcodeError);
   addCommand("ps", "Print process list.", commandPs);
   addCommand("testSem", "Test semaphores by using multiple processes to modifying shared variable.", commandTestSem);
+  addCommand("testMM", "Test Memory manager.", commandTestMM);
   addCommand("kill", "Kill process by pid.", commandKill);
   addCommand("nice", "Change priority of a process by pid", commandNice);
   addCommand("getpid", "Print pid for current process.", commandGetPid);

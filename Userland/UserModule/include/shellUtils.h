@@ -92,5 +92,6 @@ void commandPhylo(int argc, char* argv[argc]);
 void commandNice(int argc, char* argv[argc]);
 void commandBlock(int argc, char* argv[argc]);
 void commandUnBlock(int argc, char* argv[argc]);
+void commandTestMM(int argc, char *argv[]);
 
 #endif
