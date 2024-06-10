@@ -1,3 +1,4 @@
+#include <lib.h>
 #include <memoryManager.h>
 
 // 4KB stack size
@@ -33,4 +34,12 @@ void stackAlloc(void** stackStart, void** stackEnd) {
   *stackEnd = malloc(stackSize);
   *stackStart = *stackEnd + stackSize - 1;
   *stackStart = (void*)(((uint64_t)*stackStart - addressByteSize) & ~(addressByteSize - 1));
+}
+
+void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize) {
+  void* mem = malloc(newSize);
+  if (mem == NULL) return NULL;
+  memcpy(mem, ptr, oldSize);
+  free(ptr);
+  return mem;
 }

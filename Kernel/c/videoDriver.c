@@ -1,5 +1,6 @@
 #include <lib.h>
 #include <videoDriver.h>
+#include <utils.h>
 
 struct vbe_mode_info_structure {
   uint16_t attributes; // deprecated, only bit 7 should be of interest
@@ -62,7 +63,7 @@ static int charSeparation = 3;
 static int cursorCol = 0;
 static int cursorRow = 0;
 
-static uint32_t uintToBase(uint64_t value, char* buffer, uint32_t base);
+// static uint32_t uintToBase(uint64_t value, char* buffer, uint32_t base);
 
 void setFontGridValues() {
   fontCols = VBE_mode_info->width / (ASCII_BF_WIDTH * fontSize + charSeparation);
@@ -175,6 +176,12 @@ void printNextString(const char* str) {
   }
 }
 
+void printNextBuf(const char* buf, uint32_t len) {
+  for (int i = 0; i < len; i++) {
+    printNextChar(buf[i]);
+  }
+}
+
 void printNextBase(uint64_t value, uint32_t base) {
   char buffer[getScreenWidth()];
   uintToBase(value, buffer, base);
@@ -278,33 +285,4 @@ void setColor(ColorType c, uint32_t hexColor) {
 void clearScreen() {
   fillRectangle(0, 0, VBE_mode_info->width, VBE_mode_info->height, bgColor);
   moveCursor(0, 0);
-}
-
-static uint32_t uintToBase(uint64_t value, char* buffer, uint32_t base) {
-  char* p = buffer;
-  char *p1, *p2;
-  uint32_t digits = 0;
-
-  // Calculate characters for each digit
-  do {
-    uint32_t remainder = value % base;
-    *p++ = (remainder < 10) ? remainder + '0' : remainder + 'A' - 10;
-    digits++;
-  } while (value /= base);
-
-  // Terminate string in buffer.
-  *p = 0;
-
-  // Reverse string in buffer.
-  p1 = buffer;
-  p2 = p - 1;
-  while (p1 < p2) {
-    char tmp = *p1;
-    *p1 = *p2;
-    *p2 = tmp;
-    p1++;
-    p2--;
-  }
-
-  return digits;
 }

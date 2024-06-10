@@ -8,6 +8,10 @@
 #define NULL (void*)0
 #define EOF -1
 
+#define stdout 0
+#define stdin 1
+#define stderr 2
+
 #define MAX_PADDING_DIGITS 2
 
 #define TO_LOWER(c) ((c >= 'A' && c <= 'Z') ? (c + 'a' - 'A') : c)

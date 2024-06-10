@@ -1,8 +1,10 @@
 #include <memoryManager.h>
+#include <pipes.h>
 #include <scheduler.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <utils.h>
+#include <videoDriver.h>
 
 // El priority based scheduling funciona así:
 // - Arranco desde el primer proceso de la pcbList.
@@ -10,7 +12,7 @@
 //   - Esto si se puede quizá convendría que sean 4 quantums seguidos sin context switching.
 // - Luego de las n veces paso al siguiente proceso de la lista.
 
-const char* const StateStrings[4] = {"READY", "RUNNING", "BLOCKED", "EXITED"};
+const char* const StateStrings[] = {"READY", "RUNNING", "BLOCKED", "EXITED", "W-EXIT"};
 
 typedef struct PCBNode {
   PCB* pcb;
@@ -37,7 +39,12 @@ PCB* processInForeground;
 PCBList pcbList;
 PCBNode* idleProcPCBNode;
 
-PCB* createPCB(uint32_t pid, uint8_t priority, State state, void* stack, void* rsp, void* rbp, char* name) {
+PCBNode* createPCBNode(
+    uint32_t pid, uint8_t priority, State state, void* stack, void* rsp, void* rbp, char* name, ProcessPipes pipes
+) {
+  PCBNode* node = malloc(sizeof(PCBNode));
+  node->next = NULL;
+
   PCB* pcb = malloc(sizeof(PCB));
   pcb->pid = pid;
   pcb->priority = priority;
@@ -46,23 +53,17 @@ PCB* createPCB(uint32_t pid, uint8_t priority, State state, void* stack, void* r
   pcb->rsp = rsp;
   pcb->rbp = rbp;
   pcb->name = name;
-  // pcb->exitCode = 0;
   pcb->parentProc = pcbList.current->pcb;
   pcb->wfmLen = 0;
+  pcb->pipes = pipes;
 
-  return pcb;
-}
-
-PCBNode* createPCBNode(uint32_t pid, uint8_t priority, State state, void* stack, void* rsp, void* rbp, char* name) {
-  PCBNode* node = malloc(sizeof(PCBNode));
-  node->next = NULL;
-  node->pcb = createPCB(pid, priority, state, stack, rsp, rbp, name);
+  node->pcb = pcb;
 
   return node;
 }
 
-void addPCB(uint32_t pid, void* stack, void* rsp, void* rbp, char* name) {
-  PCBNode* node = createPCBNode(pid, 1, READY, stack, rsp, rbp, name);
+void addPCB(uint32_t pid, void* stack, void* rsp, void* rbp, char* name, ProcessPipes pipes) {
+  PCBNode* node = createPCBNode(pid, 1, READY, stack, rsp, rbp, name, pipes);
 
   if (pcbList.head == NULL) {
     pcbList.head = node;
@@ -114,7 +115,8 @@ void initializePCBList() {
   void* stackEnd;
   stackAlloc(&stackStart, &stackEnd);
   void* rsp = initializeProcessStack(0, NULL, idleProc, stackStart);
-  idleProcPCBNode = createPCBNode(-1, 1, READY, stackEnd, rsp, rsp, NULL);
+  ProcessPipes pipes = {.write = stdout, .read = stdin, .err = stderr};
+  idleProcPCBNode = createPCBNode(-1, 1, READY, stackEnd, rsp, rsp, "idle", pipes);
   pcbList.head = NULL;
   pcbList.tail = NULL;
   pcbList.current = NULL;
@@ -200,7 +202,7 @@ argc = 3
 0xXXXXX  00 00 00 00 00 00 00 00
  */
 static uint32_t pid = 0;
-void* createProcess(int argc, const char* argv[], void* processRip) {
+void* createProcess(int argc, const char* argv[], void* processRip, ProcessPipes pipes) {
   void* stackStart;
   void* stackEnd;
   stackAlloc(&stackStart, &stackEnd);
@@ -212,21 +214,28 @@ void* createProcess(int argc, const char* argv[], void* processRip) {
     arg = arg + j + 1;
   }
   void* rsp = initializeProcessStack(argc, argvStack, processRip, stackStart);
-  addPCB(pid++, stackEnd, rsp, stackStart, argvStack[0]);
+  addPCB(pid++, stackEnd, rsp, stackStart, argvStack[0], pipes);
   return rsp;
 }
 
 void* createUserModuleProcess() {
   const char* argv[1] = {"init"};
-  void* rsp = createProcess(1, argv, userModule);
+  ProcessPipes pipes = {.write = stdout, .read = stdin, .err = stderr};
+  void* rsp = createProcess(1, argv, userModule, pipes);
   nextPCB();
   processInForeground = pcbList.current->pcb;
   pcbList.current->pcb->parentProc = NULL;
   return rsp;
 }
 
+uint32_t createUserProcessWithPipeSwap(int argc, const char* argv[], void* processRip, ProcessPipes pipes) {
+  createProcess(argc, argv, processRip, pipes);
+  return pid - 1;
+}
+
 uint32_t createUserProcess(int argc, const char* argv[], void* processRip) {
-  createProcess(argc, argv, processRip);
+  ProcessPipes pipes = {.write = stdout, .read = stdin, .err = stderr};
+  createProcess(argc, argv, processRip, pipes);
   return pid - 1;
 }
 
@@ -337,7 +346,28 @@ void killCurrentProcessInForeground() {
 
 void changePriority(uint32_t pid, uint32_t newPriority) {
   PCB* pcb = getPCBByPid(pid);
-  if(pcb != NULL){
+  if (pcb != NULL) {
     pcb->priority = newPriority;
   }
+}
+
+void changePipeRead(int p) {
+  pcbList.current->pcb->pipes.read = p;
+}
+
+void changePipeWrite(int p) {
+  pcbList.current->pcb->pipes.write = p;
+}
+
+uint64_t read(char* buf, int len) {
+  return readPipe(pcbList.current->pcb->pipes.read, buf, len);
+}
+
+uint64_t write(const char* buf, int len) {
+  int pipeWrite = pcbList.current->pcb->pipes.write;
+  if (pipeWrite == stdout) {
+    printNextBuf(buf, len);
+    return len;
+  }
+  return writePipe(pipeWrite, buf, len);
 }

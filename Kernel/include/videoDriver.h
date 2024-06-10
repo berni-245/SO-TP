@@ -33,6 +33,7 @@ void printCharXY(int x, int y, char c, int fontSize);
 void printChar(int col, int row, char c);
 void printNextChar(char c);
 void printNextString(const char* str);
+void printNextBuf(const char* buf, uint32_t len);
 void printNextBase(uint64_t value, uint32_t base);
 void printNextDec(uint64_t value);
 void printNextHex(uint64_t value);

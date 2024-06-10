@@ -3,10 +3,10 @@
 #include <lib.h>
 #include <memoryManager.h>
 #include <moduleLoader.h>
-#include <stdint.h>
-#include <videoDriver.h>
+#include <pipes.h>
 #include <scheduler.h>
 #include <semaphores.h>
+#include <stdint.h>
 #include <videoDriver.h>
 
 // extern uint8_t kernelText;
@@ -56,7 +56,8 @@ int main() {
   initializeFrameBuffer();
   setFontGridValues();
   initializePCBList();
-  mySemBirth();
+  initializeSemaphores();
+  initializePipes();
 
   // userModule();
   startUserModule();

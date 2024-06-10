@@ -1,4 +1,6 @@
+#include "time.h"
 #include <shellUtils.h>
+#include <stdlib.h>
 #include <syscalls.h>
 
 void commandEcho(int argc, char* argv[argc]) {
@@ -275,6 +277,7 @@ void commandLoop(int argc, char* argv[argc]) {
     sysExit(MISSING_ARGUMENTS);
   }
   int secs = strToInt(argv[1]);
+  printf("secs: %d", secs);
   if (secs > 0) {
     while (1) {
       sysSleep(secs * 1000);
@@ -294,5 +297,51 @@ void commandNice(int argc, char* argv[argc]) {
   if (newPriority <= 0 || newPriority >= 10) sysExit(ILLEGAL_ARGUMENT);
 
   sysChangePriority(strToInt(argv[1]), newPriority);
+  sysExit(SUCCESS);
+}
+
+void pipeWriter() {
+  char buf[400] = "Holalala carolalalal: ";
+  int i = 0;
+  int writeLen = 5;
+  while (true) {
+    int strLen = 22 + intToBase(i++, buf + 22, 10);
+    int len = 0;
+    while (len < strLen) {
+      len += sysWrite(buf + len, writeLen);
+    }
+  }
+  sysExit(PROCESS_FAILURE);
+}
+void pipeReader() {
+  char buf[200];
+  int i = 0;
+  while (true) {
+    i = sysRead(buf, 20);
+    buf[i] = 0;
+    printf("Read %d character:\n", i);
+    printf("%s\n", buf);
+    sleep(1000);
+  }
+  sysExit(PROCESS_FAILURE);
+}
+void commandTestPipes(int argc, char* argv[argc]) {
+  if (argc < 2) {
+    printf("Usage: %s <pipeIdx>\n", argv[0]);
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+
+  int pipe = strToInt(argv[1]);
+  const char* argv2[] = {"pipeWriter"};
+  ProcessPipes pipes = {.write = pipe, .read = stdin, .err = stderr};
+  int pidWriter = sysCreateProcessWithPipeSwap(1, argv2, pipeWriter, pipes);
+  argv2[0] = "pipeReader";
+  pipes.write = stdout;
+  pipes.read = pipe;
+  int pidReader = sysCreateProcessWithPipeSwap(1, argv2, pipeReader, pipes);
+
+  sysWaitPid(pidWriter);
+  sysWaitPid(pidReader);
+
   sysExit(SUCCESS);
 }

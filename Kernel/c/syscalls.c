@@ -1,8 +1,8 @@
 #include <clock.h>
 #include <interruptions.h>
 #include <keyboard.h>
-#include <memoryManager.h>
 #include <lib.h>
+#include <memoryManager.h>
 #include <pcSpeaker.h>
 #include <registers.h>
 #include <scheduler.h>
@@ -36,11 +36,14 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)free,
     (SyscallFunction)getMemoryState,
     (SyscallFunction)createUserProcess,
+    (SyscallFunction)createUserProcessWithPipeSwap,
     (SyscallFunction)exitCurrentProcess,
     (SyscallFunction)waitPid,
     (SyscallFunction)getPCBList,
+    (SyscallFunction)semInit,
     (SyscallFunction)createSemaphore,
     (SyscallFunction)destroySemaphore,
+    (SyscallFunction)destroySemaphoreByName,
     (SyscallFunction)waitSemaphore,
     (SyscallFunction)postSemaphore,
     (SyscallFunction)openSemaphore,
@@ -49,6 +52,10 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)kill,
     (SyscallFunction)sleep,
     (SyscallFunction)changePriority,
+    (SyscallFunction)changePipeRead,
+    (SyscallFunction)changePipeWrite,
+    (SyscallFunction)read,
+    (SyscallFunction)write,
 };
 
 SyscallFunction* getSyscallsArray() {

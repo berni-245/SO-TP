@@ -6,7 +6,7 @@
 #include <sysinfo.h>
 
 int getKey(KeyStruct* key) {
-  int read = sysRead(key, 1);
+  int read = sysGetKey(key, 1);
   return (read == 0) ? EOF : read;
 }
 
@@ -36,19 +36,6 @@ void clearScreen() {
   clearRectangle(0, 0, systemInfo.screenWidth, systemInfo.screenHeight);
 }
 
-void jumpLine() {
-  int i = screenBufReadIdx;
-  int length = 0;
-  while (/* i != screenBufWriteIdx --> this should always be the case &&  */
-         screenBuffer[i] != '\n' && length < systemInfo.fontCols
-  ) {
-    i = (i + 1) % SCREEN_BUFFER_SIZE;
-    ++length;
-  }
-  if (screenBuffer[i] == '\n') ++length;
-  incReadIdxBy(length);
-}
-
 void printScreenBuffer() {
   for (int i = screenBufReadIdx; i != screenBufWriteIdx; i = (i + 1) % SCREEN_BUFFER_SIZE) {
     sysWriteCharNext(screenBuffer[i]);
@@ -61,7 +48,7 @@ void repaint() {
 }
 
 void printChar(char c) {
-  sysWriteCharNext(c);
+  sysWrite(&c, 1);
   if (c == '\b') {
     decWriteIdx();
   } else {

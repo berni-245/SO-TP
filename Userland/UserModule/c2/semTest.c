@@ -59,7 +59,7 @@ void commandTestSem(int argc, char* argv[argc]) {
   const char* argvInc[] = {"my_process_inc", argv[1], "1", argv[2]};
 
   globalForSemTest = strToInt(argv[3]);
-  sysCreateSemaphore(SEM_NAME, 1);
+  int sem = sysCreateSemaphore(SEM_NAME, 1);
   for (int i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
     pids[i] = sysCreateProcess(sizeof(argvDec) / sizeof(argvDec[0]), argvDec, my_process_inc);
     pids[i + TOTAL_PAIR_PROCESSES] = sysCreateProcess(sizeof(argvDec) / sizeof(argvDec[0]), argvInc, my_process_inc);
@@ -71,6 +71,6 @@ void commandTestSem(int argc, char* argv[argc]) {
   }
 
   printf("Final value: %li\n", globalForSemTest);
-  sysDestroySemaphore(SEM_NAME);
+  sysDestroySemaphore(sem);
   sysExit(SUCCESS);
 }

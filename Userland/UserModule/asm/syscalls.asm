@@ -6,8 +6,7 @@ global sysInfo
 global sysSetLayout
 global sysSetFontSize
 global sysSetColor
-global sysRead
-global sysWrite
+global sysGetKey
 global sysWriteCharXY
 global sysWriteCharNext
 global sysMoveCursor
@@ -23,8 +22,10 @@ global sysCreateProcess
 global sysExit
 global sysWaitPid
 global sysPCBList
+global sysSemInit
 global sysCreateSemaphore
 global sysDestroySemaphore
+global sysDestroySemaphoreByName
 global sysWaitSem
 global sysPostSem
 global sysOpenSem
@@ -33,6 +34,11 @@ global sysGetPid
 global sysKill
 global sysSleep
 global sysChangePriority
+global sysChangePipeRead
+global sysChangePipeWrite
+global sysRead
+global sysWrite
+global sysCreateProcessWithPipeSwap
 
 %macro syscall 1
   mov r9, %1
@@ -53,7 +59,7 @@ sysSetFontSize:
   syscall 4
 sysSetColor:
   syscall 5
-sysRead:
+sysGetKey:
   syscall 6
 sysWriteCharXY:
   syscall 7
@@ -79,29 +85,43 @@ sysGetMemoryState:
   syscall 17
 sysCreateProcess:
   syscall 18
-sysExit:
+sysCreateProcessWithPipeSwap:
   syscall 19
-sysWaitPid:
+sysExit:
   syscall 20
-sysPCBList:
+sysWaitPid:
   syscall 21
-sysCreateSemaphore:
+sysPCBList:
   syscall 22
-sysDestroySemaphore:
+sysSemInit:
   syscall 23
-sysWaitSem:
+sysCreateSemaphore:
   syscall 24
-sysPostSem:
+sysDestroySemaphore:
   syscall 25
-sysOpenSem:
+sysDestroySemaphoreByName:
   syscall 26
-sysMemcpy:
+sysWaitSem:
   syscall 27
-sysGetPid:
+sysPostSem:
   syscall 28
-sysKill:
+sysOpenSem:
   syscall 29
-sysSleep:
+sysMemcpy:
   syscall 30
-sysChangePriority:
+sysGetPid:
   syscall 31
+sysKill:
+  syscall 32
+sysSleep:
+  syscall 33
+sysChangePriority:
+  syscall 34
+sysChangePipeRead:
+  syscall 35
+sysChangePipeWrite:
+  syscall 36
+sysRead:
+  syscall 37
+sysWrite:
+  syscall 38

@@ -1,150 +1,153 @@
+#include <array.h>
 #include <scheduler.h>
 #include <semaphores.h>
 #include <utils.h>
 
-#define ERROR (-1)
+// #define ERROR (-1)
+#define INITIAL_CAPACITY 50
 
-semaphores_pos sem_array[MAX_SEMAPHORES];
+// semaphores_pos sem_array[MAX_SEMAPHORES];
 uint32_t size;
 
+Array semArray;
+Array freedPositions;
 
-sem_t semFinder(char* sem_name) {
-  if (!size) return ERROR;
-  for (int i = 0; i < MAX_SEMAPHORES; i++) {
-    if (sem_array[i].is_used) {
-      if (strcmp(sem_array[i].sem->name, sem_name) == 0) return i;
-    }
-  }
-  return ERROR;
+sem_t findName(char* name);
+
+void initializeSemaphores() {
+  semArray = Array_initialize(sizeof(Semaphore), INITIAL_CAPACITY, NULL);
+  freedPositions = Array_initialize(sizeof(int), INITIAL_CAPACITY, NULL);
 }
 
-sem_t positionToInitSem() {
-  for (int i = 0; i < MAX_SEMAPHORES; i++) {
-    if (!sem_array[i].is_used) {
-      return i;
-    }
+sem_t addSem(char* name, uint32_t initialValue) {
+  Semaphore sem = {.value = initialValue, .lock = 0, .process_first = NULL, .process_last = NULL, .destroyed = false};
+  int i;
+  for (i = 0; name[i] != 0 && i < MAX_SEM_NAME; ++i) {
+    sem.name[i] = name[i];
   }
-  return ERROR;
+  if (name[i] != 0) return -1;
+  name[i] = 0;
+  int freeToUseSem;
+  if (Array_popGetEle(freedPositions, &freeToUseSem)) {
+    Array_set(semArray, freeToUseSem, &sem);
+    return freeToUseSem;
+  } else {
+    return Array_push(semArray, &sem);
+  }
 }
 
-int32_t fifoQueue(sem_t pos, const PCB* process_by_pcb) {
-  process_by_PCB* process = malloc(sizeof(process_by_PCB));
-  if (process == NULL) {
-    return ERROR;
-  }
-  process->process_pcb = process_by_pcb;
+sem_t semInit(uint32_t initialValue) {
+  return addSem("", initialValue);
+}
+
+sem_t createSemaphore(char* name, uint32_t initialValue) {
+  if (findName(name) >= 0) return -1;
+  return addSem(name, initialValue);
+}
+
+bool fifoQueue(sem_t semId, const PCB* process_by_pcb) {
+  PCBNode* process = malloc(sizeof(PCBNode));
+  if (process == NULL) return false;
+
+  process->pcb = process_by_pcb;
   process->next = NULL;
-  if (sem_array[pos].sem->process_first == NULL) {
-    sem_array[pos].sem->process_first = process;
-    sem_array[pos].sem->process_last = process;
+  Semaphore* sem = Array_get(semArray, semId);
+  if (sem == NULL) return false;
+  if (sem->process_first == NULL) {
+    sem->process_first = process;
+    sem->process_last = process;
   } else {
-    sem_array[pos].sem->process_last->next = process;
-    sem_array[pos].sem->process_last = process;
+    sem->process_last->next = process;
+    sem->process_last = process;
   }
-  return 0;
+
+  return true;
 }
 
-const PCB* fifoUnqueue(sem_t pos) {
-  if (sem_array[pos].sem->process_first == NULL) return NULL;
-  const PCB* process = sem_array[pos].sem->process_first->process_pcb;
-  process_by_PCB* temp = sem_array[pos].sem->process_first;
-  if (sem_array[pos].sem->process_first->next == NULL) {
-    sem_array[pos].sem->process_first = NULL;
-  } else {
-    sem_array[pos].sem->process_first = sem_array[pos].sem->process_first->next;
-  }
+const PCB* fifoUnqueue(sem_t semId) {
+  Semaphore* sem = Array_get(semArray, semId);
+  if (sem == NULL || sem->process_first == NULL) return false;
+  const PCB* process = sem->process_first->pcb;
+  PCBNode* temp = sem->process_first;
+  sem->process_first = sem->process_first->next;
   free(temp);
   return process;
 }
-//To ensure semaphores are initialized to 0
-void mySemBirth() {
-  for (int i = 0; i < MAX_SEMAPHORES; ++i) {
-    sem_array[i].is_used = 0;
-  }
-  size = 0;
-}
-//If semaphore with that name exists it returns the semaphore else it creates it
-sem_t openSemaphore(char* name, uint32_t value) {
-  int32_t sem_id = semFinder(name);
-  if (sem_id == ERROR) {
-    sem_id = createSemaphore(name, value);
-    if (sem_id == ERROR) return ERROR;
-  }
-  return sem_id;
-}
-sem_t createSemaphore(char* sem_name, uint32_t init_value) {
-  if (semFinder(sem_name) != ERROR) return ERROR;
-  int pos = positionToInitSem();
-  if (pos == ERROR) {
-    return ERROR;
-  }
-  sem_array[pos].sem = malloc(sizeof(semaphore));
-  if (sem_array[pos].sem == NULL) {
-    return ERROR;
-  }
-  sem_array[pos].sem->name = malloc(strlen(sem_name) + 1);
-  if (sem_array[pos].sem->name == NULL) {
-    free(sem_array[pos].sem);
-    return ERROR;
-  }
-  strcpy(sem_array[pos].sem->name, sem_name);
-  sem_array[pos].sem->value = init_value;
-  sem_array[pos].sem->lock = 0;
-  sem_array[pos].is_used = 1;
-  sem_array[pos].sem->process_first = NULL;
-  sem_array[pos].sem->process_last = NULL;
-  size++;
-  return pos;
-}
-//Semaphores with processes left to unqueue can't be destroyed
-int32_t destroySemaphore(char *sem_name) {
-  int32_t sem_id = semFinder(sem_name);
-  if (sem_id == ERROR) return ERROR;
-  _enter_region(&sem_array[sem_id].sem->lock);
-  while (sem_array[sem_id].sem->process_first != NULL) {
-    const PCB* to_ready = fifoUnqueue(sem_id);
-    _leave_region(&sem_array[sem_id].sem->lock);
 
-    if (to_ready->state == BLOCKED) {
-      readyProcess(to_ready);
-    } else if (to_ready->state == WAITING_FOR_EXIT) {
-      exitProcessByPCB(to_ready, KILL_EXIT_CODE);
+bool destroySemaphore(sem_t semId) {
+  if (semId < 0) return false;
+  Semaphore* sem = Array_get(semArray, semId);
+  if (sem == NULL || sem->destroyed) return false;
+  _enter_region(&sem->lock);
+  while (sem->process_first != NULL) {
+    const PCB* toReady = fifoUnqueue(semId);
+    _leave_region(&sem->lock);
+    if (toReady->state == BLOCKED) {
+      readyProcess(toReady);
+    } else if (toReady->state == WAITING_FOR_EXIT) {
+      exitProcessByPCB(toReady, KILL_EXIT_CODE);
     }
   }
-  _leave_region(&sem_array[sem_id].sem->lock);
-  free(sem_array[sem_id].sem->name);
-  free(sem_array[sem_id].sem);
-  sem_array[sem_id].is_used = 0;
-  --size;
-  return 0;
+  _leave_region(&sem->lock);
+  sem->destroyed = true;
+  Array_push(freedPositions, &semId);
+  return true;
 }
-//If process can't decrement the semaphore the process enqueues itself
-int32_t waitSemaphore(sem_t sem_id) {
-  if (sem_id >= MAX_SEMAPHORES || !sem_array[sem_id].is_used) return ERROR;
-  _enter_region(&sem_array[sem_id].sem->lock);
-  if (sem_array[sem_id].sem->value > 0) {
-    sem_array[sem_id].sem->value--;
-    _leave_region(&sem_array[sem_id].sem->lock);
-  }
-  else {
-    const PCB* process_pcb = getCurrentPCB();
-    fifoQueue(sem_id, process_pcb);
-    _leave_region(&sem_array[sem_id].sem->lock);
+
+bool destroySemaphoreByName(char* name) {
+  return destroySemaphore(findName(name));
+}
+
+bool waitSemaphore(sem_t semId) {
+  if (semId < 0) return false;
+  Semaphore* sem = Array_get(semArray, semId);
+  if (sem == NULL || sem->destroyed) return false;
+  _enter_region(&sem->lock);
+  if (sem->value > 0) {
+    sem->value--;
+    _leave_region(&sem->lock);
+  } else {
+    const PCB* pcb = getCurrentPCB();
+    fifoQueue(semId, pcb);
+    _leave_region(&sem->lock);
     blockCurrentProcess();
   }
-  return 0;
+  return true;
 }
-//If process can increment the semaphore the process checks if there is a process to unqueue
-int32_t postSemaphore(sem_t sem_id) {
-  if (sem_id >= MAX_SEMAPHORES || !sem_array[sem_id].is_used) return ERROR;
-  _enter_region(&sem_array[sem_id].sem->lock);
-  if (sem_array[sem_id].sem->process_first != NULL) {
-    const PCB* to_ready = fifoUnqueue(sem_id);
-    _leave_region(&sem_array[sem_id].sem->lock);
-    readyProcess(to_ready);
+
+bool postSemaphore(sem_t semId) {
+  if (semId < 0) return false;
+  Semaphore* sem = Array_get(semArray, semId);
+  if (sem == NULL || sem->destroyed) return false;
+  _enter_region(&sem->lock);
+  if (sem->process_first != NULL) {
+    const PCB* toReady = fifoUnqueue(semId);
+    _leave_region(&sem->lock);
+    if (toReady->state == BLOCKED) {
+      readyProcess(toReady);
+    } else if (toReady->state == WAITING_FOR_EXIT) {
+      exitProcessByPCB(toReady, KILL_EXIT_CODE);
+    }
   } else {
-    sem_array[sem_id].sem->value++;
-    _leave_region(&sem_array[sem_id].sem->lock);
+    sem->value++;
+    _leave_region(&sem->lock);
   }
-  return 0;
+  return true;
+}
+
+sem_t openSemaphore(char* name, uint32_t value) {
+  sem_t semId = findName(name);
+  if (semId < 0) semId = addSem(name, value);
+  return semId;
+}
+
+sem_t findName(char* name) {
+  int len = Array_getLen(semArray);
+  for (int i = 0; i < len; ++i) {
+    Semaphore* sem = Array_get(semArray, i);
+    if (!sem->destroyed) {
+      if (strcmp(name, sem->name) == 0) return i;
+    }
+  }
+  return -1;
 }

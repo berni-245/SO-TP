@@ -31,9 +31,8 @@ typedef enum {
   NO_MEMORY_AVAILABLE,
 } ExitCode;
 static const char* const CommandResultStrings[] = {
-    "Success",           "Too many arguments", "Argument too long",  "Command not found",
-    "Missing arguments", "Illegal argument",   "Argument of bounds", "Process failure",
-    "No memory available"
+    "Success",          "Too many arguments", "Argument too long", "Command not found",  "Missing arguments",
+    "Illegal argument", "Argument of bounds", "Process failure",   "No memory available"
 };
 
 typedef void (*ShellFunction)(int argc, char* [argc]);
@@ -88,7 +87,8 @@ void commandGetPid();
 void commandKill(int argc, char* argv[argc]);
 void commandGetMemoryState();
 void commandLoop(int argc, char* argv[argc]);
-void commandPhylo();
+void commandPhylo(int argc, char* argv[argc]);
 void commandNice(int argc, char* argv[argc]);
+void commandTestPipes(int argc, char* argv[argc]);
 
 #endif

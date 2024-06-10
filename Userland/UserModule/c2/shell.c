@@ -47,7 +47,11 @@ int shell() {
   addCommand("nice", "Change priority of a process by pid", commandNice);
   addCommand("getpid", "Print pid for current process.", commandGetPid);
   addCommand("loop", "Sends a message with the PID every given seconds", commandLoop);
-  addCommand("phylo", "Starts the philosophers problem, exit with e, a to add philosopher and remove with r", commandPhylo);
+  addCommand(
+      "phylo", "Starts the philosophers problem, exit with e, a to add philosopher and remove with r", commandPhylo
+  );
+  addCommand("pipeTest", "Test pipes with reader and writer processes", commandTestPipes);
+
   const char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));
 
@@ -270,10 +274,6 @@ ExitCode parseCommand() {
     if (cc[i] == ' ') newWord = true;
     else {
       if (newWord) {
-        if (arg != NULL) {
-          char end = 0;
-          Array_push(arg, &end);
-        }
         // Can't have this if I want to save invalid commands to history.
         // Added this check here too so we can exit immediately if the first argument
         // parsed isn't a valid command.
@@ -291,10 +291,9 @@ ExitCode parseCommand() {
 
   int argc = Array_getLen(argv);
   if (argc == 0) return SUCCESS;
-  else if (argc == 1) {
-    // This gets skipped at the loop if command has only one arg.
+  for (int i = 0; i < argc; ++i) {
     char end = 0;
-    Array_push(arg, &end);
+    Array_push(*(Array*)Array_get(argv, i), &end);
   }
 
   int ret;

@@ -9,7 +9,13 @@
 #define KILL_EXIT_CODE 1
 
 typedef enum { READY, RUNNING, BLOCKED, EXITED, WAITING_FOR_EXIT } State;
-extern const char* const StateStrings[4];
+extern const char* const StateStrings[];
+
+typedef struct {
+  int write;
+  int read;
+  int err;
+} ProcessPipes;
 
 typedef struct PCB {
   uint32_t pid;
@@ -24,6 +30,7 @@ typedef struct PCB {
   struct PCB* parentProc;
   int wfmLen;
   void* stack;
+  ProcessPipes pipes;
 } PCB;
 
 typedef struct {
@@ -40,6 +47,7 @@ typedef struct {
 void initializePCBList();
 void* schedule(void* rsp);
 uint32_t createUserProcess(int argc, const char* argv[], void* processRip);
+uint32_t createUserProcessWithPipeSwap(int argc, const char* argv[], void* processRip, ProcessPipes pipes);
 extern void exit(int exitCode);
 void startFirstProcess(void* processAddress);
 void exitProcessByPCB(PCB* pcb, int exitCode);
@@ -53,5 +61,10 @@ uint32_t getpid();
 bool kill(uint32_t pid);
 void killCurrentProcessInForeground();
 void changePriority(uint32_t pid, uint32_t newPriority);
+void killCurrentProcess();
+void changePipeRead(int p);
+void changePipeWrite(int p);
+uint64_t read(char* buf, int len);
+uint64_t write(const char* buf, int len);
 
 #endif

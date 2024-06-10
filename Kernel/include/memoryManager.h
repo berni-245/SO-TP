@@ -13,5 +13,6 @@ void memoryInit(void* heapStart);
 // must be freed upon finishing it's use
 char* getMemoryState();
 void stackAlloc(void** stackStart, void** stackEnd);
+void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize);
 
 #endif
