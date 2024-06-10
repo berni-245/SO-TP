@@ -23,6 +23,9 @@ void memoryInit(void* heapStart);
 // must be freed upon finishing it's use
 char* getGlobalMemoryState();
 char* getProcessMemoryState(uint32_t pid);
+
+// bellow are the functions in memory.c
+
 void stackAlloc(void** stackStart, void** stackEnd);
 void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize);
 
