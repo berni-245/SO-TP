@@ -75,7 +75,7 @@ void bussy_wait(uint64_t n) {
     ;
 }
 
-void endless_loop() {
+void endless_loop(int argc, char *argv[]) {
   while (1)
     ;
 }

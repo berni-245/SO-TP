@@ -20,7 +20,7 @@ void commandTestMM(int argc, char *argv[]) {
   if (argc < 2)
     sysExit(MISSING_ARGUMENTS);
 
-  if ((max_memory = satoi(argv[1])) <= 0)
+  if ((max_memory = strToInt(argv[1])) <= 0)
     sysExit(ILLEGAL_ARGUMENT);
   
   max_memory = max_memory * (1 << 20);
