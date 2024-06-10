@@ -17,9 +17,17 @@ void commandTestMM(int argc, char* argv[]) {
   uint32_t total;
   int64_t max_memory;
 
-  if (argc < 2) sysExit(MISSING_ARGUMENTS);
+  if (argc < 2) {
+    printf("Usage: %s <max_memory>\n", argv[0]);
+    puts("\tmax_memory: positive integer");
+    sysExit(MISSING_ARGUMENTS);
+  }
 
-  if ((max_memory = strToInt(argv[1])) <= 0) sysExit(ILLEGAL_ARGUMENT);
+  if ((max_memory = strToInt(argv[1])) <= 0) {
+    printf("Usage: %s <max_memory>\n", argv[0]);
+    puts("\tmax_memory: positive integer");
+    sysExit(ILLEGAL_ARGUMENT);
+  }
 
   max_memory = max_memory * (1 << 20);
   while (1) {
