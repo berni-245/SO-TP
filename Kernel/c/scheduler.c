@@ -333,7 +333,7 @@ uint32_t getpid() {
 bool kill(uint32_t pid) {
   if (pid == 0) return false;
   PCB* pcb = getPCBByPid(pid);
-  if (pcb == NULL || pcb->state == EXITED) return false;
+  if (pcb == NULL || pcb->state == EXITED || pcb->state == WAITING_FOR_EXIT) return false;
   exitProcessByPCB(pcb, KILL_EXIT_CODE);
   return true;
 }
