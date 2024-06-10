@@ -88,7 +88,7 @@ void commandGetPid();
 void commandKill(int argc, char* argv[argc]);
 void commandGetMemoryState();
 void commandLoop(int argc, char* argv[argc]);
-void commandPhylo();
+void commandPhylo(int argc, char* argv[argc]);
 void commandNice(int argc, char* argv[argc]);
 void commandBlock(int argc, char* argv[argc]);
 void commandUnBlock(int argc, char* argv[argc]);
