@@ -75,7 +75,7 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
             break;
           case 1:
             if (p_rqs[rq].state == RUNNING) {
-              if(!sysBlock(p_rqs[rq].pid)){
+              if(!sysBlockedByUser(p_rqs[rq].pid)){
                 printf("test_processes: ERROR blocking process\n");
                 sysExit(PROCESS_FAILURE);
               }

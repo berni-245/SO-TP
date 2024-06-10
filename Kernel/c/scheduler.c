@@ -12,7 +12,7 @@
 //   - Esto si se puede quizá convendría que sean 4 quantums seguidos sin context switching.
 // - Luego de las n veces paso al siguiente proceso de la lista.
 
-const char* const StateStrings[] = {"READY", "RUNNING", "BLOCKED", "EXITED", "W-EXIT"};
+const char* const StateStrings[] = {"READY", "RUNNING", "BLOCKED", "EXITED", "W-EXIT", "BLK_USER"};
 
 typedef struct PCBNode {
   PCB* pcb;
@@ -394,10 +394,20 @@ bool block(uint32_t pid) {
   }
   return false;
 }
-
+bool blockByUser(uint32_t pid){
+  PCB* pcb = getPCBByPid(pid);
+  if (pcb != NULL && (pcb->state == READY || pcb->state == RUNNING)) {
+    if (pcb->pid == pcbList.current->pcb->pid) {
+      blockCurrentProcess();
+    }
+    pcb->state = BLOCKED_BY_USER;
+    return true;
+  }
+  return false;
+}
 bool unBlock(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
-  if (pcb != NULL && pcb->state == BLOCKED) {
+  if (pcb != NULL && (pcb->state == BLOCKED || pcb->state == BLOCKED_BY_USER)) {
     pcb->state = READY;
     return true;
   }

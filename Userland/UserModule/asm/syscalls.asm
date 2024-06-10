@@ -45,6 +45,7 @@ global sysRead
 global sysWrite
 global sysBlock
 global sysUnBlock
+global sysBlockedByUser
 
 %macro syscall 1
   mov r9, %1
@@ -144,3 +145,5 @@ sysBlock:
   syscall 43
 sysUnBlock:
   syscall 44
+sysBlockedByUser:
+  syscall 45
