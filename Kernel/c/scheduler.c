@@ -380,19 +380,23 @@ uint64_t write(const char* buf, int len) {
   return writePipe(pipeWrite, buf, len);
 }
 
-void block(uint32_t pid) {
+bool block(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
   if (pcb != NULL && (pcb->state == READY || pcb->state == RUNNING)) {
     if (pcb->pid == pcbList.current->pcb->pid) {
       blockCurrentProcess();
     }
     pcb->state = BLOCKED;
+    return true;
   }
+  return false;
 }
 
-void unBlock(uint32_t pid) {
+bool unBlock(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
   if (pcb != NULL && pcb->state == BLOCKED) {
     pcb->state = READY;
+    return true;
   }
+  return false;
 }

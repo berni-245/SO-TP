@@ -75,7 +75,7 @@ void changePipeRead(int p);
 void changePipeWrite(int p);
 uint64_t read(char* buf, int len);
 uint64_t write(const char* buf, int len);
-void block(uint32_t pid);
-void unBlock(uint32_t pid);
+bool block(uint32_t pid);
+bool unBlock(uint32_t pid);
 
 #endif

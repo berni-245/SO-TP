@@ -61,7 +61,7 @@ int shell() {
   addCommand("block", "Blocks the process with the pid given", commandBlock);
   addCommand("unblock", "Unblocks the process with the pid given", commandUnBlock);
   addCommand("testPriority", "Checks the priority functionality. 0: small wait. 1: long wait", commandTestPriority);
-
+  addCommand("testProcesses", "Checks the process creation, blocking, unblocking and destruction", commandTestProcesses);
   const char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));
 
