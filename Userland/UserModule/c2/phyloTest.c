@@ -16,6 +16,7 @@ int forks[PHILO_MAX_AMOUNT];
 uint64_t pids[PHILO_MAX_AMOUNT];
 int change_philos_sem;
 
+
 enum phylo{
   EATING,
   HUNGRY,
@@ -41,12 +42,14 @@ void freeAll(){
   }
 }
 
+
 void monitor(){
   for (int i = 0; i < philos_on_table; i++) {
     printf("%c ", philo_state[i]? '.':'E');
   }
   printf("\n");
 }
+
 
 void take_forks(int i){
   philo_state[i]=HUNGRY;
@@ -170,7 +173,6 @@ void commandPhylo(int argc, char* argv[argc]) {
   }
 
   change_philos_sem = sysCreateSemaphore(PHYLO_MUTEX, PHILO_AMOUNT);
-  blockAll();
   for (int i = 0; i < PHILO_AMOUNT; i++) {
     char philo_num[3];
     uintToBase(i, philo_num, 10);
@@ -180,7 +182,6 @@ void commandPhylo(int argc, char* argv[argc]) {
     philos_on_table++;
     printf("Philosopher number %d has joined the game\n", i);
   }
-  freeAll();
 
   KeyStruct key;
   while (1) {
