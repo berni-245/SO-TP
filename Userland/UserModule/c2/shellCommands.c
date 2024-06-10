@@ -422,7 +422,7 @@ void commandWordCount() {
   int words = 0;
   bool readChar = false;
   while ((c = getChar()) != EOF) {
-    if (c != ' ') readChar = true;
+    if (c != ' ' && c != '\n') readChar = true;
     else if ((c == ' ' || c == '\n') && readChar) {
       ++words;
       readChar = false;
