@@ -70,7 +70,7 @@ const PCB* fifoUnqueue(sem_t semId) {
   const PCB* process = sem->process_first->pcb;
   PCBNode* temp = sem->process_first;
   sem->process_first = sem->process_first->next;
-  free(temp);
+  globalFree(temp);
   return process;
 }
 
