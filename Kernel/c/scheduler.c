@@ -136,7 +136,8 @@ void* schedule(void* rsp) {
     pcbList.current->pcb->state = READY;
   }
 
-  PCBNode* ogCurrent = (pcbList.current == idleProcPCBNode) ? pcbList.tail : pcbList.current;
+  if (pcbList.current == idleProcPCBNode) nextPCB();
+  PCBNode* ogCurrent = pcbList.current;
   // We need to always go to next process first so we don't free current process
   // while we are inside its own stack.
   nextPCB();
