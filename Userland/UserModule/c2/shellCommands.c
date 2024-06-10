@@ -420,16 +420,45 @@ void commandCat() {
 void commandWordCount() {
   char c;
   int words = 0;
-  bool readChar = false;
+  int lines = 0;
+  bool inWord = false;
+
   while ((c = getChar()) != EOF) {
-    if (c != ' ' && c != '\n') readChar = true;
-    else if ((c == ' ' || c == '\n') && readChar) {
-      ++words;
-      readChar = false;
+    if (c == ' ' || c == '\n') {
+      if (inWord) {
+        ++words;
+        inWord = false;
+      }
+      if (c == '\n') {
+        ++lines;
+      }
+    } else {
+      inWord = true;
     }
-    if (printChar(c) < 0) sysExit(PROCESS_FAILURE);
+    if (printChar(c) < 0) {
+      sysExit(PROCESS_FAILURE);
+    }
   }
-  if (readChar == true) ++words;
-  printf("\nWord cound: %d\n", words);
+  if (inWord) {
+    ++words;
+  }
+  printf("\nWord count: %d\n", words);
+  printf("Line count: %d\n", lines);
+
+  sysExit(SUCCESS);
+}
+
+int charIsAVocal(char c){
+  return ( c == 'a' || c == 'A' || c == 'e' || c == 'E' || c == 'i' || c =='I' || c == 'o' || c == 'O' || c == 'u' || c == 'U');
+}
+
+void commandFilterVocals() {
+  char c;
+  while ((c = getChar()) != EOF) {
+    if (!charIsAVocal(c)){
+      printf("%c", c);
+    }
+  }
+  printf("\n");
   sysExit(SUCCESS);
 }

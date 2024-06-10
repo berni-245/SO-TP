@@ -69,6 +69,7 @@ int shell() {
   addCommand("testProcesses", "Checks the process creation, blocking, unblocking and destruction", commandTestProcesses);
   addCommand("cat", "Read from stdin and output to stdout", commandCat);
   addCommand("wc", "Cound words from stdin", commandWordCount);
+  addCommand("filter", "Return the given array without vocals", commandFilterVocals);
 
   const char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));
