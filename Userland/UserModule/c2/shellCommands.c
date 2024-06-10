@@ -240,6 +240,11 @@ void commandKill(int argc, char* argv[argc]) {
     sysExit(ILLEGAL_ARGUMENT);
   }
   int pid = strToInt(argv[1]);
+  if (pid == 0) {
+    printf("https://youtu.be/31g0YE61PLQ?si=G3tv2y_iw8InNCec\n");
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+
   if (sysKill(pid)) sysExit(SUCCESS);
   else {
     printf("Process with pid %d not found or has already exited\n", pid);
