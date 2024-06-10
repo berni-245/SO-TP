@@ -6,7 +6,9 @@
 
 #define MAX_NAME_LENGTH 60
 
-typedef enum { READY, RUNNING, BLOCKED, EXITED } State;
+#define KILL_EXIT_CODE 1
+
+typedef enum { READY, RUNNING, BLOCKED, EXITED, WAITING_FOR_EXIT } State;
 extern const char* const StateStrings[4];
 
 typedef struct PCB {
@@ -19,6 +21,7 @@ typedef struct PCB {
   // int exitCode;
   int waitedProcessExitCode;
   struct PCB* waitingForMe[10]; // This should be of dynamic length
+  struct PCB* parentProc;
   int wfmLen;
   void* stack;
 } PCB;
@@ -30,6 +33,7 @@ typedef struct {
   void* rsp;
   void* rbp;
   char name[MAX_NAME_LENGTH + 1];
+  char* location;
 } PCBForUserland;
 
 // void freePCBNode(PCBNode* node);
@@ -38,6 +42,7 @@ void* schedule(void* rsp);
 uint32_t createUserProcess(int argc, const char* argv[], void* processRip);
 extern void exit(int exitCode);
 void startFirstProcess(void* processAddress);
+void exitProcessByPCB(PCB* pcb, int exitCode);
 void exitCurrentProcess(int exitCode);
 int waitPid(uint32_t pid);
 PCBForUserland* getPCBList(int* len);
@@ -46,6 +51,7 @@ void blockCurrentProcess();
 void readyProcess(const PCB* pcb);
 uint32_t getpid();
 bool kill(uint32_t pid);
-void killCurrentProcess();
+void killCurrentProcessInForeground();
+void changePriority(uint32_t pid, uint32_t newPriority);
 
 #endif

@@ -68,7 +68,7 @@ void readKeyToBuffer() {
     else key.key = layoutMaps[kbLayout][code];
     if (key.key == 0) return;
     if(md.ctrlPressed == true && (key.key == 'C' || key.key == 'c' )){
-      killCurrentProcess();
+      killCurrentProcessInForeground();
       return;
     }
     copyModifierKeys(md, &key.md);

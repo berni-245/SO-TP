@@ -33,6 +33,7 @@ extern void asdfInterruption();
 PCB* getPCBByPid(uint32_t pid);
 void exitProcessByPCB(PCB* pcb, int exitCode);
 
+PCB* processInForeground;
 PCBList pcbList;
 PCBNode* idleProcPCBNode;
 
@@ -46,6 +47,7 @@ PCB* createPCB(uint32_t pid, uint8_t priority, State state, void* stack, void* r
   pcb->rbp = rbp;
   pcb->name = name;
   // pcb->exitCode = 0;
+  pcb->parentProc = pcbList.current->pcb;
   pcb->wfmLen = 0;
 
   return pcb;
@@ -113,7 +115,6 @@ void initializePCBList() {
   stackAlloc(&stackStart, &stackEnd);
   void* rsp = initializeProcessStack(0, NULL, idleProc, stackStart);
   idleProcPCBNode = createPCBNode(-1, 1, READY, stackEnd, rsp, rsp, NULL);
-
   pcbList.head = NULL;
   pcbList.tail = NULL;
   pcbList.current = NULL;
@@ -135,7 +136,8 @@ void* schedule(void* rsp) {
     pcbList.current->pcb->state = READY;
   }
 
-  PCBNode* ogCurrent = (pcbList.current == idleProcPCBNode) ? pcbList.tail : pcbList.current;
+  if (pcbList.current == idleProcPCBNode) nextPCB();
+  PCBNode* ogCurrent = pcbList.current;
   // We need to always go to next process first so we don't free current process
   // while we are inside its own stack.
   nextPCB();
@@ -218,6 +220,8 @@ void* createUserModuleProcess() {
   const char* argv[1] = {"init"};
   void* rsp = createProcess(1, argv, userModule);
   nextPCB();
+  processInForeground = pcbList.current->pcb;
+  pcbList.current->pcb->parentProc = NULL;
   return rsp;
 }
 
@@ -227,17 +231,33 @@ uint32_t createUserProcess(int argc, const char* argv[], void* processRip) {
 }
 
 void exitProcessByPCB(PCB* pcb, int exitCode) {
+  if (pcb->state == EXITED) return;
+  if (pcb->state == BLOCKED) {
+    pcb->state = WAITING_FOR_EXIT;
+    return;
+  }
+
   pcb->state = EXITED;
+  if (pcb->pid == processInForeground->pid) processInForeground = pcb->parentProc;
   for (int i = 0; i < pcb->wfmLen; ++i) {
     PCB* pcb2 = pcb->waitingForMe[i];
-    pcb2->state = READY;
-    pcb2->waitedProcessExitCode = exitCode;
+    if (pcb2->state == BLOCKED) {
+      pcb2->state = READY;
+      pcb2->waitedProcessExitCode = exitCode;
+    } else if (pcb2->state == WAITING_FOR_EXIT) {
+      exitProcessByPCB(pcb2, KILL_EXIT_CODE);
+    }
   }
-  asdfInterruption();
 }
 
 void exitCurrentProcess(int exitCode) {
   exitProcessByPCB(pcbList.current->pcb, exitCode);
+  asdfInterruption();
+}
+
+void exitCurrentProcessInForeground(int exitCode) {
+  exitProcessByPCB(processInForeground, exitCode);
+  asdfInterruption();
 }
 
 PCB* getPCBByPid(uint32_t pid) {
@@ -258,6 +278,7 @@ int waitPid(uint32_t pid) {
   if (pcb == NULL || pcb->state == EXITED) return pcbList.current->pcb->waitedProcessExitCode;
   pcb->waitingForMe[pcb->wfmLen++] = pcbList.current->pcb;
   pcbList.current->pcb->state = BLOCKED;
+  if (pcbList.current->pcb->pid == processInForeground->pid) processInForeground = pcb;
   asdfInterruption(); // Replace for int 0x20 when schedule gets called there.
   return pcbList.current->pcb->waitedProcessExitCode;
 }
@@ -269,6 +290,7 @@ void copyPCBToPCBForUserland(PCBForUserland* userlandPcb, PCB* kernelPcb) {
   userlandPcb->rbp = kernelPcb->rbp;
   userlandPcb->state = StateStrings[kernelPcb->state];
   userlandPcb->priority = kernelPcb->priority;
+  userlandPcb->location = (kernelPcb->pid == processInForeground->pid ? "Fg" : "Bg");
 }
 PCBForUserland* getPCBList(int* len) {
   *len = pcbList.len;
@@ -300,13 +322,22 @@ uint32_t getpid() {
 }
 
 bool kill(uint32_t pid) {
+  if (pid == 0) return false;
   PCB* pcb = getPCBByPid(pid);
   if (pcb == NULL || pcb->state == EXITED) return false;
-  exitProcessByPCB(pcb, 1);
+  exitProcessByPCB(pcb, KILL_EXIT_CODE);
   return true;
 }
 
-void killCurrentProcess() {
-  exitCurrentProcess(1);
+void killCurrentProcessInForeground() {
+  if (processInForeground->pid == 0) return;
+  exitProcessByPCB(processInForeground, KILL_EXIT_CODE);
   asdfInterruption();
+}
+
+void changePriority(uint32_t pid, uint32_t newPriority) {
+  PCB* pcb = getPCBByPid(pid);
+  if(pcb != NULL){
+    pcb->priority = newPriority;
+  }
 }

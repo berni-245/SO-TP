@@ -1,47 +1,54 @@
 #include <interruptions.h>
-#include <timer.h>
-#include <scheduler.h>
-#include <scheduler.h>
 #include <memoryManager.h>
+#include <scheduler.h>
+#include <timer.h>
 
 static double freq = 65536 / 3600.0; // interruptions/second
 static unsigned long ticks = 0;
 
-typedef struct SleptProcess{
+typedef struct SleptProcess {
   unsigned long ticksRemaining;
-  const PCB* process;
+  const PCB* pcb;
   struct SleptProcess* next;
-}SleptProcess;
+} SleptProcess;
 
 SleptProcess* first = NULL;
 
-void incTicks() {
-    ticks++;
-    SleptProcess* currentProcess = first;
-    SleptProcess* previousProcess = NULL;
+SleptProcess* removeFromSleepList(SleptProcess* prev, SleptProcess* current) {
+  if (prev == NULL) {
+    first = current->next;
+  } else {
+    prev->next = current->next;
+  }
 
-    while (currentProcess != NULL) {
-        (currentProcess->ticksRemaining)--;
-
-        if (currentProcess->ticksRemaining == 0) {
-            readyProcess(currentProcess->process);
-
-            if (previousProcess == NULL) {
-                first = currentProcess->next;
-            } else {
-                previousProcess->next = currentProcess->next;
-            }
-
-            SleptProcess* toFree = currentProcess;
-            currentProcess = currentProcess->next;
-            free(toFree);
-        } else {
-            previousProcess = currentProcess;
-            currentProcess = currentProcess->next;
-        }
-    }
+  SleptProcess* toFree = current;
+  current = current->next;
+  free(toFree);
+  return current;
 }
 
+void incTicks() {
+  ticks++;
+  SleptProcess* current = first;
+  SleptProcess* prev = NULL;
+
+  while (current != NULL) {
+    if (current->pcb->state == BLOCKED) {
+      (current->ticksRemaining)--;
+
+      if (current->ticksRemaining == 0) {
+        readyProcess(current->pcb);
+        current = removeFromSleepList(prev, current);
+      } else {
+        prev = current;
+        current = current->next;
+      }
+    } else if (current->pcb->state == WAITING_FOR_EXIT) {
+      exitProcessByPCB(current->pcb, KILL_EXIT_CODE);
+      current = removeFromSleepList(prev, current);
+    }
+  }
+}
 
 unsigned long getTicks() {
   return ticks;
@@ -52,15 +59,15 @@ unsigned long getMs() {
 }
 
 unsigned long calcTicks(unsigned long ms) {
-  return (ms / 1000) * freq;
+  return (ms / 1000.0) * freq;
 }
 
 void sleep(unsigned long ms) {
   unsigned long initialTicks = calcTicks(ms);
-  if(initialTicks > 0){
-    SleptProcess * aux = malloc(sizeof(*aux));
+  if (initialTicks > 0) {
+    SleptProcess* aux = malloc(sizeof(*aux));
     aux->ticksRemaining = initialTicks;
-    aux->process = getCurrentPCB();
+    aux->pcb = getCurrentPCB();
     aux->next = first;
     first = aux;
     blockCurrentProcess();

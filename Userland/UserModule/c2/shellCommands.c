@@ -22,12 +22,28 @@ void commandRealTime() {
   sysExit(SUCCESS);
 }
 
-void commandHelp() {
-  printString("Available commands:\n");
-  for (int i = 0; i < commandCount; ++i) {
+void commandHelp(int argc, char* argv[argc]) {
+  printString("Available commands ");
+  if (argc >= 2 && strToInt(argv[1]) == 2) {
+    printString("(Page 2/2):\n");
+    for (int i = commandCount / 2 + 1; i < commandCount; ++i) {
+      printf("\t- %s: %s\n", commands[i].name, commands[i].description);
+    }
+    printf("Switch between pages with help [pageNr]\n");
+    sysExit(SUCCESS);
+  }
+
+  if (argc >= 2 && strToInt(argv[1]) != 1) {
+    printString("No such page\n");
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+
+  printString("(Page 1/2):\n");
+  for (int i = 0; i < commandCount / 2; ++i) {
     printf("\t- %s: %s\n", commands[i].name, commands[i].description);
   }
-  sysExit(0);
+  printf("Switch between pages with help [pageNr]\n");
+  sysExit(SUCCESS);
 }
 
 void commandGetKeyInfo() {
@@ -206,10 +222,13 @@ void commandZeroDivisionError() {
 void commandPs() {
   int len;
   PCB* pcbList = sysPCBList(&len);
-  printf("%3s, %-10s, %-10s, %10s, %10s, %10s\n", "PID", "Name", "State", "rsp", "rbp", "Priority");
+  printf("%3s, %-10s, %-9s, %-9s, %10s, %10s, %8s\n", "PID", "Name", "State", "Location", "rsp", "rbp", "Priority");
   for (int i = 0; i < len; ++i) {
     PCB* pcb = pcbList + i;
-    printf("%3d, %-10s, %-10s, %p, %p, %10d\n", pcb->pid, pcb->name, pcb->state, pcb->rsp, pcb->rbp, pcb->priority);
+    printf(
+        "%3d, %-10s, %-9s, %-9s, %p, %p, %8d\n", pcb->pid, pcb->name, pcb->state, pcb->location, pcb->rsp, pcb->rbp,
+        pcb->priority
+    );
   }
   sysFree(pcbList);
   sysExit(SUCCESS);
@@ -226,6 +245,11 @@ void commandKill(int argc, char* argv[argc]) {
     sysExit(ILLEGAL_ARGUMENT);
   }
   int pid = strToInt(argv[1]);
+  if (pid == 0) {
+    printf("https://youtu.be/31g0YE61PLQ?si=G3tv2y_iw8InNCec\n");
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+
   if (sysKill(pid)) sysExit(SUCCESS);
   else {
     printf("Process with pid %d not found or has already exited\n", pid);
@@ -234,7 +258,6 @@ void commandKill(int argc, char* argv[argc]) {
 }
 
 void commandGetMemoryState() {
-  sysSleep(3000);
   char* memState = sysGetMemoryState();
   if (memState == NULL) {
     printf("All the memory is being used\n");
@@ -250,11 +273,26 @@ void commandLoop(int argc, char* argv[argc]) {
     puts("Usage:");
     printf("\t\t%s <secs>\n", argv[0]);
     sysExit(MISSING_ARGUMENTS);
-  } 
+  }
   int secs = strToInt(argv[1]);
-  while(1) {
-    sysSleep(secs*1000);
-    printf("Hola! Soy el proceso: %d\n", sysGetPid());
+  if (secs > 0) {
+    while (1) {
+      sysSleep(secs * 1000);
+      printf("Hola! Soy el proceso: %d\n", sysGetPid());
+    }
   }
   sysExit(PROCESS_FAILURE);
+}
+
+void commandNice(int argc, char* argv[argc]) {
+  if (argc < 3) {
+    puts("Usage:");
+    printf("\t\t%s <pid> <priority between 1-9>\n", argv[0]);
+    sysExit(MISSING_ARGUMENTS);
+  }
+  int newPriority = strToInt(argv[2]);
+  if (newPriority <= 0 || newPriority >= 10) sysExit(ILLEGAL_ARGUMENT);
+
+  sysChangePriority(strToInt(argv[1]), newPriority);
+  sysExit(SUCCESS);
 }
