@@ -231,23 +231,33 @@ uint32_t createUserProcess(int argc, const char* argv[], void* processRip) {
 }
 
 void exitProcessByPCB(PCB* pcb, int exitCode) {
+  if (pcb->state == EXITED) return;
+  if (pcb->state == BLOCKED) {
+    pcb->state = WAITING_FOR_EXIT;
+    return;
+  }
+
   pcb->state = EXITED;
-  if(pcb->pid == processInForeground->pid)
-    processInForeground = pcb->parentProc;
+  if (pcb->pid == processInForeground->pid) processInForeground = pcb->parentProc;
   for (int i = 0; i < pcb->wfmLen; ++i) {
     PCB* pcb2 = pcb->waitingForMe[i];
-    pcb2->state = READY;
-    pcb2->waitedProcessExitCode = exitCode;
+    if (pcb2->state == BLOCKED) {
+      pcb2->state = READY;
+      pcb2->waitedProcessExitCode = exitCode;
+    } else if (pcb2->state == WAITING_FOR_EXIT) {
+      exitProcessByPCB(pcb2, KILL_EXIT_CODE);
+    }
   }
-  asdfInterruption();
 }
 
 void exitCurrentProcess(int exitCode) {
   exitProcessByPCB(pcbList.current->pcb, exitCode);
+  asdfInterruption();
 }
 
 void exitCurrentProcessInForeground(int exitCode) {
   exitProcessByPCB(processInForeground, exitCode);
+  asdfInterruption();
 }
 
 PCB* getPCBByPid(uint32_t pid) {
@@ -268,8 +278,7 @@ int waitPid(uint32_t pid) {
   if (pcb == NULL || pcb->state == EXITED) return pcbList.current->pcb->waitedProcessExitCode;
   pcb->waitingForMe[pcb->wfmLen++] = pcbList.current->pcb;
   pcbList.current->pcb->state = BLOCKED;
-  if(pcbList.current->pcb->pid == processInForeground->pid)
-    processInForeground = pcb;
+  if (pcbList.current->pcb->pid == processInForeground->pid) processInForeground = pcb;
   asdfInterruption(); // Replace for int 0x20 when schedule gets called there.
   return pcbList.current->pcb->waitedProcessExitCode;
 }
@@ -281,7 +290,7 @@ void copyPCBToPCBForUserland(PCBForUserland* userlandPcb, PCB* kernelPcb) {
   userlandPcb->rbp = kernelPcb->rbp;
   userlandPcb->state = StateStrings[kernelPcb->state];
   userlandPcb->priority = kernelPcb->priority;
-  userlandPcb->location = (kernelPcb->pid == processInForeground->pid? "Fg" : "Bg");
+  userlandPcb->location = (kernelPcb->pid == processInForeground->pid ? "Fg" : "Bg");
 }
 PCBForUserland* getPCBList(int* len) {
   *len = pcbList.len;
@@ -313,14 +322,16 @@ uint32_t getpid() {
 }
 
 bool kill(uint32_t pid) {
+  if (pid == 0) return false;
   PCB* pcb = getPCBByPid(pid);
   if (pcb == NULL || pcb->state == EXITED) return false;
-  exitProcessByPCB(pcb, 1);
+  exitProcessByPCB(pcb, KILL_EXIT_CODE);
   return true;
 }
 
-void killCurrentProcessInForeground(){
-  exitCurrentProcessInForeground(1);
+void killCurrentProcessInForeground() {
+  if (processInForeground->pid == 0) return;
+  exitProcessByPCB(processInForeground, KILL_EXIT_CODE);
   asdfInterruption();
 }
 

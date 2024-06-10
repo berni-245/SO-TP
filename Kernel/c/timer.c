@@ -8,35 +8,44 @@ static unsigned long ticks = 0;
 
 typedef struct SleptProcess {
   unsigned long ticksRemaining;
-  const PCB* process;
+  const PCB* pcb;
   struct SleptProcess* next;
 } SleptProcess;
 
 SleptProcess* first = NULL;
 
+SleptProcess* removeFromSleepList(SleptProcess* prev, SleptProcess* current) {
+  if (prev == NULL) {
+    first = current->next;
+  } else {
+    prev->next = current->next;
+  }
+
+  SleptProcess* toFree = current;
+  current = current->next;
+  free(toFree);
+  return current;
+}
+
 void incTicks() {
   ticks++;
-  SleptProcess* currentProcess = first;
-  SleptProcess* previousProcess = NULL;
+  SleptProcess* current = first;
+  SleptProcess* prev = NULL;
 
-  while (currentProcess != NULL) {
-    (currentProcess->ticksRemaining)--;
+  while (current != NULL) {
+    if (current->pcb->state == BLOCKED) {
+      (current->ticksRemaining)--;
 
-    if (currentProcess->ticksRemaining == 0) {
-      readyProcess(currentProcess->process);
-
-      if (previousProcess == NULL) {
-        first = currentProcess->next;
+      if (current->ticksRemaining == 0) {
+        readyProcess(current->pcb);
+        current = removeFromSleepList(prev, current);
       } else {
-        previousProcess->next = currentProcess->next;
+        prev = current;
+        current = current->next;
       }
-
-      SleptProcess* toFree = currentProcess;
-      currentProcess = currentProcess->next;
-      free(toFree);
-    } else {
-      previousProcess = currentProcess;
-      currentProcess = currentProcess->next;
+    } else if (current->pcb->state == WAITING_FOR_EXIT) {
+      exitProcessByPCB(current->pcb, KILL_EXIT_CODE);
+      current = removeFromSleepList(prev, current);
     }
   }
 }
@@ -58,7 +67,7 @@ void sleep(unsigned long ms) {
   if (initialTicks > 0) {
     SleptProcess* aux = malloc(sizeof(*aux));
     aux->ticksRemaining = initialTicks;
-    aux->process = getCurrentPCB();
+    aux->pcb = getCurrentPCB();
     aux->next = first;
     first = aux;
     blockCurrentProcess();

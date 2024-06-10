@@ -6,7 +6,9 @@
 
 #define MAX_NAME_LENGTH 60
 
-typedef enum { READY, RUNNING, BLOCKED, EXITED } State;
+#define KILL_EXIT_CODE 1
+
+typedef enum { READY, RUNNING, BLOCKED, EXITED, WAITING_FOR_EXIT } State;
 extern const char* const StateStrings[4];
 
 typedef struct PCB {
@@ -40,6 +42,7 @@ void* schedule(void* rsp);
 uint32_t createUserProcess(int argc, const char* argv[], void* processRip);
 extern void exit(int exitCode);
 void startFirstProcess(void* processAddress);
+void exitProcessByPCB(PCB* pcb, int exitCode);
 void exitCurrentProcess(int exitCode);
 int waitPid(uint32_t pid);
 PCBForUserland* getPCBList(int* len);
