@@ -64,7 +64,7 @@ bool Array_popGetEle(Array a, void* ele) {
 
   void* eleToPop = Array_get(a, -1);
   sysMemcpy(ele, eleToPop, a->elementSize);
-  if (a->freeEleFn != NULL) sysFree(eleToPop);
+  if (a->freeEleFn != NULL) a->freeEleFn(eleToPop);
   --a->length;
   return true;
 }
@@ -72,7 +72,7 @@ bool Array_popGetEle(Array a, void* ele) {
 void Array_pop(Array a) {
   if (a == NULL) exitWithError("@Array_pop Array instance can't be NULL");
   if (a->length == 0) return;
-  if (a->freeEleFn != NULL) sysFree(Array_get(a, -1));
+  if (a->freeEleFn != NULL) a->freeEleFn(Array_get(a, -1));
   --a->length;
 }
 
@@ -111,7 +111,7 @@ void Array_clear(Array a) {
   if (a == NULL) exitWithError("@Array_clear Array instance can't be NULL");
   if (a->freeEleFn != NULL) {
     for (int i = 0; i < a->length; ++i) {
-      sysFree(Array_get(a, i));
+      a->freeEleFn(Array_get(a, i));
     }
   }
   a->length = 0;
