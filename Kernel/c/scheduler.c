@@ -341,3 +341,20 @@ void changePriority(uint32_t pid, uint32_t newPriority) {
     pcb->priority = newPriority;
   }
 }
+
+void block(uint32_t pid) {
+  PCB* pcb = getPCBByPid(pid);
+  if(pcb != NULL){
+    if(pcb->pid == pcbList.current->pcb->pid){
+      blockCurrentProcess();
+    }
+    pcb->state = BLOCKED;
+  }
+}
+
+void unBlock(uint32_t pid) {
+  PCB* pcb = getPCBByPid(pid);
+  if(pcb != NULL){
+    pcb->state = READY;
+  }
+}

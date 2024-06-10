@@ -53,5 +53,7 @@ uint32_t getpid();
 bool kill(uint32_t pid);
 void killCurrentProcessInForeground();
 void changePriority(uint32_t pid, uint32_t newPriority);
+void block(uint32_t pid);
+void unBlock(uint32_t pid);
 
 #endif
