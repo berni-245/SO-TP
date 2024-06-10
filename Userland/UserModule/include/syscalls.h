@@ -46,5 +46,7 @@ extern void sysChangePipeRead(int p);
 extern void sysChangePipeWrite(int p);
 extern uint64_t sysRead(char* buf, int len);
 extern uint64_t sysWrite(const char* buf, int len);
+extern void sysBlock(uint32_t pid);
+extern void sysUnBlock(uint32_t pid);
 
 #endif

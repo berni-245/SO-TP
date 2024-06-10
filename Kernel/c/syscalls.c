@@ -56,6 +56,8 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)changePipeWrite,
     (SyscallFunction)read,
     (SyscallFunction)write,
+    (SyscallFunction)block,
+    (SyscallFunction)unBlock,
 };
 
 SyscallFunction* getSyscallsArray() {

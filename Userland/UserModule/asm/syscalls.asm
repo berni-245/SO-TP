@@ -39,6 +39,8 @@ global sysChangePipeWrite
 global sysRead
 global sysWrite
 global sysCreateProcessWithPipeSwap
+global sysBlock
+global sysUnBlock
 
 %macro syscall 1
   mov r9, %1
@@ -125,3 +127,7 @@ sysRead:
   syscall 37
 sysWrite:
   syscall 38
+sysBlock:
+  syscall 39
+sysUnBlock:
+  syscall 40

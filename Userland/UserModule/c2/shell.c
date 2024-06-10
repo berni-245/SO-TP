@@ -35,7 +35,10 @@ int shell() {
   addCommand("setColors", "Set font and background colors.", commandSetColors);
   addCommand("sysInfo", "Get some system information.", commandSysInfo);
   addCommand(
-      "getRegisters", "Get the values of the saved registers. \n    Available flags: --help", commandGetRegisters
+      "getRegisters",
+      "Get the values of the saved registers.\n"
+      "    Available flags: --help",
+      commandGetRegisters
   );
   addCommand("snake", "Play snake.", commandSnake);
   addCommand("mem", "View the state of the memory", commandGetMemoryState);
@@ -43,14 +46,21 @@ int shell() {
   addCommand("invalidOpcodeError", "Test the invalid opcode error.", commandInvalidOpcodeError);
   addCommand("ps", "Print process list.", commandPs);
   addCommand("testSem", "Test semaphores by using multiple processes to modifying shared variable.", commandTestSem);
+  addCommand("testMM", "Test Memory manager.", commandTestMM);
   addCommand("kill", "Kill process by pid.", commandKill);
   addCommand("nice", "Change priority of a process by pid", commandNice);
   addCommand("getpid", "Print pid for current process.", commandGetPid);
   addCommand("loop", "Sends a message with the PID every given seconds", commandLoop);
-  addCommand(
-      "phylo", "Starts the philosophers problem, exit with e, a to add philosopher and remove with r", commandPhylo
-  );
   addCommand("pipeTest", "Test pipes with reader and writer processes", commandTestPipes);
+  addCommand(
+      "phylo",
+      "Starts the philosophers problem, "
+      "exit with e, a to add philosopher and remove with r",
+      commandPhylo
+  );
+  addCommand("block", "Blocks the process with the pid given", commandBlock);
+  addCommand("unblock", "Unblocks the process with the pid given", commandUnBlock);
+  addCommand("testPriority", "Checks the priority functionality. 0: small wait. 1: long wait", commandTestPriority);
 
   const char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));

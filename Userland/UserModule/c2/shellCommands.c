@@ -294,7 +294,11 @@ void commandNice(int argc, char* argv[argc]) {
     sysExit(MISSING_ARGUMENTS);
   }
   int newPriority = strToInt(argv[2]);
-  if (newPriority <= 0 || newPriority >= 10) sysExit(ILLEGAL_ARGUMENT);
+  if (newPriority <= 0 || newPriority >= 10) {
+    puts("Usage:");
+    printf("\t\t%s <pid> <priority between 1-9>\n", argv[0]);
+    sysExit(ILLEGAL_ARGUMENT);
+  }
 
   sysChangePriority(strToInt(argv[1]), newPriority);
   sysExit(SUCCESS);
@@ -343,5 +347,27 @@ void commandTestPipes(int argc, char* argv[argc]) {
   sysWaitPid(pidWriter);
   sysWaitPid(pidReader);
 
+  sysExit(SUCCESS);
+}
+
+void commandBlock(int argc, char* argv[argc]) {
+  if (argc < 2) {
+    printf("Usage: block <pid>\n");
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+  int pid = strToInt(argv[1]);
+
+  sysBlock(pid);
+  sysExit(SUCCESS);
+}
+
+void commandUnBlock(int argc, char* argv[argc]) {
+  if (argc < 2) {
+    printf("Usage: unblock <pid>\n");
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+  int pid = strToInt(argv[1]);
+
+  sysUnBlock(pid);
   sysExit(SUCCESS);
 }
