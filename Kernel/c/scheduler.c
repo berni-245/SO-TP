@@ -382,7 +382,7 @@ uint64_t write(const char* buf, int len) {
 
 void block(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
-  if (pcb != NULL) {
+  if (pcb != NULL && (pcb->state == READY || pcb->state == RUNNING)) {
     if (pcb->pid == pcbList.current->pcb->pid) {
       blockCurrentProcess();
     }
@@ -392,7 +392,7 @@ void block(uint32_t pid) {
 
 void unBlock(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
-  if (pcb != NULL) {
+  if (pcb != NULL && pcb->state == BLOCKED) {
     pcb->state = READY;
   }
 }

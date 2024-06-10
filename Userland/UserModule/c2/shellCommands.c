@@ -375,6 +375,11 @@ void commandUnBlock(int argc, char* argv[argc]) {
   }
   int pid = strToInt(argv[1]);
 
+  if (pid == 0) {
+    printf("https://youtu.be/31g0YE61PLQ?si=G3tv2y_iw8InNCec\n");
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+
   sysUnBlock(pid);
   sysExit(SUCCESS);
 }
