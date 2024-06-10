@@ -21,10 +21,10 @@ bool growBy(Array a, uint64_t extraCapacity);
 
 void* Array_initialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn freeEleFn) {
   if (elementSize == 0) return NULL;
-  ArrayCDT* a = malloc(sizeof(ArrayCDT));
+  ArrayCDT* a = globalMalloc(sizeof(ArrayCDT));
   if (a == NULL) return NULL;
   a->capacity = initialCapacity ? initialCapacity : 1;
-  a->array = malloc(a->capacity * elementSize);
+  a->array = globalMalloc(a->capacity * elementSize);
   if (a->array == NULL) {
     free(a);
     return NULL;
@@ -148,7 +148,7 @@ void* Array_copyVanillaArrayInto(Array a, void* array) {
 
 void* Array_getVanillaArrayCopy(Array a) {
   if (a == NULL) return NULL;
-  void* array = malloc(a->length * a->elementSize);
+  void* array = globalMalloc(a->length * a->elementSize);
   Array_copyVanillaArrayInto(a, array);
   return array;
 }

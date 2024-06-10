@@ -46,7 +46,7 @@ sem_t createSemaphore(char* name, uint32_t initialValue) {
 }
 
 bool fifoQueue(sem_t semId, const PCB* process_by_pcb) {
-  PCBNode* process = malloc(sizeof(PCBNode));
+  PCBNode* process = globalMalloc(sizeof(PCBNode));
   if (process == NULL) return false;
 
   process->pcb = process_by_pcb;

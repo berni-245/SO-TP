@@ -4,14 +4,25 @@
 #define BUDDY // comment this to change to the other mm implementation
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define NULL (void*)0
 
+typedef struct Block {
+  struct Block* next;
+  uint32_t size;
+  bool isFree;
+} Block;
+
+void freeListInit(void* heapStart, Block* freeList[]);
+void* globalMalloc(uint64_t size);
 void* malloc(uint64_t size);
+void globalFree(void* ptr);
 void free(void* ptr);
 void memoryInit(void* heapStart);
 // must be freed upon finishing it's use
-char* getMemoryState();
+char* getGlobalMemoryState();
+char* getProcessMemoryState(uint32_t pid);
 void stackAlloc(void** stackStart, void** stackEnd);
 void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize);
 

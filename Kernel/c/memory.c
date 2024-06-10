@@ -31,15 +31,15 @@ rsp = (e - 8) & ~7
 0x00000000000503f0  00 00 00 00 00 00 00 00
  */
 void stackAlloc(void** stackStart, void** stackEnd) {
-  *stackEnd = malloc(stackSize);
+  *stackEnd = globalMalloc(stackSize);
   *stackStart = *stackEnd + stackSize - 1;
   *stackStart = (void*)(((uint64_t)*stackStart - addressByteSize) & ~(addressByteSize - 1));
 }
 
 void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize) {
-  void* mem = malloc(newSize);
+  void* mem = globalMalloc(newSize);
   if (mem == NULL) return NULL;
   memcpy(mem, ptr, oldSize);
-  free(ptr);
+  globalFree(ptr);
   return mem;
 }

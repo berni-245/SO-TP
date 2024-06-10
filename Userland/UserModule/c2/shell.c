@@ -41,7 +41,7 @@ int shell() {
       commandGetRegisters
   );
   addCommand("snake", "Play snake.", commandSnake);
-  addCommand("mem", "View the state of the memory", commandGetMemoryState);
+  addCommand("mem", "View the state of the memory for the whole system or process-wise by specifying pid", commandGetMemoryState);
   addCommand("zeroDivisionError", "Test the zero division error.", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error.", commandInvalidOpcodeError);
   addCommand("ps", "Print process list.", commandPs);

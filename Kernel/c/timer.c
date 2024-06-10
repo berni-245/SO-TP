@@ -8,7 +8,7 @@ static unsigned long ticks = 0;
 
 typedef struct SleptProcess {
   unsigned long ticksRemaining;
-  const PCB* pcb;
+  PCB* pcb;
   struct SleptProcess* next;
 } SleptProcess;
 
@@ -65,7 +65,7 @@ unsigned long calcTicks(unsigned long ms) {
 void sleep(unsigned long ms) {
   unsigned long initialTicks = calcTicks(ms);
   if (initialTicks > 0) {
-    SleptProcess* aux = malloc(sizeof(*aux));
+    SleptProcess* aux = globalMalloc(sizeof(*aux));
     aux->ticksRemaining = initialTicks;
     aux->pcb = getCurrentPCB();
     aux->next = first;

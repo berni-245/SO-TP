@@ -42,10 +42,10 @@ PCBNode* idleProcPCBNode;
 PCBNode* createPCBNode(
     uint32_t pid, uint8_t priority, State state, void* stack, void* rsp, void* rbp, char* name, ProcessPipes pipes
 ) {
-  PCBNode* node = malloc(sizeof(PCBNode));
+  PCBNode* node = globalMalloc(sizeof(PCBNode));
   node->next = NULL;
 
-  PCB* pcb = malloc(sizeof(PCB));
+  PCB* pcb = globalMalloc(sizeof(PCB));
   pcb->pid = pid;
   pcb->priority = priority;
   pcb->state = state;
@@ -56,6 +56,11 @@ PCBNode* createPCBNode(
   pcb->parentProc = pcbList.current->pcb;
   pcb->wfmLen = 0;
   pcb->pipes = pipes;
+  if ((int)pid != -1) {
+    pcb->heap = globalMalloc(PROCESS_HEAP_SIZE);
+    freeListInit(pcb->heap, pcb->freeList);
+  } else pcb->heap = NULL;
+  pcb->heapFreed = false;
 
   node->pcb = pcb;
 
@@ -90,9 +95,10 @@ void freeCurrentProcess() {
   if (pcbList.head == toRemove) pcbList.head = pcbList.current;
   else if (pcbList.tail == toRemove) pcbList.tail = pcbList.prev;
 
-  free(toRemove->pcb->stack);
-  free(toRemove->pcb);
-  free(toRemove);
+  if (!toRemove->pcb->heapFreed) globalFree(toRemove->pcb->heap);
+  globalFree(toRemove->pcb->stack);
+  globalFree(toRemove->pcb);
+  globalFree(toRemove);
 
   --pcbList.len;
 }
@@ -243,6 +249,8 @@ void exitProcessByPCB(PCB* pcb, int exitCode) {
   if (pcb->state == EXITED) return;
   if (pcb->state == BLOCKED) {
     pcb->state = WAITING_FOR_EXIT;
+    globalFree(pcb->heap);
+    pcb->heapFreed = true;
     return;
   }
 
@@ -313,7 +321,7 @@ PCBForUserland* getPCBList(int* len) {
   return pcbArray;
 }
 
-const PCB* getCurrentPCB() {
+PCB* getCurrentPCB() {
   return pcbList.current->pcb;
 }
 
@@ -374,8 +382,8 @@ uint64_t write(const char* buf, int len) {
 
 void block(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
-  if(pcb != NULL){
-    if(pcb->pid == pcbList.current->pcb->pid){
+  if (pcb != NULL) {
+    if (pcb->pid == pcbList.current->pcb->pid) {
       blockCurrentProcess();
     }
     pcb->state = BLOCKED;
@@ -384,7 +392,7 @@ void block(uint32_t pid) {
 
 void unBlock(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
-  if(pcb != NULL){
+  if (pcb != NULL) {
     pcb->state = READY;
   }
 }

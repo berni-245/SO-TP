@@ -17,7 +17,7 @@
 #define MAX_ARG_COUNT 20
 #define MAX_ARG_LEN 50
 #define MAX_COMMAND_COUNT 50
-#define MAX_HISTORY_LEN 50
+#define MAX_HISTORY_LEN 20
 
 typedef enum {
   SUCCESS = 0,
@@ -85,7 +85,7 @@ void commandTestSem(int argc, char* argv[argc]);
 void commandChangeProcess(); // Arreglar. Esto no es un command...
 void commandGetPid();
 void commandKill(int argc, char* argv[argc]);
-void commandGetMemoryState();
+void commandGetMemoryState(int argc, char* argv[argc]);
 void commandLoop(int argc, char* argv[argc]);
 void commandPhylo(int argc, char* argv[argc]);
 void commandNice(int argc, char* argv[argc]);

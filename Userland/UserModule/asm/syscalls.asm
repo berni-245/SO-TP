@@ -17,7 +17,8 @@ global sysGetCurrentTime
 global sysGetRegisters
 global sysMalloc
 global sysFree
-global sysGetMemoryState
+global sysGetGlobalMemoryState
+global sysGetProcessMemoryState
 global sysCreateProcess
 global sysExit
 global sysWaitPid
@@ -83,51 +84,53 @@ sysMalloc:
   syscall 15
 sysFree:
   syscall 16
-sysGetMemoryState:
+sysGetGlobalMemoryState:
   syscall 17
-sysCreateProcess:
+sysGetProcessMemoryState:
   syscall 18
-sysCreateProcessWithPipeSwap:
+sysCreateProcess:
   syscall 19
-sysExit:
+sysCreateProcessWithPipeSwap:
   syscall 20
-sysWaitPid:
+sysExit:
   syscall 21
-sysPCBList:
+sysWaitPid:
   syscall 22
-sysSemInit:
+sysPCBList:
   syscall 23
-sysCreateSemaphore:
+sysSemInit:
   syscall 24
-sysDestroySemaphore:
+sysCreateSemaphore:
   syscall 25
-sysDestroySemaphoreByName:
+sysDestroySemaphore:
   syscall 26
-sysWaitSem:
+sysDestroySemaphoreByName:
   syscall 27
-sysPostSem:
+sysWaitSem:
   syscall 28
-sysOpenSem:
+sysPostSem:
   syscall 29
-sysMemcpy:
+sysOpenSem:
   syscall 30
-sysGetPid:
+sysMemcpy:
   syscall 31
-sysKill:
+sysGetPid:
   syscall 32
-sysSleep:
+sysKill:
   syscall 33
-sysChangePriority:
+sysSleep:
   syscall 34
-sysChangePipeRead:
+sysChangePriority:
   syscall 35
-sysChangePipeWrite:
+sysChangePipeRead:
   syscall 36
-sysRead:
+sysChangePipeWrite:
   syscall 37
-sysWrite:
+sysRead:
   syscall 38
-sysBlock:
+sysWrite:
   syscall 39
-sysUnBlock:
+sysBlock:
   syscall 40
+sysUnBlock:
+  syscall 41

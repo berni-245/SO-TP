@@ -1,11 +1,11 @@
 #include <memoryManager.h>
+#include <scheduler.h>
 
 #ifdef BUDDY
 
 #include <stdint.h>
 #include <utils.h>
 
-typedef enum { false = 0, true = 1 } boolean;
 typedef enum { LEFT = 'L', RIGHT = 'R' } blockAlignment;
 
 #define ORDER_COUNT 27
@@ -14,25 +14,27 @@ typedef enum { LEFT = 'L', RIGHT = 'R' } blockAlignment;
 
 static const uint64_t addressByteSize = sizeof(void*);
 
-typedef struct Block {
-  struct Block* next;
-  uint32_t size;
-  boolean isFree;
-} Block;
-
 Block* freeList[ORDER_COUNT];
 void* iniAddress;
 
-void memoryInit(void* endOfModules) {
-  iniAddress = endOfModules;
-  for (int i = 0; i < ORDER_COUNT; i++) {
+void internalFreeListInit(int orderCount, void* heapStart, uint32_t heapSize, Block* freeList[]) {
+  for (int i = 0; i < orderCount; i++) {
     freeList[i] = NULL;
   }
-  Block* initialBlock = (Block*)(((uint64_t)endOfModules + addressByteSize - 1) & ~(addressByteSize - 1));
-  initialBlock->size = MAX_MEMORY_AVAILABLE;
+  Block* initialBlock = (Block*)(((uint64_t)heapStart + addressByteSize - 1) & ~(addressByteSize - 1));
+  initialBlock->size = heapSize;
   initialBlock->isFree = true;
   initialBlock->next = NULL;
-  freeList[ORDER_COUNT - 1] = initialBlock;
+  freeList[orderCount - 1] = initialBlock;
+}
+
+void freeListInit(void* heapStart, Block* freeList[]) {
+  internalFreeListInit(PROCESS_HEAP_ORDER_COUNT, heapStart, PROCESS_HEAP_SIZE, freeList);
+}
+
+void memoryInit(void* endOfModules) {
+  iniAddress = endOfModules;
+  internalFreeListInit(ORDER_COUNT, endOfModules, MAX_MEMORY_AVAILABLE, freeList);
 }
 
 static int getOrder(uint32_t size) {
@@ -48,44 +50,46 @@ static int getOrder(uint32_t size) {
 static Block* splitBlock(Block* block) {
   uint32_t newBlockSize = block->size / 2;
   block->size = newBlockSize;
-
   Block* buddy = (Block*)((char*)block + newBlockSize);
   buddy->size = newBlockSize;
   buddy->isFree = true;
   return buddy;
 }
 
-void* malloc(uint64_t size) {
-  // the block will also be allocated in the physical address
+void* internalMalloc(uint64_t size, int orderCount, Block* freeList[]) {
   int order = getOrder(size + sizeof(Block));
-
-  for (int currentOrder = order; currentOrder < ORDER_COUNT; currentOrder++) {
+  for (int currentOrder = order; currentOrder < orderCount; currentOrder++) {
     if (freeList[currentOrder] != NULL && freeList[currentOrder]->isFree) {
       Block* block = freeList[currentOrder];
       freeList[currentOrder] = block->next;
-
       while (order < currentOrder) {
         currentOrder--;
         Block* buddy = splitBlock(block);
         buddy->next = freeList[currentOrder];
         freeList[currentOrder] = buddy;
       }
-
       block->isFree = false;
       return (void*)(block + 1);
     }
   }
-
   return NULL;
 }
 
-static void removeFromFreeList(Block* toRemove, uint32_t order) {
+void* globalMalloc(uint64_t size) {
+  return internalMalloc(size, ORDER_COUNT, freeList);
+}
+
+void* malloc(uint64_t size) {
+  PCB* pcb = getCurrentPCB();
+  return internalMalloc(size, PROCESS_HEAP_ORDER_COUNT, pcb->freeList);
+}
+
+static void removeFromFreeList(Block* toRemove, uint32_t order, Block* freeList[]) {
   toRemove->isFree = false;
   if (freeList[order] == toRemove) {
     freeList[order] = toRemove->next;
     return;
   }
-
   Block* currentBlock = freeList[order];
   while (currentBlock != NULL && currentBlock->next != toRemove) {
     currentBlock = currentBlock->next;
@@ -96,18 +100,18 @@ static void removeFromFreeList(Block* toRemove, uint32_t order) {
   toRemove->next = NULL;
 }
 
-static blockAlignment getAlignment(Block* block) {
-  if ((((uint32_t)((uint8_t*)block - (uint8_t*)iniAddress) / block->size) % 2) == 0) return LEFT;
+static blockAlignment getAlignment(Block* block, void* heapStart) {
+  if ((((uint32_t)((uint8_t*)block - (uint8_t*)heapStart) / block->size) % 2) == 0) return LEFT;
   return RIGHT;
 }
 
-static void mergeBlock(Block* block, uint32_t order) {
-  if (block->size == MAX_MEMORY_AVAILABLE) {
+static void mergeBlock(Block* block, uint32_t order, void* heapStart, uint64_t maxMem, Block* freeList[]) {
+  if (block->size == maxMem) {
     freeList[order] = block;
     return;
   }
 
-  blockAlignment blockAlignment = getAlignment(block);
+  blockAlignment blockAlignment = getAlignment(block, heapStart);
 
   Block* buddy = (blockAlignment == LEFT) ? (Block*)((char*)block + block->size) : (Block*)((char*)block - block->size);
 
@@ -117,37 +121,46 @@ static void mergeBlock(Block* block, uint32_t order) {
     return;
   }
 
-  removeFromFreeList(block, order);
-  removeFromFreeList(buddy, order);
+  removeFromFreeList(block, order, freeList);
+  removeFromFreeList(buddy, order, freeList);
 
   if (blockAlignment == RIGHT) block = buddy;
 
   block->size *= 2;
   block->isFree = true;
-  mergeBlock(block, order + 1);
+  mergeBlock(block, order + 1, heapStart, maxMem, freeList);
+}
+
+void globalFree(void* ptr) {
+  if (ptr == NULL) return;
+  Block* block = (Block*)ptr - 1;
+  block->isFree = true;
+  int order = getOrder(block->size);
+  mergeBlock(block, order, iniAddress, MAX_MEMORY_AVAILABLE, freeList);
 }
 
 void free(void* ptr) {
   if (ptr == NULL) return;
-
+  PCB* pcb = getCurrentPCB();
+  if (ptr < pcb->heap || ptr >= pcb->heap + PROCESS_HEAP_SIZE) return;
   Block* block = (Block*)ptr - 1;
   block->isFree = true;
   int order = getOrder(block->size);
-
-  mergeBlock(block, order);
+  mergeBlock(block, order, pcb->heap, PROCESS_HEAP_SIZE, pcb->freeList);
 }
 
 #define MAX_STRING_SIZE 200
 
-char* getMemoryState() {
+char* internalGetMemoryState(int orderCount, int heapSize, Block* freeList[]) {
   char* toReturn = malloc(MAX_STRING_SIZE);
+  if (toReturn == NULL) return NULL;
   int i = strcpy(toReturn, "Total: ");
-  i += uintToBase(MAX_MEMORY_AVAILABLE, toReturn + i, 10);
+  i += uintToBase(heapSize, toReturn + i, 10);
   i += strcpy(toReturn + i, " bytes ");
 
   uint32_t totalFreeMemory = 0;
   Block* currentBlock;
-  for (int j = 0; j < ORDER_COUNT; j++) {
+  for (int j = 0; j < orderCount; j++) {
     currentBlock = freeList[j];
     while (currentBlock != NULL) {
       totalFreeMemory += currentBlock->size;
@@ -155,7 +168,7 @@ char* getMemoryState() {
     }
   }
   i += strcpy(toReturn + i, "| Used: ");
-  i += uintToBase(MAX_MEMORY_AVAILABLE - totalFreeMemory, toReturn + i, 10);
+  i += uintToBase(heapSize - totalFreeMemory, toReturn + i, 10);
   i += strcpy(toReturn + i, " bytes ");
 
   i += strcpy(toReturn + i, "| Unused: ");
@@ -164,6 +177,16 @@ char* getMemoryState() {
   toReturn[i] = 0;
 
   return toReturn;
+}
+
+char* getGlobalMemoryState() {
+  return internalGetMemoryState(ORDER_COUNT, MAX_MEMORY_AVAILABLE, freeList);
+}
+
+char* getProcessMemoryState(uint32_t pid) {
+  PCB* pcb = getPCBByPid(pid);
+  if (pcb == NULL) return NULL;
+  return internalGetMemoryState(PROCESS_HEAP_ORDER_COUNT, PROCESS_HEAP_SIZE, pcb->freeList);
 }
 
 #endif

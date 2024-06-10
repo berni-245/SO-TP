@@ -1,6 +1,7 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
+#include <memoryManager.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -17,6 +18,9 @@ typedef struct {
   int err;
 } ProcessPipes;
 
+#define PROCESS_HEAP_ORDER_COUNT 17
+#define PROCESS_HEAP_SIZE (1 << (PROCESS_HEAP_ORDER_COUNT - 1))
+
 typedef struct PCB {
   uint32_t pid;
   uint8_t priority;
@@ -24,13 +28,17 @@ typedef struct PCB {
   void* rsp;
   void* rbp;
   char* name;
-  // int exitCode;
   int waitedProcessExitCode;
   struct PCB* waitingForMe[10]; // This should be of dynamic length
   struct PCB* parentProc;
   int wfmLen;
   void* stack;
   ProcessPipes pipes;
+#ifdef BUDDY
+  Block* freeList[PROCESS_HEAP_ORDER_COUNT];
+  void* heap;
+  bool heapFreed;
+#endif
 } PCB;
 
 typedef struct {
@@ -52,9 +60,10 @@ extern void exit(int exitCode);
 void startFirstProcess(void* processAddress);
 void exitProcessByPCB(PCB* pcb, int exitCode);
 void exitCurrentProcess(int exitCode);
+PCB* getPCBByPid(uint32_t pid);
 int waitPid(uint32_t pid);
 PCBForUserland* getPCBList(int* len);
-const PCB* getCurrentPCB();
+PCB* getCurrentPCB();
 void blockCurrentProcess();
 void readyProcess(const PCB* pcb);
 uint32_t getpid();

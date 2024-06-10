@@ -259,11 +259,18 @@ void commandKill(int argc, char* argv[argc]) {
   }
 }
 
-void commandGetMemoryState() {
-  char* memState = sysGetMemoryState();
+void commandGetMemoryState(int argc, char* argv[argc]) {
+  char* memState;
+  if (argc > 1) {
+    int pid = strToInt(argv[1]);
+    memState = sysGetProcessMemoryState(pid);
+  } else {
+    memState = sysGetGlobalMemoryState();
+  }
   if (memState == NULL) {
-    printf("All the memory is being used\n");
-    sysExit(SUCCESS);
+    printf("Either no process found for given pid or all the memory for current process is being used and memory for "
+           "satate message cannot be allocated.\n");
+    sysExit(ILLEGAL_ARGUMENT);
   }
   printf("%s\n", memState);
   sysFree(memState);
