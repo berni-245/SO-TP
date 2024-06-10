@@ -80,7 +80,7 @@ bool Array_setn(Array a, long idx, const void* eleArray, uint64_t length) {
   }
   if (a->freeEleFn != NULL) {
     for (int i = idx; i < idx + length; ++i) {
-      free(Array_get(a, i));
+      a->freeEleFn(Array_get(a, i));
     }
   }
   if (length > a->length - idx) growBy(a, length - (a->length - idx));
