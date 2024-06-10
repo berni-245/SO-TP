@@ -5,30 +5,18 @@
 #include <syscalls.h>
 #include <sysinfo.h>
 
-int getKey(KeyStruct* key) {
-  int read = sysGetKey(key, 1);
-  return (read == 0) ? EOF : read;
+bool getKey(KeyStruct* key) {
+  ProcessPipes pipes = sysGetPipes();
+  sysRead(pipes.read, &key->character, 1);
+  sysGetModKeys(&key->md);
+  return key->character != EOF;
 }
 
 char getChar() {
-  KeyStruct key;
-  int read = getKey(&key);
-  if (read == 0) return EOF;
-  else return key.character;
-}
-
-char screenBuffer[SCREEN_BUFFER_SIZE];
-int screenBufWriteIdx = 0;
-int screenBufReadIdx = 0;
-
-void incWriteIdx() {
-  screenBufWriteIdx = (screenBufWriteIdx + 1) % SCREEN_BUFFER_SIZE;
-}
-void decWriteIdx() {
-  if (--screenBufWriteIdx < 0) screenBufWriteIdx = SCREEN_BUFFER_SIZE - 1;
-}
-void incReadIdxBy(int val) {
-  screenBufReadIdx = (screenBufReadIdx + val) % SCREEN_BUFFER_SIZE;
+  ProcessPipes pipes = sysGetPipes();
+  char c;
+  if (sysRead(pipes.read, &c, 1) < 0) return EOF;
+  return c;
 }
 
 void clearScreen() {
@@ -36,36 +24,20 @@ void clearScreen() {
   clearRectangle(0, 0, systemInfo.screenWidth, systemInfo.screenHeight);
 }
 
-void printScreenBuffer() {
-  for (int i = screenBufReadIdx; i != screenBufWriteIdx; i = (i + 1) % SCREEN_BUFFER_SIZE) {
-    sysWriteCharNext(screenBuffer[i]);
-  }
+int printChar(char c) {
+  ProcessPipes pipes = sysGetPipes();
+  return sysWrite(pipes.write, &c, 1);
 }
 
-void repaint() {
-  clearScreen();
-  printScreenBuffer();
-}
-
-void printChar(char c) {
-  sysWrite(&c, 1);
-  if (c == '\b') {
-    decWriteIdx();
-  } else {
-    screenBuffer[screenBufWriteIdx] = c;
-    incWriteIdx();
-  }
-}
-
-void printString(const char* s) {
-  for (int i = 0; s[i] != 0; ++i) {
-    printChar(s[i]);
-  }
+int printString(const char* s) {
+  int i;
+  for (i = 0; s[i] != 0; ++i) printChar(s[i]);
+  return i;
 }
 
 void puts(const char* s) {
   printString(s);
-  sysWriteCharNext('\n');
+  printChar('\n');
 }
 
 int strcmp(const char* s1, const char* s2) {
@@ -125,125 +97,136 @@ uint32_t intToBase(long value, char* buffer, uint32_t base) {
   }
   return uintToBase(value, p, base);
 }
-void printAsBase(long n, int base) {
+int printAsBase(long n, int base) {
   char buf[255];
   intToBase(n, buf, base);
-  printString(buf);
+  return printString(buf);
 }
-void printUintAsBase(unsigned long n, int base) {
+int printUintAsBase(unsigned long n, int base) {
   char buf[255];
   uintToBase(n, buf, base);
-  printString(buf);
+  return printString(buf);
 }
 
 static char paddingChar;
 static int paddingLen = 0;
 static int paddingSign = 1;
-void printPadding() {
-  for (int i = 0; i < paddingLen; ++i) {
+int printPadding() {
+  int len = paddingLen;
+  for (int i = 0; i < len; ++i) {
     printChar(paddingChar);
   }
   paddingLen = 0;
+  return len;
 }
-void printStringWithAlignedPadding(const char* s) {
+int printStringWithAlignedPadding(const char* s) {
+  int len = 0;
   if (paddingSign > 0) {
-    printPadding();
-    printString(s);
+    len += printPadding();
+    len += printString(s);
   } else {
-    printString(s);
-    printPadding();
+    len += printString(s);
+    len += printPadding();
   }
+  return len;
 }
-void printAsBaseWithPadding(long n, int base) {
+int printAsBaseWithPadding(long n, int base) {
   char buf[255];
   int digits = intToBase(n, buf, base);
   paddingLen = paddingLen - digits;
   char* s = buf;
+  int len = 0;
   if (n < 0) {
     printChar('-');
     ++s;
     --paddingLen;
+    ++len;
   }
-  printStringWithAlignedPadding(s);
+  len += printStringWithAlignedPadding(s);
+  return len;
 }
-void printUintAsBaseWithPadding(long n, int base) {
+int printUintAsBaseWithPadding(long n, int base) {
   char buf[255];
   int digits = uintToBase(n, buf, base);
   paddingLen = paddingLen - digits;
   char* s = buf;
-  printStringWithAlignedPadding(s);
+  return printStringWithAlignedPadding(s);
 }
-void printStringWithPadding(const char* s) {
+int printStringWithPadding(const char* s) {
   for (int i = 0; s[i] != 0 && paddingLen > 0; ++i) {
     --paddingLen;
   }
-  printStringWithAlignedPadding(s);
+  return printStringWithAlignedPadding(s);
 }
 
-// Return 0 on successful print, non 0 on error.
 int printf(const char* fmt, ...) {
   va_list p;
   va_start(p, fmt);
   paddingLen = 0;
 
+  int len = 0;
+
   int i = 0;
   while (fmt[i] != 0) {
     if (fmt[i] != '%' && paddingLen == 0) {
       printChar(fmt[i]);
+      ++len;
     } else {
       if (paddingLen == 0) ++i;
       else if (!strContains("dlxs", fmt[i])) {
         printf("...\nError: Only '%%s', '%%d', '%%l' and '%%x' modifiers accept padding.\n");
-        return 1;
+        return -1;
       }
       switch (fmt[i]) {
       case '%':
         printChar('%');
+        ++len;
         break;
       case 'd':
-        printAsBaseWithPadding(va_arg(p, int), 10);
+        len += printAsBaseWithPadding(va_arg(p, int), 10);
         paddingLen = 0;
         break;
       case 'l':
         switch (fmt[++i]) {
         case 'x':
-          printString("0x");
-          printUintAsBaseWithPadding(va_arg(p, long), 16);
+          len += printString("0x");
+          len += printUintAsBaseWithPadding(va_arg(p, long), 16);
           break;
         case 'i':
-          printAsBaseWithPadding(va_arg(p, int), 10);
+          len += printAsBaseWithPadding(va_arg(p, int), 10);
           break;
         case 'u':
-          printUintAsBaseWithPadding(va_arg(p, long), 10);
+          len += printUintAsBaseWithPadding(va_arg(p, long), 10);
           break;
         default:
           printf("...\nUnkown identifier `l`. Did you mean `li`, `lu` or `lx`?.\n");
-          return 1;
+          return -1;
         }
         break;
       case 'f':
-        printString("'TODO print float'");
+        len += printString("'TODO print float'");
         break;
       case 'x':
-        printString("0x");
-        printUintAsBaseWithPadding(va_arg(p, int), 16);
+        len += printString("0x");
+        len += printUintAsBaseWithPadding(va_arg(p, int), 16);
         break;
       case 'p':
         paddingLen = 8;
         paddingSign = 1;
         paddingChar = '0';
-        printString("0x");
-        printUintAsBaseWithPadding(va_arg(p, long), 16);
+        len += printString("0x");
+        len += printUintAsBaseWithPadding(va_arg(p, long), 16);
         break;
       case 'b':
-        printString("0b");
-        printAsBase(va_arg(p, int), 2);
+        len += printString("0b");
+        len += printAsBase(va_arg(p, int), 2);
         break;
       case 's':
-        printStringWithPadding(va_arg(p, char*));
+        len += printStringWithPadding(va_arg(p, char*));
         break;
       case 'c':
         printChar(va_arg(p, int));
+        ++len;
         break;
       default:
         paddingSign = 1;
@@ -263,19 +246,19 @@ int printf(const char* fmt, ...) {
           if (IS_DIGIT(fmt[i])) {
             printf("...\nFormat error: \"%s\"\n", fmt);
             printf("Maximum padding of %li exceeded\n", pow(10, MAX_PADDING_DIGITS) - 1);
-            return 1;
+            return -1;
           }
           nbr[j] = 0;
           paddingLen = strToInt(nbr);
         } else {
           printf("\nUnkown option: %%%c\n", fmt[i]);
-          return 1;
+          return -1;
         }
       }
     }
     if (paddingLen == 0) ++i;
   }
-  return 0;
+  return len;
 }
 
 int hexCharToDec(char c) {
@@ -306,18 +289,8 @@ int strToInt(char* s) {
 }
 
 void printKey(KeyStruct* key) {
-  // printf(
-  //   "{char: %c, code: %d, ctrl: %d, lShift: %d, rShift: %d, capsLock: %d, alt: %d}\n",
-  //   key->character,
-  //   key->code,
-  //   key->md.ctrlPressed,
-  //   key->md.leftShiftPressed,
-  //   key->md.rightShiftPressed,
-  //   key->md.capsLockActive,
-  //   key->md.altPressed
-  // );
   printf(
-      "('%c' | %x)%s%s%s%s%s\n", key->character, key->code, key->md.ctrlPressed ? " + ctrl" : "",
+      "('%c')%s%s%s%s%s\n", key->character, key->md.ctrlPressed ? " + ctrl" : "",
       key->md.leftShiftPressed ? " + l-shift" : "", key->md.rightShiftPressed ? " + r-shift" : "",
       key->md.capsLockActive ? " + capsLock" : "", key->md.altPressed ? " + alt" : ""
   );
@@ -366,6 +339,7 @@ int strTrimStartOffset(const char* s) {
 }
 
 bool strContains(const char* s, const char c) {
+  if (c <= 0) return false;
   for (int i = 0; s[i] != 0; ++i) {
     if (s[i] == c) return true;
   }

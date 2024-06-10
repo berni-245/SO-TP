@@ -6,9 +6,9 @@
 typedef struct ArrayCDT {
   // Use uint8_t* instead of void* because void* can't be used in arithmetic operations.
   uint8_t* array;
-  unsigned long elementSize;
-  unsigned long capacity;
-  unsigned long length;
+  long elementSize;
+  long capacity;
+  long length;
   PrintEleFn printEleFn;
   FreeEleFn freeEleFn;
 } ArrayCDT;
@@ -97,11 +97,10 @@ void Array_set(Array a, long idx, void* ele) {
 }
 
 void* Array_get(Array a, long idx) {
-  if (a == NULL) exitWithError("@Array_get Array instance can't be NULL");
-  if (idx >= a->length) exitWithError("@Array_get idx outside of bounds");
+  if (a == NULL || idx >= a->length) return NULL;
   if (idx < 0) {
     // Note: we negate idx because a->length is unsigned
-    if (-idx > a->length) exitWithError("@Array_get idx outside of bounds");
+    if (-idx > a->length) return NULL;
     idx += a->length;
   }
   return a->array + idx * a->elementSize;

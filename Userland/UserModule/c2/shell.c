@@ -1,3 +1,4 @@
+#include "syscalls.h"
 #include <array.h>
 #include <circularHistoryBuffer.h>
 #include <shellUtils.h>
@@ -41,7 +42,10 @@ int shell() {
       commandGetRegisters
   );
   addCommand("snake", "Play snake.", commandSnake);
-  addCommand("mem", "View the state of the memory for the whole system or process-wise by specifying pid", commandGetMemoryState);
+  addCommand(
+      "mem", "View the state of the memory for the whole system or process-wise by specifying pid",
+      commandGetMemoryState
+  );
   addCommand("zeroDivisionError", "Test the zero division error.", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error.", commandInvalidOpcodeError);
   addCommand("ps", "Print process list.", commandPs);
@@ -58,57 +62,59 @@ int shell() {
       "exit with e, a to add philosopher and remove with r",
       commandPhylo
   );
+  addCommand("destroyPipe", "Destroy pipe by id", commandDestroyPipe);
   addCommand("block", "Blocks the process with the pid given", commandBlock);
   addCommand("unblock", "Unblocks the process with the pid given", commandUnBlock);
   addCommand("testPriority", "Checks the priority functionality. 0: small wait. 1: long wait", commandTestPriority);
   addCommand("testProcesses", "Checks the process creation, blocking, unblocking and destruction", commandTestProcesses);
+  addCommand("cat", "Read from stdin and output to stdout", commandCat);
+  addCommand("wc", "Cound words from stdin", commandWordCount);
+
   const char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));
 
   newPrompt();
 
   KeyStruct key;
-  while (1) {
-    sysHalt();
-    if (getKey(&key) != EOF) {
-      if (key.md.ctrlPressed) {
-        switch (toLower(key.character)) {
-        case '+':
-          incFont();
-          break;
-        case '-':
-          decFont();
-          break;
-        case 'l':
-          clearScreenKeepCommand();
-          break;
-        case 'w':
-          deleteWord();
-          break;
-        case 'k':
-          historyPrev();
-          break;
-        case 'j':
-          historyNext();
-          break;
+  while (true) {
+    getKey(&key);
+    if (key.md.ctrlPressed) {
+      switch (toLower(key.character)) {
+      case '+':
+        incFont();
+        break;
+      case '-':
+        decFont();
+        break;
+      case 'l':
+        clearScreenKeepCommand();
+        break;
+      case 'w':
+        deleteWord();
+        break;
+      case 'k':
+        historyPrev();
+        break;
+      case 'j':
+        historyNext();
+        break;
+      }
+    } else {
+      if (key.character == '\n') {
+        printChar(key.character);
+        commandReturnCode = parseCommand();
+        newPrompt();
+        Array_clear(currentCommand);
+      } else if (key.character == '\b') {
+        if (Array_getLen(currentCommand) > 0) {
+          printChar(key.character);
+          Array_pop(currentCommand);
         }
+      } else if (key.character == '\t') {
+        autocomplete();
       } else {
-        if (key.character == '\n') {
-          printChar(key.character);
-          commandReturnCode = parseCommand();
-          newPrompt();
-          Array_clear(currentCommand);
-        } else if (key.character == '\b') {
-          if (screenBufWriteIdx != currentCommandIdx) {
-            printChar(key.character);
-            Array_pop(currentCommand);
-          }
-        } else if (key.character == '\t') {
-          autocomplete();
-        } else {
-          printChar(key.character);
-          Array_push(currentCommand, &key.character);
-        }
+        printChar(key.character);
+        Array_push(currentCommand, &key.character);
       }
     }
   }
@@ -117,7 +123,8 @@ int shell() {
 }
 
 void clearLine() {
-  while (screenBufWriteIdx != currentCommandIdx) printChar('\b');
+  int i = Array_getLen(currentCommand);
+  while (i--) printChar('\b');
   Array_clear(currentCommand);
 }
 
@@ -136,11 +143,6 @@ void historyCopy(Array argv) {
       Array_push(currentCommand, &c);
     }
   }
-  // while (screenBuffer[i] != '\n') {
-  //   printChar(screenBuffer[i]);
-  //   Array_push(currentCommand, screenBuffer + i);
-  //   incCircularIdx(&i, SCREEN_BUFFER_SIZE);
-  // }
 }
 void historyPrev() {
   Array* argv = CHB_readPrev(commandHistory);
@@ -150,28 +152,31 @@ void historyPrev() {
 void historyNext() {
   Array* argv = CHB_readNext(commandHistory);
   if (argv == NULL) {
-    clearLine();
+    // clearLine();
     return;
   }
   historyCopy(*argv);
 }
 
 int getCurrentChar() {
-  return screenBuffer[(screenBufWriteIdx > 0) ? screenBufWriteIdx - 1 : SCREEN_BUFFER_SIZE - 1];
+  char* c = Array_get(currentCommand, -1);
+  if (c == NULL) return 0;
+  return *c;
 }
 void deleteWord() {
-  if (screenBufWriteIdx == currentCommandIdx) return;
   char* wordSeps = " -.:,;";
-  if (!strContains(wordSeps, getCurrentChar())) {
+  char c = getCurrentChar();
+  if (c == 0) return;
+  if (!strContains(wordSeps, c)) {
     do {
       printChar('\b');
       Array_pop(currentCommand);
-    } while (!strContains(wordSeps, getCurrentChar()));
+    } while ((c = getCurrentChar()) != 0 && !strContains(wordSeps, c));
   } else {
     do {
       printChar('\b');
       Array_pop(currentCommand);
-    } while (strContains(wordSeps, getCurrentChar()) && (screenBufWriteIdx != currentCommandIdx));
+    } while ((c = getCurrentChar()) != 0 && strContains(wordSeps, c));
   }
 }
 
@@ -193,13 +198,9 @@ void newPrompt() {
     currentPromptLen = 4;
   }
   printString(currentPrompt);
-  currentCommandIdx = screenBufWriteIdx;
 }
 
 void clearScreenKeepCommand() {
-  int currentIdxLocal = currentCommandIdx;
-  decCircularIdxBy(&currentIdxLocal, currentPromptLen, SCREEN_BUFFER_SIZE);
-  screenBufReadIdx = currentIdxLocal;
   clearScreen();
   newPrompt();
   const char* cc = Array_getVanillaArray(currentCommand);
@@ -215,7 +216,7 @@ void incFont() {
 }
 void decFont() {
   setFontSize(systemInfo.fontSize - 1);
-  repaint();
+  clearScreenKeepCommand();
 }
 
 ShellCommand commands[MAX_COMMAND_COUNT];
@@ -233,7 +234,6 @@ ShellFunction getCommand(const char* name) {
 
 void autocomplete() {
   int matchCount = 0, matchIdx = 0, len = 0;
-  // screenBuffer[screenBufWriteIdx] = 0;
   const char* cc = Array_getVanillaArray(currentCommand);
   int ccLen = Array_getLen(currentCommand);
   for (int i = 0; i < commandCount; ++i) {
@@ -266,16 +266,34 @@ ShellFunction verifyCommand(Array argv) {
   ShellFunction command = getCommand(argv0);
   if (command == NULL) {
     printf("%s: %s\n", CommandResultStrings[COMMAND_NOT_FOUND], argv0);
-    // argv shouldn't be free because I'm saving invalid commands to history too.
+    // argv shouldn't be freed because I'm saving invalid commands to history too.
     // Array_free(argv);
     return NULL;
   }
   return command;
 }
 
+void setArgsNullTerminaor(Array argv) {
+  int argc = Array_getLen(argv);
+  if (argc == 0) return;
+  for (int i = 0; i < argc; ++i) {
+    char end = 0;
+    Array_push(*(Array*)Array_get(argv, i), &end);
+  }
+}
+
+void setRealArgv(int argc, const char* realArgv[argc], Array argv) {
+  for (int i = 0; i < argc; ++i) {
+    realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
+  }
+}
+
 ExitCode parseCommand() {
   Array argv = Array_initialize(sizeof(Array), 10, (FreeEleFn)freeArrayPtr, NULL);
+  Array argv2 = NULL;
+  Array currentArgv = argv;
   ShellFunction command;
+  ShellFunction command2 = NULL;
   Array arg = NULL;
   const char* cc = Array_getVanillaArray(currentCommand);
   int commandLength = Array_getLen(currentCommand);
@@ -284,15 +302,15 @@ ExitCode parseCommand() {
     if (cc[i] == ' ') newWord = true;
     else {
       if (newWord) {
-        // Can't have this if I want to save invalid commands to history.
-        // Added this check here too so we can exit immediately if the first argument
-        // parsed isn't a valid command.
-        // if (Array_getLen(argv) == 1) {
-        //   command = verifyCommand(argv);
-        //   if (!command) return COMMAND_NOT_FOUND;
-        // }
+        if (arg != NULL) {
+          if (Array_getLen(arg) == 1 && *(char*)Array_get(arg, 0) == '!') {
+            // No freeEleFn because it will get concatenated with argv in the end.
+            argv2 = Array_initialize(sizeof(Array), 10, NULL, NULL);
+            currentArgv = argv2;
+          }
+        }
         arg = Array_initialize(sizeof(char), 30, NULL, NULL);
-        Array_push(argv, &arg);
+        Array_push(currentArgv, &arg);
         newWord = false;
       }
       Array_push(arg, cc + i);
@@ -301,28 +319,53 @@ ExitCode parseCommand() {
 
   int argc = Array_getLen(argv);
   if (argc == 0) return SUCCESS;
-  for (int i = 0; i < argc; ++i) {
-    char end = 0;
-    Array_push(*(Array*)Array_get(argv, i), &end);
+
+  int ret = SUCCESS;
+  if (argv2 != NULL) {
+    --argc; // Dont take the pipe into account.
+    int argc2 = Array_getLen(argv2);
+    command2 = verifyCommand(argv2);
+    if (command2 == NULL) ret = COMMAND_NOT_FOUND;
+    else {
+      command = verifyCommand(argv);
+      if (command != NULL) {
+        setArgsNullTerminaor(argv);
+        setArgsNullTerminaor(argv2);
+        const char* realArgv[argc];
+        const char* realArgv2[argc2];
+        setRealArgv(argc, realArgv, argv);
+        setRealArgv(argc2, realArgv2, argv2);
+        int pipe = sysPipeInit();
+        ProcessPipes pipes = {.write = pipe, .read = stdin, .err = stderr};
+        int pid = sysCreateProcessWithPipeSwap(argc, realArgv, command, pipes);
+        pipes.write = stdout;
+        pipes.read = pipe;
+        int pid2 = sysCreateProcessWithPipeSwap(argc2, realArgv2, command2, pipes);
+        ret = sysWaitPid(pid);
+        sysDestroyPipe(pipe);
+        ret = sysWaitPid(pid2);
+      } else ret = COMMAND_NOT_FOUND;
+    }
+    Array_concat(argv, argv2);
+    Array_free(argv2);
+  } else {
+    command = verifyCommand(argv);
+    if (command != NULL) {
+      setArgsNullTerminaor(argv);
+      const char* realArgv[argc];
+      for (int i = 0; i < argc; ++i) {
+        realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
+      }
+      if (strcmp(realArgv[argc - 1], "&") == 0) {
+        int pid = sysCreateProcess(Array_getLen(argv) - 1, realArgv, command);
+        printf("Running in background '%s', pid: %d\n", realArgv[0], pid);
+        ret = SUCCESS;
+      } else {
+        int pid = sysCreateProcess(argc, realArgv, command);
+        ret = sysWaitPid(pid);
+      }
+    } else ret = COMMAND_NOT_FOUND;
   }
-
-  int ret;
-  command = verifyCommand(argv);
-  if (command) {
-
-    const char* realArgv[argc];
-    for (int i = 0; i < argc; ++i) {
-      realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
-    }
-    if (strcmp(realArgv[argc - 1], "&") == 0) {
-      int pid = sysCreateProcess(Array_getLen(argv) - 1, realArgv, command);
-      printf("Running in background '%s', pid: %d\n", realArgv[0], pid);
-      ret = SUCCESS;
-    } else {
-      int pid = sysCreateProcess(argc, realArgv, command);
-      ret = sysWaitPid(pid);
-    }
-  } else ret = COMMAND_NOT_FOUND;
   CHB_push(commandHistory, &argv);
   return ret;
 }

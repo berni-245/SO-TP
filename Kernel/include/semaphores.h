@@ -12,23 +12,22 @@
 // la idea es que los distintos procesos se manejen con los índices nada más.
 
 struct PCB;
-struct PCBNode;
 typedef int32_t sem_t;
 
 extern int _enter_region(int32_t* lock);
 extern int _leave_region(int32_t* lock);
 
-typedef struct PCBNode {
-  const struct PCB* pcb;
-  struct PCBNode* next;
-} PCBNode;
+typedef struct PCBNodeSem {
+  struct PCB* pcb;
+  struct PCBNodeSem* next;
+} PCBNodeSem;
 
 typedef struct {
   uint32_t value;
   int32_t lock;
   bool destroyed;
-  PCBNode* process_first;
-  PCBNode* process_last;
+  PCBNodeSem* process_first;
+  PCBNodeSem* process_last;
   char name[MAX_SEM_NAME + 1];
 } Semaphore;
 
@@ -37,8 +36,8 @@ typedef struct semaphore {
   char* name;
   uint32_t value;
   int32_t lock;
-  PCBNode* process_first;
-  PCBNode* process_last;
+  PCBNodeSem* process_first;
+  PCBNodeSem* process_last;
 } semaphore;
 typedef struct semaphores_pos {
   semaphore* sem;
@@ -53,5 +52,6 @@ bool destroySemaphoreByName(char* name);
 bool waitSemaphore(sem_t semId);
 bool postSemaphore(sem_t semId);
 sem_t openSemaphore(char* name, uint32_t value);
+bool decSemOnlyForKernel(int semId);
 
 #endif

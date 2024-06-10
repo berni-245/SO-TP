@@ -73,9 +73,10 @@ void changePriority(uint32_t pid, uint32_t newPriority);
 void killCurrentProcess();
 void changePipeRead(int p);
 void changePipeWrite(int p);
-uint64_t read(char* buf, int len);
-uint64_t write(const char* buf, int len);
 bool block(uint32_t pid);
 bool unBlock(uint32_t pid);
+ProcessPipes getPipes();
+long read(int pipeId, char* buf, int len);
+long write(int pipeId, const char* buf, int len);
 
 #endif

@@ -13,7 +13,7 @@ extern void sysInfo(SystemInfo* si);
 extern void sysSetLayout(int layoutIdx);
 extern int sysSetFontSize(int fontSize);
 extern void sysSetColor(FontColors c, uint32_t hexColor);
-extern int sysGetKey(KeyStruct* buf, int len);
+extern int sysGetModKeys(ModifierKeys* dest);
 extern int sysWriteCharXY(int x, int y, char c, int fontSize);
 extern void sysWriteCharNext(char c);
 extern int sysMoveCursor(int col, int row);
@@ -43,13 +43,14 @@ extern uint32_t sysGetPid();
 extern bool sysKill(uint32_t pid);
 extern void sysSleep(uint64_t ms);
 extern void sysChangePriority(uint32_t pid, uint32_t newPriority);
+extern uint64_t sysPipeInit();
+extern bool sysDestroyPipe(int pipeId);
 extern void sysChangePipeRead(int p);
 extern void sysChangePipeWrite(int p);
-extern uint64_t sysRead(char* buf, int len);
-extern uint64_t sysWrite(const char* buf, int len);
 extern bool sysBlock(uint32_t pid);
 extern bool sysUnBlock(uint32_t pid);
-extern int sysInitSem(int value);
-extern int sysDestroySem(int value);
+extern ProcessPipes sysGetPipes();
+extern long sysRead(int pipeId, char* buf, int len);
+extern long sysWrite(int pipeId, const char* buf, int len);
 
 #endif

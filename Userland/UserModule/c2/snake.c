@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <syscalls.h>
 #include <sysinfo.h>
-#include <time.h>
 
 static bool GAME_OVER, EXIT, MULTIPLAYER, MUTE;
 Snake s1 = {0};
@@ -42,11 +41,10 @@ void snake(bool multiplayer, char* player1Name, char* player2Name, bool mute) {
   updateScoreBoard();
   while (!EXIT) {
     do {
-      sysHalt();
       getKey(&input);
     } while (!specialKeyInput() && !moveInput());
     while (!GAME_OVER && !EXIT && !specialKeyInput()) {
-      sleep(55);
+      // sleep(55);
       // sysHalt();
       getKey(&input);
       moveInput();

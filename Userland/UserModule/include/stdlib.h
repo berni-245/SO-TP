@@ -18,19 +18,11 @@
 #define IS_HEX_LETTER(c) ('a' <= TO_LOWER(c) && TO_LOWER(c) <= 'f')
 #define IS_DIGIT(c) ('0' <= c && c <= '9')
 
-// Should be larger than the real max amount of characters
-// of fontCols*fontRows = 2117 for smallest font size.
-#define SCREEN_BUFFER_SIZE 7000
-extern char screenBuffer[SCREEN_BUFFER_SIZE];
-extern int screenBufWriteIdx;
-extern int screenBufReadIdx;
-
-int getKey(KeyStruct* key);
+bool getKey(KeyStruct* key);
 char getChar();
-void printChar(char c);
+int printChar(char c);
 void clearScreen();
-void repaint();
-void printString(const char* s);
+int printString(const char* s);
 void puts(const char* s);
 uint32_t uintToBase(unsigned long value, char* buffer, uint32_t base);
 uint32_t intToBase(long value, char* buffer, uint32_t base);

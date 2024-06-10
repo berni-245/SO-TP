@@ -86,13 +86,13 @@ int check_phylo_pos(int pos) {
   return (pos > PHILO_MAX_AMOUNT || pos < PHILO_MIN_AMOUNT);
 }
 
-void blockAlmostAll(){
-  for (int i = 0; i < philos_on_table-1; i++) {
+void blockAlmostAll() {
+  for (int i = 0; i < philos_on_table - 1; i++) {
     sysWaitSem(change_philos_sem);
   }
 }
-void freeAlmostAll(){
-  for (int i = 0; i < philos_on_table-1; i++) {
+void freeAlmostAll() {
+  for (int i = 0; i < philos_on_table - 1; i++) {
     sysPostSem(change_philos_sem);
   }
 }
@@ -134,7 +134,7 @@ int rem_phylo(int pos) {
   sysKill(pids[pos]);
   forks[pos] = 0;
   pids[pos] = 0;
-  philos_on_table=pos;
+  philos_on_table = pos;
   printf("Philosopher number %d has left the game\n", pos + 1);
   freeAll();
   return 0;
@@ -164,11 +164,11 @@ void commandPhylo(int argc, char* argv[argc]) {
     sysExit(TOO_MANY_ARGUMENTS);
   }
   for (int i = 0; i < PHILO_MAX_AMOUNT; ++i) {
-    philo_state[i]=0;
-    forks[i]=0;
-    pids[i]=0;
-    philos_on_table=0;
-    change_philos_sem=0;
+    philo_state[i] = 0;
+    forks[i] = 0;
+    pids[i] = 0;
+    philos_on_table = 0;
+    change_philos_sem = 0;
   }
 
   for (int i = 0; i < PHILO_AMOUNT; i++) {
@@ -199,20 +199,17 @@ void commandPhylo(int argc, char* argv[argc]) {
   }
 
   KeyStruct key;
-  while (1) {
-    sysHalt();
-    if (getKey(&key) != EOF) {
-      if (key.character == 'a' || key.character == 'A') {
-        printf("Adding philosopher... %d\n", philos_on_table+1);
-        add_phylo(philos_on_table);
-      } else if (key.character == 'r' || key.character == 'R') {
-        printf("Removing philosopher... %d\n", philos_on_table);
-        rem_phylo(philos_on_table - 1);
-      } else if (key.character == 'e' || key.character == 'E') {
-        end_phylos();
-        printf("Ending philosopher...\n");
-        sysExit(SUCCESS);
-      }
+  while (getKey(&key)) {
+    if (key.character == 'a' || key.character == 'A') {
+      printf("Adding philosopher... %d\n", philos_on_table + 1);
+      add_phylo(philos_on_table);
+    } else if (key.character == 'r' || key.character == 'R') {
+      printf("Removing philosopher... %d\n", philos_on_table);
+      rem_phylo(philos_on_table - 1);
+    } else if (key.character == 'e' || key.character == 'E') {
+      end_phylos();
+      printf("Ending philosopher...\n");
+      sysExit(SUCCESS);
     }
   }
 }

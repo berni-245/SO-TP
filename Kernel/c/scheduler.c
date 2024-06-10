@@ -367,17 +367,20 @@ void changePipeWrite(int p) {
   pcbList.current->pcb->pipes.write = p;
 }
 
-uint64_t read(char* buf, int len) {
-  return readPipe(pcbList.current->pcb->pipes.read, buf, len);
+ProcessPipes getPipes() {
+  return pcbList.current->pcb->pipes;
 }
 
-uint64_t write(const char* buf, int len) {
-  int pipeWrite = pcbList.current->pcb->pipes.write;
-  if (pipeWrite == stdout) {
+long read(int pipeId, char* buf, int len) {
+  return readPipe(pipeId, buf, len);
+}
+
+long write(int pipeId, const char* buf, int len) {
+  if (pipeId == stdout) {
     printNextBuf(buf, len);
     return len;
   }
-  return writePipe(pipeWrite, buf, len);
+  return writePipe(pipeId, buf, len);
 }
 
 bool block(uint32_t pid) {

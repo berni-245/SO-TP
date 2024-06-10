@@ -61,7 +61,6 @@ void deleteWord();
 void historyPrev();
 void historyNext();
 void resetHistoryCurrentVals();
-// void parseCommandOpts(int argc, char argv[argc][MAX_ARG_LEN], int flagCount, CommandOption flags[]);
 
 ExitCode parseCommand();
 void commandEcho(int argc, char* argv[argc]);
@@ -90,10 +89,13 @@ void commandLoop(int argc, char* argv[argc]);
 void commandPhylo(int argc, char* argv[argc]);
 void commandNice(int argc, char* argv[argc]);
 void commandTestPipes(int argc, char* argv[argc]);
+void commandDestroyPipe(int argc, char* argv[argc]);
 void commandBlock(int argc, char* argv[argc]);
 void commandUnBlock(int argc, char* argv[argc]);
 void commandTestMM(int argc, char *argv[]);
 void commandTestPriority(int argc, char *argv[argc]);
 void commandTestProcesses(int32_t argc, char *argv[]);
+void commandCat();
+void commandWordCount();
 
 #endif
