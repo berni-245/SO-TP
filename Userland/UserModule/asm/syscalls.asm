@@ -42,6 +42,8 @@ global sysWrite
 global sysCreateProcessWithPipeSwap
 global sysBlock
 global sysUnBlock
+global sysInitSem
+global sysDestroySem
 
 %macro syscall 1
   mov r9, %1
@@ -134,3 +136,7 @@ sysBlock:
   syscall 40
 sysUnBlock:
   syscall 41
+sysInitSem:
+  syscall 42
+sysDestroySem:
+  syscall 43

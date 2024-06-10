@@ -49,5 +49,7 @@ extern uint64_t sysRead(char* buf, int len);
 extern uint64_t sysWrite(const char* buf, int len);
 extern bool sysBlock(uint32_t pid);
 extern bool sysUnBlock(uint32_t pid);
+extern int sysInitSem(int value);
+extern int sysDestroySem(int value);
 
 #endif

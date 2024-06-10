@@ -59,6 +59,8 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)write,
     (SyscallFunction)block,
     (SyscallFunction)unBlock,
+    (SyscallFunction)semInit,
+    (SyscallFunction)destroySemaphore,
 };
 
 SyscallFunction* getSyscallsArray() {
