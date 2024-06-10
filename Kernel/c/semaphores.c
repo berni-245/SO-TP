@@ -104,7 +104,12 @@ int32_t destroySemaphore(char *sem_name) {
   while (sem_array[sem_id].sem->process_first != NULL) {
     const PCB* to_ready = fifoUnqueue(sem_id);
     _leave_region(&sem_array[sem_id].sem->lock);
-    readyProcess(to_ready);
+
+    if (to_ready->state == BLOCKED) {
+      readyProcess(to_ready);
+    } else if (to_ready->state == WAITING_FOR_EXIT) {
+      exitProcessByPCB(to_ready, KILL_EXIT_CODE);
+    }
   }
   _leave_region(&sem_array[sem_id].sem->lock);
   free(sem_array[sem_id].sem->name);
@@ -143,7 +148,3 @@ int32_t postSemaphore(sem_t sem_id) {
   }
   return 0;
 }
-
-
-
-
