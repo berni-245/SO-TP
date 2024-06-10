@@ -68,7 +68,7 @@ ExitCode parseCommand();
 void commandEcho(int argc, char* argv[argc]);
 void commandGetReturnCode();
 void commandRealTime();
-void commandHelp();
+void commandHelp(int argc, char* argv[argc]);
 void commandGetKeyInfo();
 void commandRand(int argc, char* argv[argc]);
 void commandLayout(int argc, char* argv[argc]);

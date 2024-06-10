@@ -25,22 +25,24 @@ void commandRealTime() {
 void commandHelp(int argc, char* argv[argc]) {
   printString("Available commands ");
   if (argc >= 2 && strToInt(argv[1]) == 2) {
-    printString("(Page 2):\n");
+    printString("(Page 2/2):\n");
     for (int i = commandCount / 2 + 1; i < commandCount; ++i) {
       printf("\t- %s: %s\n", commands[i].name, commands[i].description);
     }
-    printf("Switch between pages with help <1 or 2>\n");
+    printf("Switch between pages with help [pageNr]\n");
     sysExit(SUCCESS);
   }
+
   if (argc >= 2 && strToInt(argv[1]) != 1) {
     printString("No such page\n");
     sysExit(ILLEGAL_ARGUMENT);
   }
-  printString("(Page 1):\n");
+
+  printString("(Page 1/2):\n");
   for (int i = 0; i < commandCount / 2; ++i) {
     printf("\t- %s: %s\n", commands[i].name, commands[i].description);
   }
-  printf("Switch between pages with help <1 or 2>\n");
+  printf("Switch between pages with help [pageNr]\n");
   sysExit(SUCCESS);
 }
 
