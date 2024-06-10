@@ -186,7 +186,6 @@ void clearScreenKeepCommand() {
   int currentIdxLocal = currentCommandIdx;
   decCircularIdxBy(&currentIdxLocal, currentPromptLen, SCREEN_BUFFER_SIZE);
   screenBufReadIdx = currentIdxLocal;
-  // repaint();
   clearScreen();
   newPrompt();
   const char* cc = Array_getVanillaArray(currentCommand);
