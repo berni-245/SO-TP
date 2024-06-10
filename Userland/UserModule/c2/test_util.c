@@ -1,6 +1,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <syscalls.h>
+#include <shellUtils.h>
+
+#define MINOR_WAIT 40000000
+#define WAIT 400000000
 
 // Random
 static uint32_t m_z = 362436069;
@@ -34,7 +38,7 @@ void* setMem(void* destination, int32_t c, uint64_t length) {
   char* dst = (char*)destination;
 
   for(int i = 0; i < length; i++) {
-    dst[i] = c;
+    dst[i] = chr;
   }
 
   return destination;
@@ -76,11 +80,22 @@ void endless_loop() {
     ;
 }
 
-void endless_loop_print(uint64_t wait) {
+void endless_loop_print(int argc, char* argv[]) {
+  if (argc!=2){
+    printf("Argument error");
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+  int32_t wait_type= strToInt(argv[1]);
   int64_t pid = sysGetPid();
-
-  while (1) {
-    printf("%d ", pid);
-    bussy_wait(wait);
+  if(wait_type) {
+    while (1) {
+      printf("%d ", pid);
+      bussy_wait(WAIT);
+    }
+  }else{
+    while (1) {
+      printf("%d ", pid);
+      bussy_wait(MINOR_WAIT);
+    }
   }
 }
