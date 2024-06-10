@@ -1,28 +1,26 @@
-#include <syscalls.h>
-#include <test_util.h>
 #include <shellUtils.h>
 #include <stdlib.h>
+#include <syscalls.h>
+#include <test_util.h>
 
 #define MAX_BLOCKS 10
 
 typedef struct MM_rq {
-  void *address;
+  void* address;
   uint32_t size;
 } mm_rq;
 
-void commandTestMM(int argc, char *argv[]) {
+void commandTestMM(int argc, char* argv[]) {
 
   mm_rq mm_rqs[MAX_BLOCKS];
   uint8_t rq;
   uint32_t total;
   int64_t max_memory;
 
-  if (argc < 2)
-    sysExit(MISSING_ARGUMENTS);
+  if (argc < 2) sysExit(MISSING_ARGUMENTS);
 
-  if ((max_memory = strToInt(argv[1])) <= 0)
-    sysExit(ILLEGAL_ARGUMENT);
-  
+  if ((max_memory = strToInt(argv[1])) <= 0) sysExit(ILLEGAL_ARGUMENT);
+
   max_memory = max_memory * (1 << 20);
   while (1) {
     rq = 0;
@@ -43,8 +41,7 @@ void commandTestMM(int argc, char *argv[]) {
     // Set
     uint32_t i;
     for (i = 0; i < rq; i++)
-      if (mm_rqs[i].address != NULL)
-        setMem(mm_rqs[i].address, i, mm_rqs[i].size);
+      if (mm_rqs[i].address != NULL) setMem(mm_rqs[i].address, i, mm_rqs[i].size);
 
     // Check
     for (i = 0; i < rq; i++)
@@ -56,7 +53,6 @@ void commandTestMM(int argc, char *argv[]) {
 
     // Free
     for (i = 0; i < rq; i++)
-      if (mm_rqs[i].address != NULL)
-        sysFree(mm_rqs[i].address);
+      if (mm_rqs[i].address != NULL) sysFree(mm_rqs[i].address);
   }
 }
