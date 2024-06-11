@@ -1,10 +1,8 @@
 #include <keyboard.h>
 #include <layouts.h>
+#include <pipes.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <scheduler.h>
-
-void copyModifierKeys(ModifierKeys src, ModifierKeys* dest);
 
 static KbLayout kbLayout = 0;
 
@@ -16,10 +14,7 @@ KbLayout getLayout() {
   return kbLayout;
 }
 
-static int writeIdx = 0;
-static int readIdx = 0;
-bool canRead = false;
-static KeyStruct buffer[KB_BUF_SIZE];
+#define EOF -1
 
 // There is a problem where some key combinations are not detected, for example
 // left-shift + right-shift + p or + b don't get printed. But the combination
@@ -28,7 +23,7 @@ static KeyStruct buffer[KB_BUF_SIZE];
 static ModifierKeys md = {false};
 void readKeyToBuffer() {
   uint8_t code = readKeyCode();
-  KeyStruct key;
+  char c;
   switch (code) {
   case LEFT_SHIFT:
     md.leftShiftPressed = true;
@@ -59,41 +54,29 @@ void readKeyToBuffer() {
     break;
   default:
     if (code < 0 || code >= LAYOUT_SIZE) return;
-    key.code = code;
     // This makes capslock virtually equivalent to shift, meaning all symbols will get
     // converted, not only letters. That's not the standard behaviour but I actually like it.
     if ((md.capsLockActive && !(md.leftShiftPressed || md.rightShiftPressed)) ||
         (!md.capsLockActive && (md.leftShiftPressed || md.rightShiftPressed)))
-      key.key = layoutShiftMaps[kbLayout][code];
-    else key.key = layoutMaps[kbLayout][code];
-    if (key.key == 0) return;
-    if(md.ctrlPressed == true && (key.key == 'C' || key.key == 'c' )){
-      killCurrentProcessInForeground();
-      return;
+      c = layoutShiftMaps[kbLayout][code];
+    else c = layoutMaps[kbLayout][code];
+    if (c == 0) return;
+    if (md.ctrlPressed == true) {
+      if (c == 'C' || c == 'c') {
+        killCurrentProcessInForeground();
+        return;
+      } else if (c == 'D' || c == 'd') {
+        c = EOF;
+      }
     }
-    copyModifierKeys(md, &key.md);
-    int prevWriteIdx = writeIdx;
-    buffer[writeIdx++] = key;
-    writeIdx %= KB_BUF_SIZE;
-    if (readIdx == prevWriteIdx && canRead) readIdx = writeIdx;
-    canRead = true;
+    writeStdin(c);
   }
 }
 
-void copyModifierKeys(ModifierKeys src, ModifierKeys* dest) {
-  dest->leftShiftPressed = src.leftShiftPressed;
-  dest->rightShiftPressed = src.rightShiftPressed;
-  dest->ctrlPressed = src.ctrlPressed;
-  dest->altPressed = src.altPressed;
-  dest->capsLockActive = src.capsLockActive;
-}
-
-int readKbBuffer(KeyStruct buf[], int len) {
-  int i = 0;
-  while (canRead && i < len) {
-    buf[i++] = buffer[readIdx];
-    readIdx = (readIdx + 1) % KB_BUF_SIZE;
-    if (readIdx == writeIdx) canRead = false;
-  }
-  return i;
+void getModKeys(ModifierKeys* dest) {
+  dest->leftShiftPressed = md.leftShiftPressed;
+  dest->rightShiftPressed = md.rightShiftPressed;
+  dest->ctrlPressed = md.ctrlPressed;
+  dest->altPressed = md.altPressed;
+  dest->capsLockActive = md.capsLockActive;
 }

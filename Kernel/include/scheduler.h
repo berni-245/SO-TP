@@ -9,7 +9,7 @@
 
 #define KILL_EXIT_CODE 1
 
-typedef enum { READY, RUNNING, BLOCKED, EXITED, WAITING_FOR_EXIT } State;
+typedef enum { READY, RUNNING, BLOCKED, EXITED, WAITING_FOR_EXIT, BLOCKED_BY_USER } State;
 extern const char* const StateStrings[];
 
 typedef struct {
@@ -77,9 +77,11 @@ void changePriority(uint32_t pid, uint32_t newPriority);
 void killCurrentProcess();
 void changePipeRead(int p);
 void changePipeWrite(int p);
-uint64_t read(char* buf, int len);
-uint64_t write(const char* buf, int len);
-void block(uint32_t pid);
-void unBlock(uint32_t pid);
+bool block(uint32_t pid);
+bool unBlock(uint32_t pid);
+bool blockByUser(uint32_t pid);
+ProcessPipes getPipes();
+long read(int pipeId, char* buf, int len);
+long write(int pipeId, const char* buf, int len);
 
 #endif

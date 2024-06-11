@@ -1,4 +1,3 @@
-#include "time.h"
 #include <shellUtils.h>
 #include <stdlib.h>
 #include <syscalls.h>
@@ -50,14 +49,8 @@ void commandHelp(int argc, char* argv[argc]) {
 
 void commandGetKeyInfo() {
   KeyStruct key;
-  while (1) {
-    sysHalt();
-    if (getKey(&key) != EOF) {
-      if (justCtrlMod(&key) && key.character == 'c') sysExit(SUCCESS);
-      else {
-        printKey(&key);
-      }
-    }
+  while (getKey(&key)) {
+    printKey(&key);
   }
   sysExit(SUCCESS);
 }
@@ -131,7 +124,7 @@ void commandSetColors(int argc, char* argv[argc]) {
   setFontColor(fontColor);
   setBgColor(bgColor);
   setCursorColor(cursorColor);
-  repaint();
+  clearScreenKeepCommand();
   sysExit(SUCCESS);
 }
 
@@ -207,7 +200,7 @@ void commandSnake(int argc, char* argv[argc]) {
     }
     setShellColors(fontColor, bgColor, cursorColor);
   }
-  repaint();
+  clearScreenKeepCommand();
   sysExit(SUCCESS);
 }
 
@@ -311,38 +304,51 @@ void commandNice(int argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-void pipeWriter() {
-  char buf[400] = "Holalala carolalalal: ";
-  int i = 0;
-  int writeLen = 5;
-  while (true) {
-    int strLen = 22 + intToBase(i++, buf + 22, 10);
-    int len = 0;
-    while (len < strLen) {
-      len += sysWrite(buf + len, writeLen);
-    }
+void pipeWriter(int argc, char* argv[argc]) {
+  static char* words[] = {"0000000", "1111111", "2222222", "3333333", "4444444",
+                          "5555555", "6666666", "7777777", "8888888", "9999999"};
+  static int wordsLen = sizeof(words) / sizeof(*words);
+  static int bufLen = 400;
+  char buf[bufLen];
+  for (int i = 0, j = 0; i < bufLen; ++j) {
+    i += strcpy(buf + i, words[j % wordsLen]);
   }
-  sysExit(PROCESS_FAILURE);
+  // int writeLen = bufLen / 20;
+  int len = 0;
+  // ProcessPipes pipes = sysGetPipes();
+  while (len < bufLen) {
+    // int l = sysWrite(pipes.write, buf + len, writeLen);
+    int l = printf("%s", buf);
+    if (l < 0) {
+      printf("%s - %d: pipe not found, exiting...", argv[0], sysGetPid());
+      sysExit(PROCESS_FAILURE);
+    }
+    len += l;
+    sleep(1000);
+  }
+  sysExit(SUCCESS);
 }
-void pipeReader() {
+void pipeReader(int argc, char* argv[argc]) {
   char buf[200];
-  int i = 0;
+  int i = 0, tot = 0;
+  ProcessPipes pipes = sysGetPipes();
   while (true) {
-    i = sysRead(buf, 20);
+    i = sysRead(pipes.read, buf, 40);
+    if (i < 0) {
+      printf("%s - %d: pipe not found, exiting...\n", argv[0], sysGetPid());
+      sysExit(SUCCESS);
+    }
     buf[i] = 0;
-    printf("Read %d character:\n", i);
+    tot += i;
+    printf("Current read: %d - Total read: %d\n", i, tot);
     printf("%s\n", buf);
     sleep(1000);
   }
   sysExit(PROCESS_FAILURE);
 }
 void commandTestPipes(int argc, char* argv[argc]) {
-  if (argc < 2) {
-    printf("Usage: %s <pipeIdx>\n", argv[0]);
-    sysExit(ILLEGAL_ARGUMENT);
-  }
-
-  int pipe = strToInt(argv[1]);
+  int pipe = sysPipeInit();
+  printf("Using pipe: %d\n", pipe);
   const char* argv2[] = {"pipeWriter"};
   ProcessPipes pipes = {.write = pipe, .read = stdin, .err = stderr};
   int pidWriter = sysCreateProcessWithPipeSwap(1, argv2, pipeWriter, pipes);
@@ -352,8 +358,27 @@ void commandTestPipes(int argc, char* argv[argc]) {
   int pidReader = sysCreateProcessWithPipeSwap(1, argv2, pipeReader, pipes);
 
   sysWaitPid(pidWriter);
+  printf("%s - %d: Destroying pipe...\n", argv[0], sysGetPid());
+  sleep(2000);
+  if (!sysDestroyPipe(pipe)) {
+    printf("Error destroying pipe: %d\n", pipe);
+  }
   sysWaitPid(pidReader);
 
+  sysExit(SUCCESS);
+}
+
+void commandDestroyPipe(int argc, char* argv[argc]) {
+  if (argc < 2) {
+    printf("Usage: %s <pip_id>\n", argv[0]);
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+  int pipe = strToInt(argv[1]);
+  if (!sysDestroyPipe(pipe)) {
+    printf("Error destroying pipe: %d\n", pipe);
+    sysExit(ILLEGAL_ARGUMENT);
+  }
+  printf("Correctly destroyed pipe: %d\n", pipe);
   sysExit(SUCCESS);
 }
 
@@ -381,5 +406,59 @@ void commandUnBlock(int argc, char* argv[argc]) {
   }
 
   sysUnBlock(pid);
+  sysExit(SUCCESS);
+}
+
+void commandCat() {
+  char c;
+  while ((c = getChar()) != EOF) {
+    if (printChar(c) < 0) sysExit(PROCESS_FAILURE);
+  }
+  sysExit(SUCCESS);
+}
+
+void commandWordCount() {
+  char c;
+  int words = 0;
+  int lines = 0;
+  bool inWord = false;
+
+  while ((c = getChar()) != EOF) {
+    if (c == ' ' || c == '\n') {
+      if (inWord) {
+        ++words;
+        inWord = false;
+      }
+      if (c == '\n') {
+        ++lines;
+      }
+    } else {
+      inWord = true;
+    }
+    if (printChar(c) < 0) {
+      sysExit(PROCESS_FAILURE);
+    }
+  }
+  if (inWord) {
+    ++words;
+  }
+  printf("\nWord count: %d\n", words);
+  printf("Line count: %d\n", lines);
+
+  sysExit(SUCCESS);
+}
+
+int charIsAVocal(char c){
+  return ( c == 'a' || c == 'A' || c == 'e' || c == 'E' || c == 'i' || c =='I' || c == 'o' || c == 'O' || c == 'u' || c == 'U');
+}
+
+void commandFilterVocals() {
+  char c;
+  while ((c = getChar()) != EOF) {
+    if (!charIsAVocal(c)){
+      printf("%c", c);
+    }
+  }
+  printf("\n");
   sysExit(SUCCESS);
 }

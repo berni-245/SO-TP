@@ -4,6 +4,7 @@
 #include <lib.h>
 #include <memoryManager.h>
 #include <pcSpeaker.h>
+#include <pipes.h>
 #include <registers.h>
 #include <scheduler.h>
 #include <semaphores.h>
@@ -23,7 +24,7 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)setLayout,
     (SyscallFunction)setFontSize,
     (SyscallFunction)setColor,
-    (SyscallFunction)readKbBuffer,
+    (SyscallFunction)getModKeys,
     (SyscallFunction)printCharXY,
     (SyscallFunction)printNextChar,
     (SyscallFunction)moveCursor,
@@ -53,12 +54,16 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)kill,
     (SyscallFunction)sleep,
     (SyscallFunction)changePriority,
+    (SyscallFunction)pipeInit,
+    (SyscallFunction)destroyPipe,
     (SyscallFunction)changePipeRead,
     (SyscallFunction)changePipeWrite,
+    (SyscallFunction)getPipes,
     (SyscallFunction)read,
     (SyscallFunction)write,
     (SyscallFunction)block,
     (SyscallFunction)unBlock,
+    (SyscallFunction)blockByUser,
 };
 
 SyscallFunction* getSyscallsArray() {

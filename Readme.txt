@@ -27,5 +27,5 @@ From the x64BareBones project directory run:
   user@linux:$ ./run.sh
 
 
-Author: Rodrigo Rearden (RowDaBoat)
+Author: Rodrigo Rearden (RowDaBoat) - Franco Morroni - Bernardo Zapico - Federico Etchegorry
 Collaborator: Augusto Nizzo McIntosh

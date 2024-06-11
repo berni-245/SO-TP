@@ -12,7 +12,7 @@
 //   - Esto si se puede quizá convendría que sean 4 quantums seguidos sin context switching.
 // - Luego de las n veces paso al siguiente proceso de la lista.
 
-const char* const StateStrings[] = {"READY", "RUNNING", "BLOCKED", "EXITED", "W-EXIT"};
+const char* const StateStrings[] = {"READY", "RUNNING", "BLOCKED", "EXITED", "W-EXIT", "BLK_USER"};
 
 typedef struct PCBNode {
   PCB* pcb;
@@ -374,32 +374,49 @@ void changePipeWrite(int p) {
   pcbList.current->pcb->pipes.write = p;
 }
 
-uint64_t read(char* buf, int len) {
-  return readPipe(pcbList.current->pcb->pipes.read, buf, len);
+ProcessPipes getPipes() {
+  return pcbList.current->pcb->pipes;
 }
 
-uint64_t write(const char* buf, int len) {
-  int pipeWrite = pcbList.current->pcb->pipes.write;
-  if (pipeWrite == stdout) {
+long read(int pipeId, char* buf, int len) {
+  return readPipe(pipeId, buf, len);
+}
+
+long write(int pipeId, const char* buf, int len) {
+  if (pipeId == stdout) {
     printNextBuf(buf, len);
     return len;
   }
-  return writePipe(pipeWrite, buf, len);
+  return writePipe(pipeId, buf, len);
 }
 
-void block(uint32_t pid) {
+bool block(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
   if (pcb != NULL && (pcb->state == READY || pcb->state == RUNNING)) {
     if (pcb->pid == pcbList.current->pcb->pid) {
       blockCurrentProcess();
     }
     pcb->state = BLOCKED;
+    return true;
   }
+  return false;
 }
-
-void unBlock(uint32_t pid) {
+bool blockByUser(uint32_t pid){
   PCB* pcb = getPCBByPid(pid);
-  if (pcb != NULL && pcb->state == BLOCKED) {
-    pcb->state = READY;
+  if (pcb != NULL && (pcb->state == READY || pcb->state == RUNNING)) {
+    if (pcb->pid == pcbList.current->pcb->pid) {
+      blockCurrentProcess();
+    }
+    pcb->state = BLOCKED_BY_USER;
+    return true;
   }
+  return false;
+}
+bool unBlock(uint32_t pid) {
+  PCB* pcb = getPCBByPid(pid);
+  if (pcb != NULL && (pcb->state == BLOCKED || pcb->state == BLOCKED_BY_USER)) {
+    pcb->state = READY;
+    return true;
+  }
+  return false;
 }

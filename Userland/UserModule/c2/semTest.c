@@ -1,4 +1,5 @@
 #include <shellUtils.h>
+#include <test_util.h>
 
 ///////////// Semaphores stuff /////////////
 
@@ -58,7 +59,7 @@ void commandTestSem(int argc, char* argv[argc]) {
   const char* argvDec[] = {"my_process_dec", argv[1], "-1", argv[2]};
   const char* argvInc[] = {"my_process_inc", argv[1], "1", argv[2]};
 
-  globalForSemTest = strToInt(argv[3]);
+  globalForSemTest = satoi(argv[3]);
   int sem = sysCreateSemaphore(SEM_NAME, 1);
   for (int i = 0; i < TOTAL_PAIR_PROCESSES; i++) {
     pids[i] = sysCreateProcess(sizeof(argvDec) / sizeof(argvDec[0]), argvDec, my_process_inc);

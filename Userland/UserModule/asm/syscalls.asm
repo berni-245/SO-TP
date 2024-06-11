@@ -6,7 +6,7 @@ global sysInfo
 global sysSetLayout
 global sysSetFontSize
 global sysSetColor
-global sysGetKey
+global sysGetModKeys
 global sysWriteCharXY
 global sysWriteCharNext
 global sysMoveCursor
@@ -20,6 +20,7 @@ global sysFree
 global sysGetGlobalMemoryState
 global sysGetProcessMemoryState
 global sysCreateProcess
+global sysCreateProcessWithPipeSwap
 global sysExit
 global sysWaitPid
 global sysPCBList
@@ -35,19 +36,23 @@ global sysGetPid
 global sysKill
 global sysSleep
 global sysChangePriority
+global sysPipeInit
+global sysDestroyPipe
 global sysChangePipeRead
 global sysChangePipeWrite
+global sysGetPipes
 global sysRead
 global sysWrite
-global sysCreateProcessWithPipeSwap
 global sysBlock
 global sysUnBlock
+global sysBlockedByUser
 
 %macro syscall 1
   mov r9, %1
   int 0x80
   ret
 %endmacro
+
 
 
 sysHalt:
@@ -62,7 +67,7 @@ sysSetFontSize:
   syscall 4
 sysSetColor:
   syscall 5
-sysGetKey:
+sysGetModKeys:
   syscall 6
 sysWriteCharXY:
   syscall 7
@@ -122,15 +127,23 @@ sysSleep:
   syscall 34
 sysChangePriority:
   syscall 35
-sysChangePipeRead:
+sysPipeInit:
   syscall 36
-sysChangePipeWrite:
+sysDestroyPipe:
   syscall 37
-sysRead:
+sysChangePipeRead:
   syscall 38
-sysWrite:
+sysChangePipeWrite:
   syscall 39
-sysBlock:
+sysGetPipes:
   syscall 40
-sysUnBlock:
+sysRead:
   syscall 41
+sysWrite:
+  syscall 42
+sysBlock:
+  syscall 43
+sysUnBlock:
+  syscall 44
+sysBlockedByUser:
+  syscall 45

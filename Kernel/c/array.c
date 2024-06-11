@@ -26,7 +26,7 @@ void* Array_initialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn
   a->capacity = initialCapacity ? initialCapacity : 1;
   a->array = globalMalloc(a->capacity * elementSize);
   if (a->array == NULL) {
-    free(a);
+    globalFree(a);
     return NULL;
   }
   a->length = 0;
@@ -41,8 +41,8 @@ bool Array_free(Array a) {
   if (a->freeEleFn != NULL) {
     for (int i = 0; i < a->length; ++i) a->freeEleFn(Array_get(a, i));
   }
-  free(a->array);
-  free(a);
+  globalFree(a->array);
+  globalFree(a);
   return true;
 }
 
@@ -60,14 +60,14 @@ bool Array_popGetEle(Array a, void* ele) {
 
   void* eleToPop = Array_get(a, -1);
   memcpy(ele, eleToPop, a->elementSize);
-  if (a->freeEleFn != NULL) free(eleToPop);
+  if (a->freeEleFn != NULL) a->freeEleFn(eleToPop);
   --a->length;
   return true;
 }
 
 bool Array_pop(Array a) {
   if (a == NULL || a->length == 0) return false;
-  if (a->freeEleFn != NULL) free(Array_get(a, -1));
+  if (a->freeEleFn != NULL) a->freeEleFn(Array_get(a, -1));
   --a->length;
   return true;
 }
@@ -106,7 +106,7 @@ bool Array_clear(Array a) {
   if (a == NULL) return false;
   if (a->freeEleFn != NULL) {
     for (int i = 0; i < a->length; ++i) {
-      free(Array_get(a, i));
+      a->freeEleFn(Array_get(a, i));
     }
   }
   a->length = 0;

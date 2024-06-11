@@ -6,9 +6,9 @@
 typedef struct ArrayCDT {
   // Use uint8_t* instead of void* because void* can't be used in arithmetic operations.
   uint8_t* array;
-  unsigned long elementSize;
-  unsigned long capacity;
-  unsigned long length;
+  long elementSize;
+  long capacity;
+  long length;
   PrintEleFn printEleFn;
   FreeEleFn freeEleFn;
 } ArrayCDT;
@@ -64,7 +64,7 @@ bool Array_popGetEle(Array a, void* ele) {
 
   void* eleToPop = Array_get(a, -1);
   sysMemcpy(ele, eleToPop, a->elementSize);
-  if (a->freeEleFn != NULL) sysFree(eleToPop);
+  if (a->freeEleFn != NULL) a->freeEleFn(eleToPop);
   --a->length;
   return true;
 }
@@ -72,7 +72,7 @@ bool Array_popGetEle(Array a, void* ele) {
 void Array_pop(Array a) {
   if (a == NULL) exitWithError("@Array_pop Array instance can't be NULL");
   if (a->length == 0) return;
-  if (a->freeEleFn != NULL) sysFree(Array_get(a, -1));
+  if (a->freeEleFn != NULL) a->freeEleFn(Array_get(a, -1));
   --a->length;
 }
 
@@ -97,11 +97,10 @@ void Array_set(Array a, long idx, void* ele) {
 }
 
 void* Array_get(Array a, long idx) {
-  if (a == NULL) exitWithError("@Array_get Array instance can't be NULL");
-  if (idx >= a->length) exitWithError("@Array_get idx outside of bounds");
+  if (a == NULL || idx >= a->length) return NULL;
   if (idx < 0) {
     // Note: we negate idx because a->length is unsigned
-    if (-idx > a->length) exitWithError("@Array_get idx outside of bounds");
+    if (-idx > a->length) return NULL;
     idx += a->length;
   }
   return a->array + idx * a->elementSize;
@@ -111,7 +110,7 @@ void Array_clear(Array a) {
   if (a == NULL) exitWithError("@Array_clear Array instance can't be NULL");
   if (a->freeEleFn != NULL) {
     for (int i = 0; i < a->length; ++i) {
-      sysFree(Array_get(a, i));
+      a->freeEleFn(Array_get(a, i));
     }
   }
   a->length = 0;

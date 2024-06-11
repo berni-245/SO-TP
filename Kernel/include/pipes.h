@@ -3,7 +3,9 @@
 
 #define BUFFER_SIZE 40
 
+#include <semaphores.h>
 #include <stdint.h>
+#include <scheduler.h>
 
 #define stdout 0
 #define stdin 1
@@ -13,13 +15,19 @@ typedef struct {
   char buffer[BUFFER_SIZE];
   int writeIdx;
   int readIdx;
-  int32_t mutex;
-  int32_t emptyCount;
-  int32_t writtenCount;
+  sem_t mutex;
+  sem_t emptyCount;
+  sem_t writtenCount;
+  bool destroyed;
+  // PCB* readerPcb;
+  // PCB* writerPcb;
 } Pipe;
 
 void initializePipes();
-uint64_t readPipe(int p, char* buf, int len);
-uint64_t writePipe(int p, const char* buf, int len);
+long pipeInit();
+long readPipe(int pipeId, char* buf, int len);
+long writePipe(int pipeId, const char* buf, int len);
+bool destroyPipe(int pipeId);
+void writeStdin(char c);
 
 #endif

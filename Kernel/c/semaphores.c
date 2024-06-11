@@ -1,4 +1,5 @@
 #include <array.h>
+#include <pipes.h>
 #include <scheduler.h>
 #include <semaphores.h>
 #include <utils.h>
@@ -9,8 +10,8 @@
 // semaphores_pos sem_array[MAX_SEMAPHORES];
 uint32_t size;
 
-Array semArray;
-Array freedPositions;
+static Array semArray;
+static Array freedPositions;
 
 sem_t findName(char* name);
 
@@ -45,8 +46,8 @@ sem_t createSemaphore(char* name, uint32_t initialValue) {
   return addSem(name, initialValue);
 }
 
-bool fifoQueue(sem_t semId, const PCB* process_by_pcb) {
-  PCBNode* process = globalMalloc(sizeof(PCBNode));
+bool fifoQueue(sem_t semId, PCB* process_by_pcb) {
+  PCBNodeSem* process = globalMalloc(sizeof(PCBNodeSem));
   if (process == NULL) return false;
 
   process->pcb = process_by_pcb;
@@ -64,11 +65,11 @@ bool fifoQueue(sem_t semId, const PCB* process_by_pcb) {
   return true;
 }
 
-const PCB* fifoUnqueue(sem_t semId) {
+PCB* fifoUnqueue(sem_t semId) {
   Semaphore* sem = Array_get(semArray, semId);
   if (sem == NULL || sem->process_first == NULL) return false;
-  const PCB* process = sem->process_first->pcb;
-  PCBNode* temp = sem->process_first;
+  PCB* process = sem->process_first->pcb;
+  PCBNodeSem* temp = sem->process_first;
   sem->process_first = sem->process_first->next;
   globalFree(temp);
   return process;
@@ -80,7 +81,7 @@ bool destroySemaphore(sem_t semId) {
   if (sem == NULL || sem->destroyed) return false;
   _enter_region(&sem->lock);
   while (sem->process_first != NULL) {
-    const PCB* toReady = fifoUnqueue(semId);
+    PCB* toReady = fifoUnqueue(semId);
     _leave_region(&sem->lock);
     if (toReady->state == BLOCKED) {
       readyProcess(toReady);
@@ -107,11 +108,18 @@ bool waitSemaphore(sem_t semId) {
     sem->value--;
     _leave_region(&sem->lock);
   } else {
-    const PCB* pcb = getCurrentPCB();
+    PCB* pcb = getCurrentPCB();
     fifoQueue(semId, pcb);
     _leave_region(&sem->lock);
     blockCurrentProcess();
   }
+  return true;
+}
+
+bool decSemOnlyForKernel(int semId) {
+  if (stdin < 0) return false;
+  Semaphore* sem = Array_get(semArray, semId);
+  if (sem->value > 0) sem->value--;
   return true;
 }
 
@@ -121,7 +129,7 @@ bool postSemaphore(sem_t semId) {
   if (sem == NULL || sem->destroyed) return false;
   _enter_region(&sem->lock);
   if (sem->process_first != NULL) {
-    const PCB* toReady = fifoUnqueue(semId);
+    PCB* toReady = fifoUnqueue(semId);
     _leave_region(&sem->lock);
     if (toReady->state == BLOCKED) {
       readyProcess(toReady);
