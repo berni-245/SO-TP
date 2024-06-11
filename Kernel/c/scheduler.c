@@ -320,6 +320,7 @@ PCBForUserland* getPCBList(int* len) {
   *len = pcbList.len;
   if (pcbList.head == NULL) return NULL;
   PCBForUserland* pcbArray = malloc(sizeof(PCBForUserland) * pcbList.len);
+  if(pcbArray == NULL) return NULL;
   PCBNode* node = pcbList.head;
   for (int i = 0; i < pcbList.len; ++i) {
     copyPCBToPCBForUserland(pcbArray + i, node->pcb);
