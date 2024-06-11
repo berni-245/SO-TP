@@ -1,5 +1,5 @@
 #include <shellUtils.h>
-#include <test_util.h>
+#include <testUtil.h>
 
 ///////////// Semaphores stuff /////////////
 

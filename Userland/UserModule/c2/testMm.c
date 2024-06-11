@@ -1,7 +1,7 @@
 #include <shellUtils.h>
 #include <stdlib.h>
 #include <syscalls.h>
-#include <test_util.h>
+#include <testUtil.h>
 #include <utils.h>
 
 #define MAX_BLOCKS 10

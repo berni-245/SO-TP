@@ -1,5 +1,5 @@
 #include <syscalls.h>
-#include <test_util.h>
+#include <testUtil.h>
 #include <stdint.h>
 #include <shellUtils.h>
 
@@ -90,7 +90,7 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
         }
     }
     printf("%d processes alive\n", alive);
-    printf("Execution of testProcesses ended\n");
+    printf("Execution of testProcesses ended successfully\n");
     sysExit(SUCCESS);
   }
 }
