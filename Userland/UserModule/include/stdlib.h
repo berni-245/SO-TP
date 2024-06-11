@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #define NULL (void*)0
-#define EOF -1
+#define EOF (-1)
 
 #define stdout 0
 #define stdin 1
@@ -14,9 +14,9 @@
 
 #define MAX_PADDING_DIGITS 2
 
-#define TO_LOWER(c) ((c >= 'A' && c <= 'Z') ? (c + 'a' - 'A') : c)
+#define TO_LOWER(c) (((c) >= 'A' && (c) <= 'Z') ? ((c) + 'a' - 'A') : (c))
 #define IS_HEX_LETTER(c) ('a' <= TO_LOWER(c) && TO_LOWER(c) <= 'f')
-#define IS_DIGIT(c) ('0' <= c && c <= '9')
+#define IS_DIGIT(c) ('0' <= (c) && (c) <= '9')
 
 bool getKey(KeyStruct* key);
 char getChar();

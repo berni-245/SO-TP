@@ -33,7 +33,7 @@ void commandTestMM(int argc, char* argv[]) {
   int myPid = sysGetPid();
   char pidStr[200];
   uintToBase(myPid, pidStr, 10);
-  char name[200] = "mem_p";
+  char name[206] = "mem_p";
   strcpy(name + 5, pidStr);
   const char* argvMem[] = {name, pidStr};
 
@@ -50,7 +50,7 @@ void commandTestMM(int argc, char* argv[]) {
         total += mm_rqs[rq].size;
         rq++;
       } else {
-        printf("Not enough memory to allocate: %d B\n", mm_rqs[rq].size);
+        printf("Not enough memory to allocate: %lu B\n", mm_rqs[rq].size);
       }
     }
     sysSleep(1000);
