@@ -31,11 +31,6 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
 
   p_rq p_rqs[max_processes];
 
-  //PARA DEBUGGING (SACAR)
-  int blocked_processes=0;
-  int killed_processes=0;
-  int created_processes=0;
-
 
   while (1) {
 
@@ -69,7 +64,6 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
               else {
                 p_rqs[rq].state = KILLED;
                 alive--;
-                killed_processes++;
               }
             }
             break;
@@ -80,7 +74,6 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
                 sysExit(PROCESS_FAILURE);
               }
               p_rqs[rq].state = BLOCKED;
-              blocked_processes++;
             }
             break;
         }
@@ -94,11 +87,10 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
               sysExit(PROCESS_FAILURE);
             }
             p_rqs[rq].state = RUNNING;
-            blocked_processes--;
         }
-      printf("created: %d,alive: %d,block: %d, killed: %d\n", created_processes, alive, blocked_processes, killed_processes);
-
     }
+    printf("%d processes alive", alive);
+    printf("Execution of testProcesses ended\n");
     sysExit(SUCCESS);
   }
 }
