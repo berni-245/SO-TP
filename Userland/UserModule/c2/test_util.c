@@ -89,12 +89,12 @@ void endless_loop_print(int argc, char* argv[]) {
   int64_t pid = sysGetPid();
   if(wait_type) {
     while (1) {
-      printf("%d ", pid);
+      printf("%lu ", pid);
       bussy_wait(WAIT);
     }
   }else{
     while (1) {
-      printf("%d ", pid);
+      printf("%lu ", pid);
       bussy_wait(MINOR_WAIT);
     }
   }

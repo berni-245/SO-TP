@@ -342,7 +342,7 @@ ExitCode parseCommand() {
         pipes.write = stdout;
         pipes.read = pipe;
         int pid2 = sysCreateProcessWithPipeSwap(argc2, realArgv2, command2, pipes);
-        ret = sysWaitPid(pid);
+        sysWaitPid(pid);
         sysDestroyPipe(pipe);
         ret = sysWaitPid(pid2);
       } else ret = COMMAND_NOT_FOUND;
