@@ -114,7 +114,7 @@ void printCharXY(int x, int y, char c, int fontSize) {
   c -= ASCII_BF_MIN;
   for (int i = 0; i < ASCII_BF_HEIGHT; ++i) {
     for (int j = 0; j < ASCII_BF_WIDTH; ++j) {
-      if (asciiBitFields[c][i * ASCII_BF_WIDTH + j] != 0) {
+      if (asciiBitFields[(int)c][i * ASCII_BF_WIDTH + j] != 0) {
         fillRectangle(x + j * fontSize, y + i * fontSize, fontSize, fontSize, fontColor);
       }
     }

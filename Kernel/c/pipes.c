@@ -98,7 +98,6 @@ long writePipe(int pipeId, const char* buf, int len) {
 
 void writeStdin(char c) {
   Pipe* p = getPipe(stdin);
-  long pos = 0;
   decSemOnlyForKernel(p->emptyCount);
   p->buffer[p->writeIdx] = c;
   p->writeIdx = (p->writeIdx + 1) % BUFFER_SIZE;
