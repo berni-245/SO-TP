@@ -192,8 +192,8 @@ void* arrayCopyVanillaArrayInto(Array a, void* array) {
   return array;
 }
 
-void* Array_getVanillaArrayCopy(Array a) {
-  if (a == NULL) exitWithError("@Array_getVanillaArrayCopy Array instance can't be NULL");
+void* arrayGetVanillaArrayCopy(Array a) {
+  if (a == NULL) exitWithError("@arrayGetVanillaArrayCopy Array instance can't be NULL");
   void* array = sysMalloc(a->length * a->elementSize);
   arrayCopyVanillaArrayInto(a, array);
   return array;

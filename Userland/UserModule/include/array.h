@@ -31,6 +31,6 @@ Array Array_fromVanillaArray(
 void arrayConcat(Array dst, Array src);
 const void* arrayGetVanillaArray(Array a);
 void* arrayCopyVanillaArrayInto(Array a, void* array);
-void* Array_getVanillaArrayCopy(Array a);
+void* arrayGetVanillaArrayCopy(Array a);
 
 #endif

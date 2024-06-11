@@ -23,6 +23,6 @@ Array arrayFromVanillaArray(const void* array, uint64_t length, uint64_t element
 bool arrayConcat(Array dst, Array src);
 const void* arrayGetVanillaArray(Array a);
 void* arrayCopyVanillaArrayInto(Array a, void* array);
-void* Array_getVanillaArrayCopy(Array a);
+void* arrayGetVanillaArrayCopy(Array a);
 
 #endif

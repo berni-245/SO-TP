@@ -146,7 +146,7 @@ void* arrayCopyVanillaArrayInto(Array a, void* array) {
   return array;
 }
 
-void* Array_getVanillaArrayCopy(Array a) {
+void* arrayGetVanillaArrayCopy(Array a) {
   if (a == NULL) return NULL;
   void* array = globalMalloc(a->length * a->elementSize);
   arrayCopyVanillaArrayInto(a, array);
