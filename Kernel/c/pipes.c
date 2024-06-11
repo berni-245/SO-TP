@@ -114,6 +114,6 @@ bool destroyPipe(int pipeId) {
   destroySemaphore(p->mutex);
   destroySemaphore(p->writtenCount);
   destroySemaphore(p->emptyCount);
-  // Array_set will do the free of the pipe itself when it overrides this pisition.
+  // Array_set will do the free of the pipe itself when it overrides this position.
   return true;
 }
