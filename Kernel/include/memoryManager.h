@@ -1,13 +1,15 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
-#define BUDDY // comment this to change to the other mm implementation
+// comment/uncomment this to change to the other mm implementation
+#define BUDDY
 
 #include <stdint.h>
 #include <stdbool.h>
 
 #define NULL (void*)0
 
+#ifdef BUDDY
 typedef struct Block {
   struct Block* next;
   uint32_t size;
@@ -15,6 +17,15 @@ typedef struct Block {
 } Block;
 
 void freeListInit(void* heapStart, Block* freeList[]);
+#else
+typedef struct Block{
+  struct Block * nextFreeBlock;
+  uint64_t blockSize;
+} Block;
+
+void freeListInit(void* heapStart, Block* freeListStart, Block** freeListEnd, uint64_t* bytesAvailable);
+#endif
+
 void* globalMalloc(uint64_t size);
 void* malloc(uint64_t size);
 void globalFree(void* ptr);

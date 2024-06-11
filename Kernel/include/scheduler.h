@@ -34,10 +34,14 @@ typedef struct PCB {
   int wfmLen;
   void* stack;
   ProcessPipes pipes;
-#ifdef BUDDY
-  Block* freeList[PROCESS_HEAP_ORDER_COUNT];
   void* heap;
   bool heapFreed;
+#ifdef BUDDY
+  Block* freeList[PROCESS_HEAP_ORDER_COUNT];
+#else
+  Block* freeListStart;
+  Block* freeListEnd;
+  uint64_t bytesAvailable;
 #endif
 } PCB;
 

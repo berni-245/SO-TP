@@ -58,10 +58,14 @@ PCBNode* createPCBNode(
   pcb->pipes = pipes;
   if ((int)pid != -1) {
     pcb->heap = globalMalloc(PROCESS_HEAP_SIZE);
+#ifdef BUDDY
     freeListInit(pcb->heap, pcb->freeList);
+#else
+    pcb->freeListStart = globalMalloc(sizeof(Block *));
+    freeListInit(pcb->heap, pcb->freeListStart, &(pcb->freeListEnd), &(pcb->bytesAvailable));
+#endif
   } else pcb->heap = NULL;
   pcb->heapFreed = false;
-
   node->pcb = pcb;
 
   return node;
@@ -96,6 +100,9 @@ void freeCurrentProcess() {
   else if (pcbList.tail == toRemove) pcbList.tail = pcbList.prev;
 
   if (!toRemove->pcb->heapFreed) globalFree(toRemove->pcb->heap);
+  #ifndef BUDDY
+  globalFree(toRemove->pcb->freeListStart);
+  #endif
   globalFree(toRemove->pcb->stack);
   globalFree(toRemove->pcb);
   globalFree(toRemove);
