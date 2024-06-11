@@ -61,7 +61,7 @@ PCBNode* createPCBNode(
 #ifdef BUDDY
     freeListInit(pcb->heap, pcb->freeList);
 #else
-    pcb->freeListStart = globalMalloc(sizeof(Block *));
+    pcb->freeListStart = globalMalloc(sizeof(Block));
     freeListInit(pcb->heap, pcb->freeListStart, &(pcb->freeListEnd), &(pcb->bytesAvailable));
 #endif
   } else pcb->heap = NULL;
