@@ -23,11 +23,10 @@ void initializeSemaphores() {
 sem_t addSem(char* name, uint32_t initialValue) {
   Semaphore sem = {.value = initialValue, .lock = 0, .process_first = NULL, .process_last = NULL, .destroyed = false};
   int i;
-  for (i = 0; name[i] != 0 && i < MAX_SEM_NAME; ++i) {
+  for (i = 0; i < MAX_SEM_NAME && name[i] != 0; ++i) {
     sem.name[i] = name[i];
   }
   if (name[i] != 0) return -1;
-  name[i] = 0;
   int freeToUseSem;
   if (Array_popGetEle(freedPositions, &freeToUseSem)) {
     Array_set(semArray, freeToUseSem, &sem);
