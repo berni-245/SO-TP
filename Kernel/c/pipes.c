@@ -25,8 +25,8 @@ void freePipe(Pipe** p) {
 }
 
 void initializePipes() {
-  pipeArray = Array_initialize(sizeof(Pipe*), INITIAL_CAPACITY, (FreeEleFn)freePipe);
-  freedPositions = Array_initialize(sizeof(int), INITIAL_CAPACITY, NULL);
+  pipeArray = arrayInitialize(sizeof(Pipe*), INITIAL_CAPACITY, (FreeEleFn)freePipe);
+  freedPositions = arrayInitialize(sizeof(int), INITIAL_CAPACITY, NULL);
   pipeInit(); // stdout
   pipeInit(); // stdin
   pipeInit(); // stderr
@@ -43,17 +43,17 @@ long pipeInit() {
   // p->readerPcb = NULL;
   // p->writerPcb = NULL;
   int freeToUse;
-  if (Array_popGetEle(freedPositions, &freeToUse)) {
-    Array_set(pipeArray, freeToUse, &p);
+  if (arrayPopGetEle(freedPositions, &freeToUse)) {
+    arraySet(pipeArray, freeToUse, &p);
     return freeToUse;
   } else {
-    return Array_push(pipeArray, &p);
+    return arrayPush(pipeArray, &p);
   }
 }
 
 Pipe* getPipe(int pipeId) {
   if (pipeId < 0) return NULL;
-  Pipe** pPtr = Array_get(pipeArray, pipeId);
+  Pipe** pPtr = arrayGet(pipeArray, pipeId);
   if (pPtr == NULL) return NULL;
   Pipe* p = *pPtr;
   if (p->destroyed) return NULL;
@@ -109,10 +109,10 @@ bool destroyPipe(int pipeId) {
   Pipe* p = getPipe(pipeId);
   if (p == NULL) return false;
   p->destroyed = true;
-  Array_push(freedPositions, &pipeId);
+  arrayPush(freedPositions, &pipeId);
   destroySemaphore(p->mutex);
   destroySemaphore(p->writtenCount);
   destroySemaphore(p->emptyCount);
-  // Array_set will do the free of the pipe itself when it overrides this position.
+  // arraySet will do the free of the pipe itself when it overrides this position.
   return true;
 }
