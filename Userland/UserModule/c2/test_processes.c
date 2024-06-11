@@ -89,7 +89,7 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
             p_rqs[rq].state = RUNNING;
         }
     }
-    printf("%d processes alive", alive);
+    printf("%d processes alive\n", alive);
     printf("Execution of testProcesses ended\n");
     sysExit(SUCCESS);
   }
