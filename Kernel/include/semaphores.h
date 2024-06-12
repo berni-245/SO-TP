@@ -31,19 +31,6 @@ typedef struct {
   char name[MAX_SEM_NAME + 1];
 } Semaphore;
 
-typedef struct semaphore {
-  // nombre para identifiacarlo
-  char* name;
-  uint32_t value;
-  int32_t lock;
-  PCBNodeSem* process_first;
-  PCBNodeSem* process_last;
-} semaphore;
-typedef struct semaphores_pos {
-  semaphore* sem;
-  uint32_t is_used;
-} semaphores_pos;
-
 void initializeSemaphores();
 sem_t semInit(uint32_t initialValue);
 sem_t createSemaphore(char* name, uint32_t initialValue);
