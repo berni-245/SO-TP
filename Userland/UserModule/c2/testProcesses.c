@@ -19,13 +19,14 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
   uint64_t max_processes;
   const char *argvAux[] = {"endless_loop"};
 
-  if (argc != 2) {
-    printf("Usage: %s <max_processes>\n", argv[0]);
+  if (argc != 3) {
+    printf("Usage: %s <max_processes> <print_status_changes(1 to print, 0 to hide)>\n", argv[0]);
     sysExit(MISSING_ARGUMENTS);
   }
 
-  if ((max_processes = satoi(argv[1])) <= 0) {
-    printf("Usage: %s <max_processes>\n", argv[0]);
+  int print_is_active=satoi(argv[2]);
+  if ((max_processes = satoi(argv[1])) <= 0 || print_is_active != 1 && print_is_active != 0) {
+    printf("Usage: %s <max_processes> <print_status_changes(1 to print, 0 to hide)>\n", argv[0]);
     sysExit(ILLEGAL_ARGUMENT);
   }
 
@@ -37,7 +38,8 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
     // Create max_processes processes
     for (rq = 0; rq < max_processes; rq++) {
       p_rqs[rq].pid = sysCreateProcess(1, argvAux, endless_loop);
-
+      if(print_is_active)
+        printf("Process (PID=%d) was created successfully\n", p_rqs[rq].pid);
       if (p_rqs[rq].pid == -1) {
         printf("test_processes: ERROR creating process\n");
         sysExit(PROCESS_FAILURE);
@@ -62,6 +64,8 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
                 sysExit(PROCESS_FAILURE);
               }
               else {
+                if(print_is_active)
+                  printf("Process (PID=%d) was killed successfully\n", p_rqs[rq].pid);
                 p_rqs[rq].state = KILLED;
                 alive--;
               }
@@ -73,6 +77,8 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
                 printf("test_processes: ERROR blocking process\n");
                 sysExit(PROCESS_FAILURE);
               }
+              if(print_is_active)
+                printf("Process (PID=%d) was blocked successfully\n", p_rqs[rq].pid);
               p_rqs[rq].state = BLOCKED;
             }
             break;
@@ -86,11 +92,12 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
               printf("test_processes: ERROR unblocking process\n");
               sysExit(PROCESS_FAILURE);
             }
+            if(print_is_active)
+              printf("Process (PID=%d) was unblocked successfully\n", p_rqs[rq].pid);
             p_rqs[rq].state = RUNNING;
         }
     }
-    printf("%d processes alive\n", alive);
-    printf("Execution of testProcesses ended successfully\n");
+    printf("%d processes alive. Execution of testProcesses ended successfully\n", alive);
     sysExit(SUCCESS);
   }
 }
