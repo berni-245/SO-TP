@@ -26,8 +26,8 @@ typedef struct {
   uint32_t value;
   int32_t lock;
   bool destroyed;
-  PCBNodeSem* process_first;
-  PCBNodeSem* process_last;
+  PCBNodeSem* pcbNodeHead;
+  PCBNodeSem* pcbNodeTail;
   char name[MAX_SEM_NAME + 1];
 } Semaphore;
 

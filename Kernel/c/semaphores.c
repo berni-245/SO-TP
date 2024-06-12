@@ -21,7 +21,7 @@ void initializeSemaphores() {
 }
 
 sem_t addSem(char* name, uint32_t initialValue) {
-  Semaphore sem = {.value = initialValue, .lock = 0, .process_first = NULL, .process_last = NULL, .destroyed = false};
+  Semaphore sem = {.value = initialValue, .lock = 0, .pcbNodeHead = NULL, .pcbNodeTail = NULL, .destroyed = false};
   int i;
   for (i = 0; i < MAX_SEM_NAME && name[i] != 0; ++i) {
     sem.name[i] = name[i];
@@ -45,20 +45,20 @@ sem_t createSemaphore(char* name, uint32_t initialValue) {
   return addSem(name, initialValue);
 }
 
-bool fifoQueue(sem_t semId, PCB* process_by_pcb) {
-  PCBNodeSem* process = globalMalloc(sizeof(PCBNodeSem));
-  if (process == NULL) return false;
+bool fifoQueue(sem_t semId, PCB* pcb) {
+  PCBNodeSem* node = globalMalloc(sizeof(PCBNodeSem));
+  if (node == NULL) return false;
 
-  process->pcb = process_by_pcb;
-  process->next = NULL;
+  node->pcb = pcb;
+  node->next = NULL;
   Semaphore* sem = arrayGet(semArray, semId);
   if (sem == NULL) return false;
-  if (sem->process_first == NULL) {
-    sem->process_first = process;
-    sem->process_last = process;
+  if (sem->pcbNodeHead == NULL) {
+    sem->pcbNodeHead = node;
+    sem->pcbNodeTail = node;
   } else {
-    sem->process_last->next = process;
-    sem->process_last = process;
+    sem->pcbNodeTail->next = node;
+    sem->pcbNodeTail = node;
   }
 
   return true;
@@ -66,12 +66,12 @@ bool fifoQueue(sem_t semId, PCB* process_by_pcb) {
 
 PCB* fifoUnqueue(sem_t semId) {
   Semaphore* sem = arrayGet(semArray, semId);
-  if (sem == NULL || sem->process_first == NULL) return false;
-  PCB* process = sem->process_first->pcb;
-  PCBNodeSem* temp = sem->process_first;
-  sem->process_first = sem->process_first->next;
+  if (sem == NULL || sem->pcbNodeHead == NULL) return false;
+  PCB* pcb = sem->pcbNodeHead->pcb;
+  PCBNodeSem* temp = sem->pcbNodeHead;
+  sem->pcbNodeHead = sem->pcbNodeHead->next;
   globalFree(temp);
-  return process;
+  return pcb;
 }
 
 bool destroySemaphore(sem_t semId) {
@@ -79,7 +79,7 @@ bool destroySemaphore(sem_t semId) {
   Semaphore* sem = arrayGet(semArray, semId);
   if (sem == NULL || sem->destroyed) return false;
   _enter_region(&sem->lock);
-  while (sem->process_first != NULL) {
+  while (sem->pcbNodeHead != NULL) {
     PCB* toReady = fifoUnqueue(semId);
     _leave_region(&sem->lock);
     if (toReady->state == BLOCKED) {
@@ -127,7 +127,7 @@ bool postSemaphore(sem_t semId) {
   Semaphore* sem = arrayGet(semArray, semId);
   if (sem == NULL || sem->destroyed) return false;
   _enter_region(&sem->lock);
-  if (sem->process_first != NULL) {
+  if (sem->pcbNodeHead != NULL) {
     PCB* toReady = fifoUnqueue(semId);
     _leave_region(&sem->lock);
     if (toReady->state == BLOCKED) {
