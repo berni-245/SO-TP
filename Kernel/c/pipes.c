@@ -8,17 +8,8 @@
 
 #define INITIAL_CAPACITY 20
 
-int pipes_amount;
-// Pipe pipeArray[MAX_PIPES];
-
 static Array pipeArray;
 static Array freedPositions;
-
-// Hacer a pipeArray un Array dinámico (traer Array lib para kernel tmbn)
-// y tener un lista de free pipes indexes. Si la lista está vacía createPipe
-// me pushea un nuevo pipe al array. Si hay alguna vacía la reusa (o reusa
-// el espacio en el array at least, xq podemos hacer que se haga free en closePipe
-// o que queden para siempre creadas y listo).
 
 void freePipe(Pipe** p) {
   globalFree(*p);
