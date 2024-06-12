@@ -72,4 +72,12 @@ define pcurrent
     ppcbnode pcbList.current
 end
 
+define psem
+    p *((Semaphore*)semArray->array + $arg0)
+end
+
+define ppipe
+    p **((Pipe**)pipeArray->array + $arg0)
+end
+
 # vim: set ft=python:
