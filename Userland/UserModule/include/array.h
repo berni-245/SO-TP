@@ -4,7 +4,7 @@
 typedef struct ArrayCDT* Array;
 
 #include <stdbool.h>
-#include <stdint-gcc.h>
+#include <stdint.h>
 
 typedef void (*FreeEleFn)(void* ele);
 typedef void (*PrintEleFn)(void* ele);
