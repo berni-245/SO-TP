@@ -1,4 +1,5 @@
 #include <array.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <syscalls.h>
 #include <utils.h>
@@ -6,21 +7,19 @@
 typedef struct ArrayCDT {
   // Use uint8_t* instead of void* because void* can't be used in arithmetic operations.
   uint8_t* array;
-  long elementSize;
-  long capacity;
-  long length;
+  uint64_t elementSize;
+  uint64_t capacity;
+  uint64_t length;
   PrintEleFn printEleFn;
   FreeEleFn freeEleFn;
 } ArrayCDT;
 
-void copynEleAt(Array a, unsigned long idx, const void* eleArr, unsigned long n);
-void copyEleAt(Array a, unsigned long idx, const void* ele);
-void growTo(Array a, unsigned long newCapacity);
-void growBy(Array a, unsigned long extraCapacity);
+void copynEleAt(Array a, uint64_t idx, const void* eleArr, uint64_t n);
+void copyEleAt(Array a, uint64_t idx, const void* ele);
+void growTo(Array a, uint64_t newCapacity);
+void growBy(Array a, uint64_t extraCapacity);
 
-void* Array_initialize(
-    unsigned long elementSize, unsigned long initialCapacity, FreeEleFn freeEleFn, PrintEleFn printEleFn
-) {
+void* Array_initialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn freeEleFn, PrintEleFn printEleFn) {
   if (elementSize == 0) exitWithError("@arrayInitialize elementSize can't be 0");
   ArrayCDT* a = sysMalloc(sizeof(ArrayCDT));
   if (a == NULL) exitWithError("@arrayInitialize malloc error");
@@ -78,11 +77,11 @@ void arrayPop(Array a) {
 
 void arraySetn(Array a, long idx, const void* eleArray, uint64_t length) {
   if (a == NULL) exitWithError("@arraySetn Array instance can't be NULL");
-  if (idx >= a->length) exitWithError("@arraySetn idx outside of bounds");
   if (idx < 0) {
     if (-idx > a->length) exitWithError("@arraySetn idx outside of bounds");
     idx += a->length;
-  }
+  } else if (idx >= a->length) exitWithError("@arraySetn idx outside of bounds");
+
   if (a->freeEleFn != NULL) {
     for (int i = idx; i < idx + length; ++i) {
       a->freeEleFn(arrayGet(a, i));
@@ -97,12 +96,15 @@ void arraySet(Array a, long idx, void* ele) {
 }
 
 void* arrayGet(Array a, long idx) {
-  if (a == NULL || idx >= a->length) return NULL;
+  if (a == NULL) return NULL;
+  // We need to first check if idx < 0 because if it's negative and we compare directly
+  // against length (unsigned) then idx will be cast to unsigned and will be a huge number
+  // almost certainly larger than length.
   if (idx < 0) {
     // Note: we negate idx because a->length is unsigned
     if (-idx > a->length) return NULL;
     idx += a->length;
-  }
+  } else if (idx >= a->length) return NULL;
   return a->array + idx * a->elementSize;
 }
 
@@ -116,7 +118,7 @@ void arrayClear(Array a) {
   a->length = 0;
 }
 
-unsigned long arrayGetLen(Array a) {
+uint64_t arrayGetLen(Array a) {
   if (a == NULL) exitWithError("@arrayGetLen Array instance can't be NULL");
   return a->length;
 }
@@ -145,7 +147,7 @@ void Array_printInfo(Array a) {
   printf("}\n");
 }
 
-Array Array_map(Array a, MapFn mapFn, unsigned long newElemSize, PrintEleFn newPrintEleFn, FreeEleFn freeFn) {
+Array Array_map(Array a, MapFn mapFn, uint64_t newElemSize, PrintEleFn newPrintEleFn, FreeEleFn freeFn) {
   if (a == NULL) exitWithError("@Array_map Array instance can't be NULL");
   if (mapFn == NULL) exitWithError("@Array_map map function can't be NULL");
   Array mapped = Array_initialize(newElemSize, a->length, freeFn, newPrintEleFn);
@@ -161,7 +163,7 @@ Array Array_map(Array a, MapFn mapFn, unsigned long newElemSize, PrintEleFn newP
 }
 
 Array Array_fromVanillaArray(
-    const void* array, unsigned long length, unsigned long elementSize, PrintEleFn printEleFn, FreeEleFn freeFn
+    const void* array, uint64_t length, uint64_t elementSize, PrintEleFn printEleFn, FreeEleFn freeFn
 ) {
   Array a = Array_initialize(elementSize, length, freeFn, printEleFn);
   a->length = length;
@@ -175,7 +177,7 @@ void arrayConcat(Array dst, Array src) {
     exitWithError("@arrayConcat both Array instances should be of same element type");
   }
 
-  unsigned long neededCapacity = dst->length + src->length;
+  uint64_t neededCapacity = dst->length + src->length;
   if (dst->capacity < neededCapacity) growTo(dst, neededCapacity);
   copynEleAt(dst, dst->length, src->array, src->length);
   dst->length += src->length;
@@ -201,21 +203,21 @@ void* arrayGetVanillaArrayCopy(Array a) {
 
 //////////////////////////// Internal Functions ////////////////////////////
 
-void copynEleAt(Array a, unsigned long idx, const void* eleArr, unsigned long n) {
+void copynEleAt(Array a, uint64_t idx, const void* eleArr, uint64_t n) {
   sysMemcpy(a->array + a->elementSize * idx, eleArr, a->elementSize * n);
 }
 
-void copyEleAt(Array a, unsigned long idx, const void* ele) {
+void copyEleAt(Array a, uint64_t idx, const void* ele) {
   copynEleAt(a, idx, ele, 1);
 }
 
-void growTo(Array a, unsigned long newCapacity) {
+void growTo(Array a, uint64_t newCapacity) {
   void* aux = shittyRealloc(a->array, a->capacity * a->elementSize, newCapacity * a->elementSize);
   if (aux == NULL) exitWithError("@Array's internal func growTo realloc error");
   a->capacity = newCapacity;
   a->array = aux;
 }
 
-void growBy(Array a, unsigned long extraCapacity) {
+void growBy(Array a, uint64_t extraCapacity) {
   growTo(a, a->capacity + extraCapacity);
 }

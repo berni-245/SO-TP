@@ -73,11 +73,11 @@ bool arrayPop(Array a) {
 }
 
 bool arraySetn(Array a, long idx, const void* eleArray, uint64_t length) {
-  if (a == NULL || idx >= a->length) return false;
+  if (a == NULL) return false;
   if (idx < 0) {
     if (-idx > a->length) return false;
     idx += a->length;
-  }
+  } else if (idx >= a->length) return NULL;
   if (a->freeEleFn != NULL) {
     for (int i = idx; i < idx + length; ++i) {
       a->freeEleFn(arrayGet(a, i));
@@ -93,12 +93,12 @@ bool arraySet(Array a, long idx, void* ele) {
 }
 
 void* arrayGet(Array a, long idx) {
-  if (a == NULL || idx >= a->length) return NULL;
+  if (a == NULL) return NULL;
   if (idx < 0) {
     // Note: we negate idx because a->length is unsigned
     if (-idx > a->length) return NULL;
     idx += a->length;
-  }
+  } else if (idx >= a->length) return NULL;
   return a->array + idx * a->elementSize;
 }
 
