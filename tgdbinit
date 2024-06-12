@@ -14,6 +14,8 @@ registers_to_show = [
     # "cr0", "cr2", "cr3", "cr4", "cr8", "efer",
 ]
 gdb.execute(f"dashboard registers -style list '{' '.join(registers_to_show)}'")
+gdb.execute(f"dashboard memory -style full ''")
+gdb.execute(f"dashboard memory -style width 8")
 
 end
 
@@ -81,3 +83,5 @@ define ppipe
 end
 
 # vim: set ft=python:
+
+
