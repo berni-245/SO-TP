@@ -23,7 +23,7 @@ SleptProcess* removeFromSleepList(SleptProcess* prev, SleptProcess* current) {
 
   SleptProcess* toFree = current;
   current = current->next;
-  free(toFree);
+  globalFree(toFree);
   return current;
 }
 
