@@ -1,7 +1,7 @@
+#include <shellUtils.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <syscalls.h>
-#include <shellUtils.h>
 
 #define MINOR_WAIT 40000000
 #define WAIT 400000000
@@ -22,13 +22,12 @@ uint32_t GetUniform(uint32_t max) {
 }
 
 // Memory
-uint8_t memcheck(void *start, uint8_t value, uint32_t size) {
-  uint8_t *p = (uint8_t *)start;
+uint8_t memcheck(void* start, uint8_t value, uint32_t size) {
+  uint8_t* p = (uint8_t*)start;
   uint32_t i;
 
   for (i = 0; i < size; i++, p++)
-    if (*p != value)
-      return 0;
+    if (*p != value) return 0;
 
   return 1;
 }
@@ -37,22 +36,20 @@ void* setMem(void* destination, int32_t c, uint64_t length) {
   uint8_t chr = (uint8_t)c;
   char* dst = (char*)destination;
 
-  for(int i = 0; i < length; i++) {
+  for (int i = 0; i < length; i++) {
     dst[i] = chr;
   }
 
   return destination;
 }
 
-
 // Parameters
-int64_t satoi(char *str) {
+int64_t satoi(char* str) {
   uint64_t i = 0;
   int64_t res = 0;
   int8_t sign = 1;
 
-  if (!str)
-    return 0;
+  if (!str) return 0;
 
   if (str[i] == '-') {
     i++;
@@ -60,8 +57,7 @@ int64_t satoi(char *str) {
   }
 
   for (; str[i] != '\0'; ++i) {
-    if (str[i] < '0' || str[i] > '9')
-      return 0;
+    if (str[i] < '0' || str[i] > '9') return 0;
     res = res * 10 + str[i] - '0';
   }
 
@@ -71,28 +67,26 @@ int64_t satoi(char *str) {
 // Dummies
 void bussy_wait(uint64_t n) {
   uint64_t i;
-  for (i = 0; i < n; i++)
-    ;
+  for (i = 0; i < n; i++);
 }
 
-void endless_loop(int argc, char *argv[]) {
-  while (1)
-    ;
+void endless_loop(int argc, char* argv[]) {
+  while (1);
 }
 
 void endless_loop_print(int argc, char* argv[]) {
-  if (argc!=2){
+  if (argc != 2) {
     printf("Argument error");
     sysExit(ILLEGAL_ARGUMENT);
   }
-  int32_t wait_type= strToInt(argv[1]);
+  int32_t wait_type = strToInt(argv[1]);
   int64_t pid = sysGetPid();
-  if(wait_type) {
+  if (wait_type) {
     while (1) {
       printf("%lu ", pid);
       bussy_wait(WAIT);
     }
-  }else{
+  } else {
     while (1) {
       printf("%lu ", pid);
       bussy_wait(MINOR_WAIT);
