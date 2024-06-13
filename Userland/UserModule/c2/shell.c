@@ -326,7 +326,6 @@ ExitCode parseCommand() {
 
   int ret = SUCCESS;
   if (argv2 != NULL) {
-    --argc; // Dont take the pipe into account.
     int argc2 = arrayGetLen(argv2);
     command2 = verifyCommand(argv2);
     if (command2 == NULL) ret = COMMAND_NOT_FOUND;
@@ -335,7 +334,9 @@ ExitCode parseCommand() {
       if (command != NULL) {
         setArgsNullTerminaor(argv);
         setArgsNullTerminaor(argv2);
-        const char* realArgv[argc];
+        // Dont take the pipe into account. Can't pop it because I still need it for
+        // the commandHistory.
+        const char* realArgv[--argc];
         const char* realArgv2[argc2];
         setRealArgv(argc, realArgv, argv);
         setRealArgv(argc2, realArgv2, argv2);
@@ -346,8 +347,10 @@ ExitCode parseCommand() {
         pipes.read = pipe;
         int pid2 = sysCreateProcessWithPipeSwap(argc2, realArgv2, command2, pipes);
         sysWaitPid(pid);
-        sysDestroyPipe(pipe);
+        char eof = EOF;
+        sysWrite(pipe, &eof, 1);
         ret = sysWaitPid(pid2);
+        sysDestroyPipe(pipe);
       } else ret = COMMAND_NOT_FOUND;
     }
     arrayConcat(argv, argv2);
