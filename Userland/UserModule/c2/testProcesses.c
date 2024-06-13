@@ -23,7 +23,7 @@ void commandTestProcesses(int32_t argc, char* argv[]) {
   }
 
   int print_is_active = satoi(argv[2]);
-  if ((max_processes = satoi(argv[1])) <= 0 || print_is_active != 1 && print_is_active != 0) {
+  if ((max_processes = satoi(argv[1])) <= 0 || (print_is_active != 1 && print_is_active != 0)) {
     printf("Usage: %s <max_processes> <print_status_changes(1 to print, 0 to hide)>\n", argv[0]);
     sysExit(ILLEGAL_ARGUMENT);
   }
