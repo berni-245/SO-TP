@@ -424,8 +424,10 @@ void commandWordCount() {
   int words = 0;
   int lines = 0;
   bool inWord = false;
+  bool lastReadNewLine = false;
 
   while ((c = getChar()) != EOF) {
+    lastReadNewLine = false;
     if (c == ' ' || c == '\n') {
       if (inWord) {
         ++words;
@@ -433,17 +435,14 @@ void commandWordCount() {
       }
       if (c == '\n') {
         ++lines;
+        lastReadNewLine = true;
       }
-    } else {
-      inWord = true;
-    }
-    if (printChar(c) < 0) {
-      sysExit(PROCESS_FAILURE);
-    }
+    } else inWord = true;
+    if (printChar(c) < 0) sysExit(PROCESS_FAILURE);
   }
-  if (inWord) {
-    ++words;
-  }
+  if (inWord) ++words;
+  if (!lastReadNewLine) ++lines;
+
   printf("\nWord count: %d\n", words);
   printf("Line count: %d\n", lines);
 
