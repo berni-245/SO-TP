@@ -40,7 +40,8 @@ void commandHelp(int argc, char* argv[argc]) {
   printf("Available commands (Page %d/%d)\n", page, nbrPages);
 
   int startIdx = (page - 1) * COMMANDS_PER_PAGE;
-  for (int i = startIdx; i < startIdx + COMMANDS_PER_PAGE; ++i) {
+  int end = startIdx + COMMANDS_PER_PAGE > commandCount ? commandCount : startIdx + COMMANDS_PER_PAGE;
+  for (int i = startIdx; i < end; ++i) {
     ShellCommand* command = arrayGet(commands, i);
     printf("\t- %s: %s\n", command->name, command->description);
   }
