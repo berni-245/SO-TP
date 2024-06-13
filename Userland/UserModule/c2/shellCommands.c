@@ -78,7 +78,7 @@ void commandRand(int argc, char* argv[argc]) {
   }
   int count = (argc > 3) ? strToInt(argv[3]) : 1;
   while (count--) {
-    printf("%lu%s", randBetween(min, max), (count == 0) ? "" : ", ");
+    printf("%u%s", randBetween(min, max), (count == 0) ? "" : ", ");
   }
   printf("\n");
   sysExit(SUCCESS);
@@ -219,11 +219,11 @@ void commandZeroDivisionError() {
 void commandPs() {
   int len;
   PCB* pcbList = sysPCBList(&len);
-  printf("%3s, %-10s, %-9s, %-5s, %10s, %10s, %8s\n", "PID", "Name", "State", "Fg/Bg", "rsp", "rbp", "Priority");
+  printf("%3s, %-14s, %-9s, %-5s, %10s, %10s, %8s\n", "PID", "Name", "State", "Fg/Bg", "rsp", "rbp", "Priority");
   for (int i = 0; i < len; ++i) {
     PCB* pcb = pcbList + i;
     printf(
-        "%3lu, %-10s, %-9s, %-5s, %p, %p, %8d\n", pcb->pid, pcb->name, pcb->state, pcb->location, pcb->rsp, pcb->rbp,
+        "%3u, %-14s, %-9s, %-5s, %p, %p, %8d\n", pcb->pid, pcb->name, pcb->state, pcb->location, pcb->rsp, pcb->rbp,
         pcb->priority
     );
   }
@@ -232,7 +232,7 @@ void commandPs() {
 }
 
 void commandGetPid() {
-  printf("Current process pid: %lu\n", sysGetPid());
+  printf("Current process pid: %u\n", sysGetPid());
   sysExit(SUCCESS);
 }
 
@@ -322,7 +322,7 @@ void pipeWriter(int argc, char* argv[argc]) {
     // int l = sysWrite(pipes.write, buf + len, writeLen);
     int l = printf("%s", buf);
     if (l < 0) {
-      printf("%s - %lu: pipe not found, exiting...", argv[0], sysGetPid());
+      printf("%s - %u: pipe not found, exiting...", argv[0], sysGetPid());
       sysExit(PROCESS_FAILURE);
     }
     len += l;
@@ -337,7 +337,7 @@ void pipeReader(int argc, char* argv[argc]) {
   while (true) {
     i = sysRead(pipes.read, buf, 40);
     if (i < 0) {
-      printf("%s - %lu: pipe not found, exiting...\n", argv[0], sysGetPid());
+      printf("%s - %u: pipe not found, exiting...\n", argv[0], sysGetPid());
       sysExit(SUCCESS);
     }
     buf[i] = 0;
@@ -360,7 +360,7 @@ void commandTestPipes(int argc, char* argv[argc]) {
   int pidReader = sysCreateProcessWithPipeSwap(1, argv2, pipeReader, pipes);
 
   sysWaitPid(pidWriter);
-  printf("%s - %lu: Destroying pipe...\n", argv[0], sysGetPid());
+  printf("%s - %u: Destroying pipe...\n", argv[0], sysGetPid());
   sleep(2000);
   if (!sysDestroyPipe(pipe)) {
     printf("Error destroying pipe: %d\n", pipe);
