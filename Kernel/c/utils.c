@@ -1,17 +1,18 @@
 #include <utils.h>
 
 int strncpy(char* dst, const char* src, int max) {
+  if (max < 0) return -1;
   int i = 0;
-  if (max > 0)
-    for (; i < max && src[i] != 0; ++i) dst[i] = src[i];
-  else
-    for (; src[i] != 0; ++i) dst[i] = src[i];
+  for (; i < max && src[i] != 0; ++i) dst[i] = src[i];
   dst[i] = 0;
   return i;
 }
 
 int strcpy(char* dst, char* src) {
-  return strncpy(dst, src, 0);
+  int i = 0;
+  for (; src[i] != 0; ++i) dst[i] = src[i];
+  dst[i] = 0;
+  return i;
 }
 
 unsigned int strlen(char* s) {
