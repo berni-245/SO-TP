@@ -449,14 +449,17 @@ void commandWordCount() {
   sysExit(SUCCESS);
 }
 
-int charIsAVocal(char c){
-  return ( c == 'a' || c == 'A' || c == 'e' || c == 'E' || c == 'i' || c =='I' || c == 'o' || c == 'O' || c == 'u' || c == 'U');
+int charIsAVocal(char c) {
+  return (
+      c == 'a' || c == 'A' || c == 'e' || c == 'E' || c == 'i' || c == 'I' || c == 'o' || c == 'O' || c == 'u' ||
+      c == 'U'
+  );
 }
 
 void commandFilterVocals() {
   char c;
   while ((c = getChar()) != EOF) {
-    if (!charIsAVocal(c)){
+    if (!charIsAVocal(c)) {
       printf("%c", c);
     }
   }
