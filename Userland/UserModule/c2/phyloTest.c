@@ -41,8 +41,8 @@ void freeAll(){
 }
 
 void freeAllRemaining() {
-  for (int i = 0; i < philos_on_table; i++) {
-    while (sysPostSem(change_philos_sem));
+  for (int i = 0; i < philos_on_table+1; i++) {
+    sysPostSem(change_philos_sem);
   }
 }
 
