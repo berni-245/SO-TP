@@ -391,7 +391,10 @@ void commandBlock(int argc, char* argv[argc]) {
   }
   int pid = strToInt(argv[1]);
 
-  sysBlock(pid);
+  if (!sysBlockByUser(pid)) {
+    printf("Process %d not found or already blocked or exited\n", pid);
+    sysExit(ILLEGAL_ARGUMENT);
+  }
   sysExit(SUCCESS);
 }
 

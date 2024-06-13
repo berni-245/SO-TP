@@ -39,7 +39,7 @@ void commandTestPriority(int argc, char* argv[argc]) {
   printf("\nBLOCKING...\n");
 
   for (i = 0; i < TOTAL_PROCESSES; i++)
-    sysBlock(pids[i]);
+    sysBlockByUser(pids[i]);
 
   printf("CHANGING PRIORITIES WHILE BLOCKED...\n");
 

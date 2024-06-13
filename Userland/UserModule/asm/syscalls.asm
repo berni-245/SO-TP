@@ -43,17 +43,14 @@ global sysChangePipeWrite
 global sysGetPipes
 global sysRead
 global sysWrite
-global sysBlock
+global sysBlockByUser
 global sysUnblock
-global sysBlockedByUser
 
 %macro syscall 1
   mov r9, %1
   int 0x80
   ret
 %endmacro
-
-
 
 sysHalt:
   syscall 0
@@ -141,9 +138,7 @@ sysRead:
   syscall 41
 sysWrite:
   syscall 42
-sysBlock:
+sysBlockByUser:
   syscall 43
 sysUnblock:
   syscall 44
-sysBlockedByUser:
-  syscall 45

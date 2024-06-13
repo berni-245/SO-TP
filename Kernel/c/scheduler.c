@@ -392,31 +392,19 @@ long write(int pipeId, const char* buf, int len) {
   return writePipe(pipeId, buf, len);
 }
 
-bool block(uint32_t pid) {
+bool blockByUser(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
   if (pcb != NULL && (pcb->state == READY || pcb->state == RUNNING)) {
-    if (pcb->pid == pcbList.current->pcb->pid) {
-      blockCurrentProcess();
-    }
-    pcb->state = BLOCKED;
-    return true;
-  }
-  return false;
-}
-bool blockByUser(uint32_t pid){
-  PCB* pcb = getPCBByPid(pid);
-  if (pcb != NULL && (pcb->state == READY || pcb->state == RUNNING)) {
-    if (pcb->pid == pcbList.current->pcb->pid) {
-      blockCurrentProcess();
-    }
     pcb->state = BLOCKED_BY_USER;
+    if (pcb->pid == pcbList.current->pcb->pid) asdfInterruption();
     return true;
   }
   return false;
 }
+
 bool unblock(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
-  if (pcb != NULL && (pcb->state == BLOCKED || pcb->state == BLOCKED_BY_USER)) {
+  if (pcb != NULL && pcb->state == BLOCKED_BY_USER) {
     pcb->state = READY;
     return true;
   }

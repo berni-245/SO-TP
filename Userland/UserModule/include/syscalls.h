@@ -47,11 +47,10 @@ extern uint64_t sysPipeInit();
 extern bool sysDestroyPipe(int pipeId);
 extern void sysChangePipeRead(int p);
 extern void sysChangePipeWrite(int p);
-extern bool sysBlock(uint32_t pid);
+extern int sysBlockByUser(uint32_t pid);
 extern bool sysUnblock(uint32_t pid);
 extern ProcessPipes sysGetPipes();
 extern long sysRead(int pipeId, char* buf, int len);
 extern long sysWrite(int pipeId, const char* buf, int len);
-extern int sysBlockedByUser(uint32_t pid);
 
 #endif
