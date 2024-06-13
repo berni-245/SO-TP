@@ -356,7 +356,6 @@ bool kill(uint32_t pid) {
 
 void killCurrentProcessInForeground() {
   if (processInForeground->pid == 0) return;
-  if (strcmp(processInForeground->name, "shell")==0) return;
   exitProcessByPCB(processInForeground, KILL_EXIT_CODE);
   asdfInterruption();
 }
