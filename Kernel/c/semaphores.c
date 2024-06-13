@@ -134,7 +134,6 @@ bool postSemaphore(sem_t semId) {
     _leave_region(&sem->lock);
     if (toReady->state == BLOCKED) {
       readyProcess(toReady);
-      return false;
     } else if (toReady->state == WAITING_FOR_EXIT) {
       exitProcessByPCB(toReady, KILL_EXIT_CODE);
     }
