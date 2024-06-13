@@ -116,7 +116,7 @@ bool waitSemaphore(sem_t semId) {
 }
 
 bool decSemOnlyForKernel(int semId) {
-  if (stdin < 0) return false;
+  if (semId < 0) return false;
   Semaphore* sem = arrayGet(semArray, semId);
   if (sem->value > 0) sem->value--;
   return true;
