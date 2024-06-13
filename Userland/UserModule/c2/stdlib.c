@@ -174,7 +174,7 @@ int printf(const char* fmt, ...) {
     } else {
       if (paddingLen == 0) ++i;
       else if (!strContains("dlxs", fmt[i])) {
-        printf("...\nError: Only '%%s', '%%d', '%%l' and '%%x' modifiers accept padding.\n");
+        printf("...\nError: Only '%%s', '%%d', '%%l' and '%%x' identifier accept padding.\n");
         return -1;
       }
       switch (fmt[i]) {
