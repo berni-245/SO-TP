@@ -60,8 +60,8 @@ int shell() {
   addCommand("pipeTest", "Test pipes with reader and writer processes", commandTestPipes);
   addCommand(
       "phylo",
-      "Starts the philosophers problem, "
-      "exit with e, a to add philosopher and remove with r",
+      "Starts the philosophers problem.\n"
+      "    `e` to Exit, `a` to Add philosopher, `r` to Remove philosopher",
       commandPhylo
   );
   addCommand("destroyPipe", "Destroy pipe by id", commandDestroyPipe);

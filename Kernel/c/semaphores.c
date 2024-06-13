@@ -66,12 +66,10 @@ bool fifoQueue(sem_t semId, PCB* pcb) {
 
 PCB* fifoUnqueue(sem_t semId) {
   Semaphore* sem = arrayGet(semArray, semId);
-  if (sem == NULL || sem->pcbNodeHead == NULL) return false;
+  if (sem == NULL || sem->pcbNodeHead == NULL) return NULL;
   PCB* pcb = sem->pcbNodeHead->pcb;
   PCBNodeSem* temp = sem->pcbNodeHead;
   sem->pcbNodeHead = sem->pcbNodeHead->next;
-  if (sem->pcbNodeHead==NULL)
-    sem->pcbNodeTail = NULL;
   globalFree(temp);
   return pcb;
 }
@@ -129,18 +127,25 @@ bool postSemaphore(sem_t semId) {
   Semaphore* sem = arrayGet(semArray, semId);
   if (sem == NULL || sem->destroyed) return false;
   _enter_region(&sem->lock);
-  if (sem->pcbNodeHead != NULL) {
+
+  bool shouldLeave = false;
+  while (!shouldLeave) {
     PCB* toReady = fifoUnqueue(semId);
-    _leave_region(&sem->lock);
-    if (toReady->state == BLOCKED) {
-      readyProcess(toReady);
-    } else if (toReady->state == WAITING_FOR_EXIT) {
-      exitProcessByPCB(toReady, KILL_EXIT_CODE);
+    if (toReady != NULL) {
+      if (toReady->state == BLOCKED) {
+        readyProcess(toReady);
+        shouldLeave = true;
+      } else if (toReady->state == WAITING_FOR_EXIT) {
+        exitProcessByPCB(toReady, KILL_EXIT_CODE);
+      }
+    } else {
+      sem->value++;
+      shouldLeave = true;
     }
-  } else {
-    sem->value++;
-    _leave_region(&sem->lock);
   }
+
+  _leave_region(&sem->lock);
+
   return true;
 }
 

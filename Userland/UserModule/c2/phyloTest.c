@@ -40,12 +40,6 @@ void freeAll(){
   }
 }
 
-void freeAllRemaining() {
-  for (int i = 0; i < philos_on_table+1; i++) {
-    sysPostSem(change_philos_sem);
-  }
-}
-
 void monitor() {
   sysWaitSem(print_mutex);
   for (int i = 0; i < philos_on_table; i++) {
@@ -109,7 +103,7 @@ int addPhylo(int pos) {
   philo[pos].state = THINKING;
   char phylo_num[3];
   uintToBase(pos, phylo_num, 10);
-  const char* argvPhylo[] = {"myPhyloProcess", phylo_num};
+  const char* argvPhylo[] = {"philosopher", phylo_num};
   philo[pos].pid = sysCreateProcess(sizeof(argvPhylo) / sizeof(argvPhylo[0]), argvPhylo, myPhyloProcess);
   philos_on_table++;
   freeAll();
@@ -132,7 +126,7 @@ int remPhylo(int pos) {
   }
   philos_on_table = pos;
   printf("Philosopher number %d has left the table\n", pos + 1);
-  freeAllRemaining();
+  freeAll();
   return 0;
 }
 
@@ -175,7 +169,7 @@ void commandPhylo(int argc, char* argv[argc]) {
     }
     char philo_num[3];
     uintToBase(i, philo_num, 10);
-    const char* argvPhylo[] = {"myPhyloProcess", philo_num};
+    const char* argvPhylo[] = {"philosopher", philo_num};
     philo[i].pid = sysCreateProcess(sizeof(argvPhylo) / sizeof(argvPhylo[0]), argvPhylo, myPhyloProcess);
     philo[i].state = THINKING;
     philos_on_table++;
