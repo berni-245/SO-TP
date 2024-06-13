@@ -15,12 +15,16 @@ void freePipe(Pipe** p) {
   globalFree(*p);
 }
 
+static Pipe stdinPipe;
+static Pipe stderrPipe;
+
 void initializePipes() {
   pipeArray = arrayInitialize(sizeof(Pipe*), INITIAL_CAPACITY, (FreeEleFn)freePipe);
   freedPositions = arrayInitialize(sizeof(int), INITIAL_CAPACITY, NULL);
-  pipeInit(); // stdout
-  pipeInit(); // stdin
-  pipeInit(); // stderr
+  // stdout --> Not used but I need to occupy this index anyways.
+  pipeInit();
+  stdinPipe = **(Pipe**)arrayGet(pipeArray, pipeInit());
+  stderrPipe = **(Pipe**)arrayGet(pipeArray, pipeInit());
 }
 
 long pipeInit() {
@@ -35,6 +39,7 @@ long pipeInit() {
   // p->writerPcb = NULL;
   int freeToUse;
   if (arrayPopGetEle(freedPositions, &freeToUse)) {
+    // I could use get and save having to allocate a new pipe.
     arraySet(pipeArray, freeToUse, &p);
     return freeToUse;
   } else {
@@ -88,11 +93,25 @@ long writePipe(int pipeId, const char* buf, int len) {
 }
 
 void writeStdin(char c) {
-  Pipe* p = getPipe(stdin);
-  decSemOnlyForKernel(p->emptyCount);
-  p->buffer[p->writeIdx] = c;
-  p->writeIdx = (p->writeIdx + 1) % BUFFER_SIZE;
-  postSemaphore(p->writtenCount);
+  stdinPipe.buffer[stdinPipe.writeIdx] = c;
+  stdinPipe.writeIdx = (stdinPipe.writeIdx + 1) % BUFFER_SIZE;
+  postSemaphore(stdinPipe.writtenCountSem);
+}
+
+long readStdin(char* buf, int len) {
+  if (len <= 0) return 0;
+  long pos = 0;
+  bool reachedEnd = false;
+  do {
+    waitSemaphore(stdinPipe.writtenCountSem);
+    waitSemaphore(stdinPipe.mutex);
+    buf[pos++] = stdinPipe.buffer[stdinPipe.readIdx];
+    stdinPipe.readIdx = (stdinPipe.readIdx + 1) % BUFFER_SIZE;
+    if (stdinPipe.readIdx == stdinPipe.writeIdx) reachedEnd = true;
+    postSemaphore(stdinPipe.mutex);
+  } while (pos < len && !reachedEnd);
+
+  return pos;
 }
 
 bool destroyPipe(int pipeId) {

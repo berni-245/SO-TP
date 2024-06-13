@@ -29,5 +29,6 @@ long readPipe(int pipeId, char* buf, int len);
 long writePipe(int pipeId, const char* buf, int len);
 bool destroyPipe(int pipeId);
 void writeStdin(char c);
+long readStdin(char* buf, int len);
 
 #endif

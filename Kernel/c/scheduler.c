@@ -380,6 +380,7 @@ ProcessPipes getPipes() {
 }
 
 long read(int pipeId, char* buf, int len) {
+  if (pipeId == stdin) return readStdin(buf, len);
   return readPipe(pipeId, buf, len);
 }
 
