@@ -44,7 +44,7 @@ global sysGetPipes
 global sysRead
 global sysWrite
 global sysBlock
-global sysUnBlock
+global sysUnblock
 global sysBlockedByUser
 
 %macro syscall 1
@@ -143,7 +143,7 @@ sysWrite:
   syscall 42
 sysBlock:
   syscall 43
-sysUnBlock:
+sysUnblock:
   syscall 44
 sysBlockedByUser:
   syscall 45

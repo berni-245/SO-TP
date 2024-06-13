@@ -49,7 +49,7 @@ void commandTestPriority(int argc, char* argv[argc]) {
   printf("UNBLOCKING...\n");
 
   for (i = 0; i < TOTAL_PROCESSES; i++)
-    sysUnBlock(pids[i]);
+    sysUnblock(pids[i]);
 
   bussy_wait(WAIT);
   printf("\nKILLING...\n");

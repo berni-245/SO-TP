@@ -413,7 +413,7 @@ bool blockByUser(uint32_t pid){
   }
   return false;
 }
-bool unBlock(uint32_t pid) {
+bool unblock(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
   if (pcb != NULL && (pcb->state == BLOCKED || pcb->state == BLOCKED_BY_USER)) {
     pcb->state = READY;

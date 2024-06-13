@@ -407,7 +407,7 @@ void commandUnBlock(int argc, char* argv[argc]) {
     sysExit(ILLEGAL_ARGUMENT);
   }
 
-  sysUnBlock(pid);
+  sysUnblock(pid);
   sysExit(SUCCESS);
 }
 

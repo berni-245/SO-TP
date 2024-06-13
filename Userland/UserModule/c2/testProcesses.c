@@ -88,7 +88,7 @@ void commandTestProcesses(int32_t argc, char *argv[]) {
       // Randomly unblocks processes
       for (rq = 0; rq < max_processes; rq++)
         if (p_rqs[rq].state == BLOCKED && GetUniform(100) % 2) {
-            if (!sysUnBlock(p_rqs[rq].pid)) {
+            if (!sysUnblock(p_rqs[rq].pid)) {
               printf("test_processes: ERROR unblocking process\n");
               sysExit(PROCESS_FAILURE);
             }

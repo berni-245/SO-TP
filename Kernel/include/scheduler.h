@@ -78,7 +78,7 @@ void killCurrentProcess();
 void changePipeRead(int p);
 void changePipeWrite(int p);
 bool block(uint32_t pid);
-bool unBlock(uint32_t pid);
+bool unblock(uint32_t pid);
 bool blockByUser(uint32_t pid);
 ProcessPipes getPipes();
 long read(int pipeId, char* buf, int len);
