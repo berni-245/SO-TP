@@ -154,7 +154,7 @@ void commandPhylo(int argc, char* argv[argc]) {
     sysExit(TOO_MANY_ARGUMENTS);
   }
   philos_on_table = 0;
-  change_philos_sem = sysSemInit(5);
+  change_philos_sem = sysSemInit(PHILO_AMOUNT);
   print_mutex = sysSemInit(1);
   if (change_philos_sem == -1 || print_mutex == -1) {
     printf("Error creating mutex\n");
