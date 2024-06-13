@@ -459,9 +459,7 @@ int charIsAVocal(char c) {
 void commandFilterVocals() {
   char c;
   while ((c = getChar()) != EOF) {
-    if (!charIsAVocal(c)) {
-      printf("%c", c);
-    }
+    if (!charIsAVocal(c)) printf("%c", c);
   }
   printf("\n");
   sysExit(SUCCESS);
