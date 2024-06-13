@@ -46,13 +46,13 @@ sem_t createSemaphore(char* name, uint32_t initialValue) {
 }
 
 bool fifoQueue(sem_t semId, PCB* pcb) {
-  PCBNodeSem* node = globalMalloc(sizeof(PCBNodeSem));
-  if (node == NULL) return false;
-
-  node->pcb = pcb;
-  node->next = NULL;
   Semaphore* sem = arrayGet(semArray, semId);
   if (sem == NULL) return false;
+
+  PCBNodeSem* node = globalMalloc(sizeof(PCBNodeSem));
+  if (node == NULL) return false;
+  node->pcb = pcb;
+  node->next = NULL;
   if (sem->pcbNodeHead == NULL) {
     sem->pcbNodeHead = node;
     sem->pcbNodeTail = node;
