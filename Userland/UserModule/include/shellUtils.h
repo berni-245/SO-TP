@@ -14,9 +14,6 @@
 #include <sysinfo.h>
 #include <utils.h>
 
-#define MAX_ARG_COUNT 20
-#define MAX_ARG_LEN 50
-#define MAX_COMMAND_COUNT 50
 #define MAX_HISTORY_LEN 20
 
 typedef enum {
@@ -41,13 +38,10 @@ typedef struct ShellCommand {
   char* name;
   char* description;
   ShellFunction function;
-  // CommandArgument arguments[MAX_ARG_COUNT];
-  // CommandOption options[];
 } ShellCommand;
 
 extern int commandReturnCode;
-extern int commandCount;
-extern ShellCommand commands[MAX_COMMAND_COUNT];
+extern Array commands;
 
 void newPrompt();
 void incFont();

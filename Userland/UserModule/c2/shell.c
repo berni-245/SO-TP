@@ -11,8 +11,10 @@ int currentCommandIdx = 0;
 int commandReturnCode = 0;
 static int currentPromptLen = 0;
 
-int commandCount = 0;
+// int commandCount = 0;
 Array currentCommand;
+
+Array commands;
 
 void freeArrayPtr(Array* ele) {
   arrayFree(*ele);
@@ -22,9 +24,9 @@ int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
 
-  commandCount = 0;
   currentCommand = Array_initialize(sizeof(char), 100, NULL, NULL);
   commandHistory = CHB_initialize(sizeof(Array), MAX_HISTORY_LEN, (FreeEleFn)freeArrayPtr, NULL);
+  commands = Array_initialize(sizeof(ShellCommand), 100, NULL, NULL);
 
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
@@ -66,7 +68,9 @@ int shell() {
   addCommand("block", "Blocks the process with the pid given", commandBlock);
   addCommand("unblock", "Unblocks the process with the pid given", commandUnBlock);
   addCommand("testPriority", "Checks the priority functionality. 0: small wait. 1: long wait", commandTestPriority);
-  addCommand("testProcesses", "Checks the process creation, blocking, unblocking and destruction", commandTestProcesses);
+  addCommand(
+      "testProcesses", "Checks the process creation, blocking, unblocking and destruction", commandTestProcesses
+  );
   addCommand("cat", "Read from stdin and output to stdout", commandCat);
   addCommand("wc", "Cound words from stdin", commandWordCount);
   addCommand("filter", "Return the given array without vocals", commandFilterVocals);
@@ -220,15 +224,14 @@ void decFont() {
   clearScreenKeepCommand();
 }
 
-ShellCommand commands[MAX_COMMAND_COUNT];
 void addCommand(char* name, char* description, ShellFunction function) {
-  if (commandCount >= MAX_COMMAND_COUNT) return;
   ShellCommand newCommand = {.name = name, .description = description, .function = function};
-  commands[commandCount++] = newCommand;
+  arrayPush(commands, &newCommand);
 }
 ShellFunction getCommand(const char* name) {
-  for (int i = 0; i < commandCount; ++i) {
-    if (strcmp(name, commands[i].name) == 0) return commands[i].function;
+  for (int i = 0; i < arrayGetLen(commands); ++i) {
+    ShellCommand* command = arrayGet(commands, i);
+    if (strcmp(name, command->name) == 0) return command->function;
   }
   return NULL;
 }
@@ -237,8 +240,8 @@ void autocomplete() {
   int matchCount = 0, matchIdx = 0, len = 0;
   const char* cc = arrayGetVanillaArray(currentCommand);
   int ccLen = arrayGetLen(currentCommand);
-  for (int i = 0; i < commandCount; ++i) {
-    char* command = commands[i].name;
+  for (int i = 0; i < arrayGetLen(commands); ++i) {
+    char* command = ((ShellCommand*)arrayGet(commands, i))->name;
     bool match = true;
     int k = 0;
     // Needs to be updated to use currentCommand array.
@@ -254,10 +257,10 @@ void autocomplete() {
     }
   }
   if (matchCount == 0) return;
-  // printString(commands[matchIdx].name + len);
-  for (int i = len; commands[matchIdx].name[i] != 0; ++i) {
-    printChar(commands[matchIdx].name[i]);
-    arrayPush(currentCommand, commands[matchIdx].name + i);
+  char* match = ((ShellCommand*)arrayGet(commands, matchIdx))->name;
+  for (int i = len; match[i] != 0; ++i) {
+    printChar(match[i]);
+    arrayPush(currentCommand, match + i);
   }
 }
 
@@ -358,7 +361,7 @@ ExitCode parseCommand() {
         realArgv[i] = arrayGetVanillaArray(*(Array*)arrayGet(argv, i));
       }
       if (strcmp(realArgv[argc - 1], "&") == 0) {
-        int pid = sysCreateProcess(arrayGetLen(argv) - 1, realArgv, command);
+        int pid = sysCreateProcess(argc - 1, realArgv, command);
         printf("Running in background '%s', pid: %d\n", realArgv[0], pid);
         ret = SUCCESS;
       } else {

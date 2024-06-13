@@ -1,3 +1,4 @@
+#include <array.h>
 #include <shellUtils.h>
 #include <stdlib.h>
 #include <syscalls.h>
@@ -23,27 +24,27 @@ void commandRealTime() {
   sysExit(SUCCESS);
 }
 
+#define COMMANDS_PER_PAGE 10
 void commandHelp(int argc, char* argv[argc]) {
-  printString("Available commands ");
-  if (argc >= 2 && strToInt(argv[1]) == 2) {
-    printString("(Page 2/2):\n");
-    for (int i = commandCount / 2 + 1; i < commandCount; ++i) {
-      printf("\t- %s: %s\n", commands[i].name, commands[i].description);
-    }
-    printf("Switch between pages with help [pageNr]\n");
-    sysExit(SUCCESS);
-  }
+  int commandCount = arrayGetLen(commands);
+  // Rounded up number of pages.
+  int nbrPages = (commandCount + COMMANDS_PER_PAGE - 1) / COMMANDS_PER_PAGE;
+  int page = 1;
+  if (argc > 1) page = strToInt(argv[1]);
 
-  if (argc >= 2 && strToInt(argv[1]) != 1) {
+  if (page > nbrPages) {
     printString("No such page\n");
     sysExit(ILLEGAL_ARGUMENT);
   }
 
-  printString("(Page 1/2):\n");
-  for (int i = 0; i < commandCount / 2; ++i) {
-    printf("\t- %s: %s\n", commands[i].name, commands[i].description);
+  printf("Available commands (Page %d/%d)\n", page, nbrPages);
+
+  int startIdx = (page - 1) * COMMANDS_PER_PAGE;
+  for (int i = startIdx; i < startIdx + COMMANDS_PER_PAGE; ++i) {
+    ShellCommand* command = arrayGet(commands, i);
+    printf("\t- %s: %s\n", command->name, command->description);
   }
-  printf("Switch between pages with help [pageNr]\n");
+  printf("Switch between pages with `help [pageNr]`\n");
   sysExit(SUCCESS);
 }
 
