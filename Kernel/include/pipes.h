@@ -16,8 +16,8 @@ typedef struct {
   int writeIdx;
   int readIdx;
   sem_t mutex;
-  sem_t emptyCount;
-  sem_t writtenCount;
+  sem_t emptyCountSem;
+  sem_t writtenCountSem;
   bool destroyed;
   // PCB* readerPcb;
   // PCB* writerPcb;

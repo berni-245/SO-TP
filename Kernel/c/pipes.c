@@ -26,8 +26,8 @@ void initializePipes() {
 long pipeInit() {
   Pipe* p = globalMalloc(sizeof(Pipe));
   p->mutex = semInit(1);
-  p->writtenCount = semInit(0);
-  p->emptyCount = semInit(BUFFER_SIZE);
+  p->writtenCountSem = semInit(0);
+  p->emptyCountSem = semInit(BUFFER_SIZE);
   p->writeIdx = 0;
   p->readIdx = 0;
   p->destroyed = false;
@@ -58,13 +58,13 @@ long readPipe(int pipeId, char* buf, int len) {
   long pos = 0;
   bool reachedEnd = false;
   do {
-    waitSemaphore(p->writtenCount);
+    waitSemaphore(p->writtenCountSem);
     waitSemaphore(p->mutex);
     buf[pos++] = p->buffer[p->readIdx];
     p->readIdx = (p->readIdx + 1) % BUFFER_SIZE;
     if (p->readIdx == p->writeIdx) reachedEnd = true;
     postSemaphore(p->mutex);
-    postSemaphore(p->emptyCount);
+    postSemaphore(p->emptyCountSem);
   } while (pos < len && !reachedEnd);
 
   return pos;
@@ -77,12 +77,12 @@ long writePipe(int pipeId, const char* buf, int len) {
   if (p == NULL) return -1;
   long pos = 0;
   while (pos < len) {
-    waitSemaphore(p->emptyCount);
+    waitSemaphore(p->emptyCountSem);
     waitSemaphore(p->mutex);
     p->buffer[p->writeIdx] = buf[pos++];
     p->writeIdx = (p->writeIdx + 1) % BUFFER_SIZE;
     postSemaphore(p->mutex);
-    postSemaphore(p->writtenCount);
+    postSemaphore(p->writtenCountSem);
   }
   return pos;
 }
@@ -102,8 +102,8 @@ bool destroyPipe(int pipeId) {
   p->destroyed = true;
   arrayPush(freedPositions, &pipeId);
   destroySemaphore(p->mutex);
-  destroySemaphore(p->writtenCount);
-  destroySemaphore(p->emptyCount);
+  destroySemaphore(p->writtenCountSem);
+  destroySemaphore(p->emptyCountSem);
   // arraySet will do the free of the pipe itself when it overrides this position.
   return true;
 }
