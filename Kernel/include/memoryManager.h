@@ -4,8 +4,8 @@
 // comment/uncomment this to change to the other mm implementation
 #define BUDDY
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define NULL (void*)0
 
@@ -18,8 +18,8 @@ typedef struct Block {
 
 void freeListInit(void* heapStart, Block* freeList[]);
 #else
-typedef struct Block{
-  struct Block * nextFreeBlock;
+typedef struct Block {
+  struct Block* nextFreeBlock;
   uint64_t blockSize;
 } Block;
 

@@ -100,9 +100,9 @@ void freeCurrentProcess() {
   else if (pcbList.tail == toRemove) pcbList.tail = pcbList.prev;
 
   if (!toRemove->pcb->heapFreed) globalFree(toRemove->pcb->heap);
-  #ifndef BUDDY
+#ifndef BUDDY
   globalFree(toRemove->pcb->freeListStart);
-  #endif
+#endif
   globalFree(toRemove->pcb->stack);
   globalFree(toRemove->pcb);
   globalFree(toRemove);
@@ -320,7 +320,7 @@ PCBForUserland* getPCBList(int* len) {
   *len = pcbList.len;
   if (pcbList.head == NULL) return NULL;
   PCBForUserland* pcbArray = malloc(sizeof(PCBForUserland) * pcbList.len);
-  if(pcbArray == NULL) return NULL;
+  if (pcbArray == NULL) return NULL;
   PCBNode* node = pcbList.head;
   for (int i = 0; i < pcbList.len; ++i) {
     copyPCBToPCBForUserland(pcbArray + i, node->pcb);
