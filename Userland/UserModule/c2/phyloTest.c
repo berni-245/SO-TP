@@ -25,11 +25,17 @@ void blockAll() {
   }
 }
 
-void freeAll() {
+void freeAllRem() {
+  for (int i = 0; i < philos_on_table; i++) {
+    while (sysPostSem(change_philos_sem));
+  }
+}
+void freeAll(){
   for (int i = 0; i < philos_on_table; i++) {
     sysPostSem(change_philos_sem);
   }
 }
+
 
 void monitor() {
   for (int i = 0; i < philos_on_table; i++) {
@@ -113,20 +119,20 @@ int addPhylo(int pos) {
   return 0;
 }
 
+//el problema es que me queda el proceso que murió en el semáforo;
+
 int remPhylo(int pos) {
   if (check_phylo_pos(pos) || pos >= philos_on_table) return -1;
   blockAll();
+  sysKill(pids[pos]);
   if (!sysDestroySemaphore(forks[pos])) {
     printf("Error destroying Philosopher %d's semaphore.\n", pos);
     freeAll();
     sysExit(PROCESS_FAILURE);
   }
-  sysKill(pids[pos]);
-  forks[pos] = 0;
-  pids[pos] = 0;
   philos_on_table = pos;
   printf("Philosopher number %d has left the game\n", pos + 1);
-  freeAll();
+  freeAllRem();
   return 0;
 }
 

@@ -70,6 +70,8 @@ PCB* fifoUnqueue(sem_t semId) {
   PCB* pcb = sem->pcbNodeHead->pcb;
   PCBNodeSem* temp = sem->pcbNodeHead;
   sem->pcbNodeHead = sem->pcbNodeHead->next;
+  if (sem->pcbNodeHead==NULL)
+    sem->pcbNodeTail = NULL;
   globalFree(temp);
   return pcb;
 }
@@ -132,6 +134,7 @@ bool postSemaphore(sem_t semId) {
     _leave_region(&sem->lock);
     if (toReady->state == BLOCKED) {
       readyProcess(toReady);
+      return false;
     } else if (toReady->state == WAITING_FOR_EXIT) {
       exitProcessByPCB(toReady, KILL_EXIT_CODE);
     }
