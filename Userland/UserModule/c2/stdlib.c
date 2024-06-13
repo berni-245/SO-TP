@@ -173,7 +173,7 @@ int printf(const char* fmt, ...) {
       ++len;
     } else {
       if (paddingLen == 0) ++i;
-      else if (!strContains("dlxs", fmt[i])) {
+      else if (!strContains("udlxs", fmt[i])) {
         printf("...\nError: Only '%%s', '%%d', '%%l' and '%%x' identifier accept padding.\n");
         return -1;
       }
@@ -184,6 +184,10 @@ int printf(const char* fmt, ...) {
         break;
       case 'd':
         len += printAsBaseWithPadding(va_arg(p, int), 10);
+        paddingLen = 0;
+        break;
+      case 'u':
+        len += printUintAsBaseWithPadding(va_arg(p, int), 10);
         paddingLen = 0;
         break;
       case 'l':
