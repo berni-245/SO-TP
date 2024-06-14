@@ -13,12 +13,26 @@ typedef struct MM_rq {
 
 static char* usageMessage = "Usage: %s <max_memory>\n\tmax_memory: maximum number of KB to allocate\n";
 
+// We use another process to print because sysGetProcessMemoryState allocates memory at
+// the current process' heap so the memory state would be off.
+void printMemState(int pid) {
+  char pidStr[200];
+  uintToBase(pid, pidStr, 10);
+  char name[206] = "mem_p";
+  strcpy(name + 5, pidStr);
+  const char* argvMem[] = {name, pidStr};
+  pid = sysCreateProcess(2, argvMem, commandGetMemoryState);
+  sysWaitPid(pid);
+}
+
 void commandTestMM(int argc, char* argv[]) {
 
   mm_rq mm_rqs[MAX_BLOCKS];
   uint8_t rq;
   uint32_t total;
   int64_t max_memory;
+
+  int pid = sysGetPid();
 
   if (argc < 2) {
     printf(usageMessage, argv[0]);
@@ -29,13 +43,6 @@ void commandTestMM(int argc, char* argv[]) {
     printf(usageMessage, argv[0]);
     sysExit(ILLEGAL_ARGUMENT);
   }
-
-  int myPid = sysGetPid();
-  char pidStr[200];
-  uintToBase(myPid, pidStr, 10);
-  char name[206] = "mem_p";
-  strcpy(name + 5, pidStr);
-  const char* argvMem[] = {name, pidStr};
 
   max_memory = max_memory * (1 << 10);
   while (1) {
@@ -50,7 +57,9 @@ void commandTestMM(int argc, char* argv[]) {
         total += mm_rqs[rq].size;
         rq++;
       } else {
-        printf("Not enough memory to allocate: %lu B\n", mm_rqs[rq].size);
+        printf("Not enough memory to allocate: %u B\n", mm_rqs[rq].size);
+        printMemState(pid);
+        sysExit(NO_MEMORY_AVAILABLE);
       }
     }
     sysSleep(1000);
@@ -62,8 +71,7 @@ void commandTestMM(int argc, char* argv[]) {
     }
 
     printf("After allocation:\n");
-    int pid = sysCreateProcess(2, argvMem, commandGetMemoryState);
-    sysWaitPid(pid);
+    printMemState(pid);
 
     // Check
     for (i = 0; i < rq; i++) {
@@ -80,7 +88,6 @@ void commandTestMM(int argc, char* argv[]) {
     }
 
     printf("After free:\n");
-    pid = sysCreateProcess(2, argvMem, commandGetMemoryState);
-    sysWaitPid(pid);
+    printMemState(pid);
   }
 }
