@@ -10,8 +10,8 @@ typedef struct ArrayCDT {
   uint64_t elementSize;
   uint64_t capacity;
   uint64_t length;
-  PrintEleFn printEleFn;
   FreeEleFn freeEleFn;
+  // FreeEleFn freeEleFn;
 } ArrayCDT;
 
 void copynEleAt(Array a, uint64_t idx, const void* eleArr, uint64_t n);
@@ -19,7 +19,7 @@ void copyEleAt(Array a, uint64_t idx, const void* ele);
 void growTo(Array a, uint64_t newCapacity);
 void growBy(Array a, uint64_t extraCapacity);
 
-void* Array_initialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn freeEleFn, PrintEleFn printEleFn) {
+void* Array_initialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn freeEleFn) {
   if (elementSize == 0) exitWithError("@Array_initialize elementSize can't be 0");
   ArrayCDT* a = sysMalloc(sizeof(ArrayCDT));
   if (a == NULL) exitWithError("@Array_initialize malloc error");
@@ -31,7 +31,6 @@ void* Array_initialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn
   }
   a->length = 0;
   a->elementSize = elementSize;
-  a->printEleFn = printEleFn;
   a->freeEleFn = freeEleFn;
   return a;
 }
@@ -123,17 +122,6 @@ uint64_t Array_getLen(Array a) {
   return a->length;
 }
 
-void Array_print(Array a) {
-  if (a == NULL) exitWithError("@Array_print Array instance can't be NULL");
-  if (a->printEleFn == NULL) exitWithError("@Array_print call without having set an element print function");
-  printf("[ ");
-  for (int i = 0; i < Array_getLen(a); ++i) {
-    a->printEleFn(Array_get(a, i));
-    if (i < Array_getLen(a) - 1) printf(", ");
-  }
-  printf(" ]\n");
-}
-
 void Array_printInfo(Array a) {
   if (a == NULL) exitWithError("@Array_printInfo Array instance can't be NULL");
   printf("{ \n");
@@ -147,10 +135,10 @@ void Array_printInfo(Array a) {
   printf("}\n");
 }
 
-Array Array_map(Array a, MapFn mapFn, uint64_t newElemSize, PrintEleFn newPrintEleFn, FreeEleFn freeFn) {
+Array Array_map(Array a, MapFn mapFn, uint64_t newElemSize, FreeEleFn freeFn) {
   if (a == NULL) exitWithError("@Array_map Array instance can't be NULL");
   if (mapFn == NULL) exitWithError("@Array_map map function can't be NULL");
-  Array mapped = Array_initialize(newElemSize, a->length, freeFn, newPrintEleFn);
+  Array mapped = Array_initialize(newElemSize, a->length, freeFn);
   for (int i = 0; i < a->length; ++i) {
     void* mappedEle = sysMalloc(newElemSize);
     if (mappedEle == NULL) exitWithError("@Array_map malloc error");
@@ -162,10 +150,8 @@ Array Array_map(Array a, MapFn mapFn, uint64_t newElemSize, PrintEleFn newPrintE
   return mapped;
 }
 
-Array Array_fromVanillaArray(
-    const void* array, uint64_t length, uint64_t elementSize, PrintEleFn printEleFn, FreeEleFn freeFn
-) {
-  Array a = Array_initialize(elementSize, length, freeFn, printEleFn);
+Array Array_fromVanillaArray(const void* array, uint64_t length, uint64_t elementSize, FreeEleFn freeFn) {
+  Array a = Array_initialize(elementSize, length, freeFn);
   a->length = length;
   copynEleAt(a, 0, array, length);
   return a;
@@ -199,6 +185,10 @@ void* Array_getVanillaArrayCopy(Array a) {
   void* array = sysMalloc(a->length * a->elementSize);
   Array_copyVanillaArrayInto(a, array);
   return array;
+}
+
+bool Array_equals(Array a1, Array a2) {
+  return false;
 }
 
 //////////////////////////// Internal Functions ////////////////////////////

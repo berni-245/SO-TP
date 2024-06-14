@@ -6,7 +6,7 @@
 
 typedef struct CircularHistoryBufferADT* CircularHistoryBuffer;
 
-CircularHistoryBuffer CHB_initialize(uint64_t elementSize, uint64_t size, FreeEleFn freeEleFn, PrintEleFn printEleFn);
+CircularHistoryBuffer CHB_initialize(uint64_t elementSize, uint64_t size, FreeEleFn freeEleFn);
 void CHB_push(CircularHistoryBuffer cb, void* ele);
 void* CHB_readNext(CircularHistoryBuffer cb);
 void* CHB_readPrev(CircularHistoryBuffer cb);

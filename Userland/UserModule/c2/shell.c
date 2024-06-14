@@ -24,9 +24,9 @@ int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
 
-  currentCommand = Array_initialize(sizeof(char), 100, NULL, NULL);
-  commandHistory = CHB_initialize(sizeof(Array), MAX_HISTORY_LEN, (FreeEleFn)freeArrayPtr, NULL);
-  commands = Array_initialize(sizeof(ShellCommand), 100, NULL, NULL);
+  currentCommand = Array_initialize(sizeof(char), 100, NULL);
+  commandHistory = CHB_initialize(sizeof(Array), MAX_HISTORY_LEN, (FreeEleFn)freeArrayPtr);
+  commands = Array_initialize(sizeof(ShellCommand), 100, NULL);
 
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
@@ -291,7 +291,7 @@ void setRealArgv(int argc, const char* realArgv[argc], Array argv) {
 }
 
 ExitCode parseCommand() {
-  Array argv = Array_initialize(sizeof(Array), 10, (FreeEleFn)freeArrayPtr, NULL);
+  Array argv = Array_initialize(sizeof(Array), 10, (FreeEleFn)freeArrayPtr);
   Array argv2 = NULL;
   Array currentArgv = argv;
   ShellFunction command;
@@ -307,11 +307,11 @@ ExitCode parseCommand() {
         if (arg != NULL) {
           if (Array_getLen(arg) == 1 && *(char*)Array_get(arg, 0) == '!') {
             // No freeEleFn because it will get concatenated with argv in the end.
-            argv2 = Array_initialize(sizeof(Array), 10, NULL, NULL);
+            argv2 = Array_initialize(sizeof(Array), 10, NULL);
             currentArgv = argv2;
           }
         }
-        arg = Array_initialize(sizeof(char), 30, NULL, NULL);
+        arg = Array_initialize(sizeof(char), 30, NULL);
         Array_push(currentArgv, &arg);
         newWord = false;
       }

@@ -19,10 +19,10 @@ void increaseWriteIdx(CircularHistoryBuffer cb);
 void increaseReadIdx(CircularHistoryBuffer cb);
 void decreaseReadIdx(CircularHistoryBuffer cb);
 
-CircularHistoryBuffer CHB_initialize(uint64_t elementSize, uint64_t size, FreeEleFn freeEleFn, PrintEleFn printEleFn) {
+CircularHistoryBuffer CHB_initialize(uint64_t elementSize, uint64_t size, FreeEleFn freeEleFn) {
   CircularHistoryBuffer cb = sysMalloc(sizeof(CircularHistoryBufferADT));
   if (cb == NULL) exitWithError("@CHB_initialize malloc error");
-  cb->array = Array_initialize(elementSize, size, freeEleFn, printEleFn);
+  cb->array = Array_initialize(elementSize, size, freeEleFn);
   cb->size = size;
   cb->readIdx = 0;
   cb->writeIdx = 0;
@@ -70,10 +70,6 @@ void CHB_free(CircularHistoryBuffer cb) {
   if (cb == NULL) exitWithError("@CHB_free cb instance can't be NULL");
   Array_free(cb->array);
   sysFree(cb);
-}
-
-void CHB_printState(CircularHistoryBuffer cb) {
-  Array_print(cb->array);
 }
 
 /////////////// Internal functions ///////////////
