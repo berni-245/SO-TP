@@ -232,20 +232,22 @@ void commandGetPid() {
 
 void commandKill(int argc, char* argv[argc]) {
   if (argc < 2) {
-    printf("Usage: kill <pid>\n");
+    printf("Usage: kill <pid_1> [pid_2] ... [pid_n]\n");
     sysExit(ILLEGAL_ARGUMENT);
   }
-  int pid = strToInt(argv[1]);
-  if (pid == 0) {
-    printf("https://youtu.be/31g0YE61PLQ?si=G3tv2y_iw8InNCec\n");
-    sysExit(ILLEGAL_ARGUMENT);
+  for (int i = 1; i < argc; ++i) {
+    int pid = strToInt(argv[i]);
+    if (pid == 0) {
+      if (strcmp(argv[i], "0") == 0) printf("https://youtu.be/31g0YE61PLQ?si=G3tv2y_iw8InNCec\n");
+      else printf("Invalid pid: %s\n", argv[i]);
+      sysExit(ILLEGAL_ARGUMENT);
+    }
+    if (!sysKill(pid)) {
+      printf("Process with pid %d not found or has already exited\n", pid);
+      sysExit(OUT_OF_BOUNDS);
+    }
   }
-
-  if (sysKill(pid)) sysExit(SUCCESS);
-  else {
-    printf("Process with pid %d not found or has already exited\n", pid);
-    sysExit(OUT_OF_BOUNDS);
-  }
+  sysExit(SUCCESS);
 }
 
 void commandGetMemoryState(int argc, char* argv[argc]) {
