@@ -27,7 +27,7 @@ void commandRealTime() {
 
 #define COMMANDS_PER_PAGE 10
 void commandHelp(int argc, char* argv[argc]) {
-  int commandCount = arrayGetLen(commands);
+  int commandCount = Array_getLen(commands);
   // Rounded up number of pages.
   int nbrPages = (commandCount + COMMANDS_PER_PAGE - 1) / COMMANDS_PER_PAGE;
   int page = 1;
@@ -43,7 +43,7 @@ void commandHelp(int argc, char* argv[argc]) {
   int startIdx = (page - 1) * COMMANDS_PER_PAGE;
   int end = startIdx + COMMANDS_PER_PAGE > commandCount ? commandCount : startIdx + COMMANDS_PER_PAGE;
   for (int i = startIdx; i < end; ++i) {
-    ShellCommand* command = arrayGet(commands, i);
+    ShellCommand* command = Array_get(commands, i);
     printf("\t- %s: %s\n", command->name, command->description);
   }
   printf("Switch between pages with `help [pageNr]`\n");

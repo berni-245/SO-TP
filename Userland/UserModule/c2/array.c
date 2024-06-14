@@ -20,14 +20,14 @@ void growTo(Array a, uint64_t newCapacity);
 void growBy(Array a, uint64_t extraCapacity);
 
 void* Array_initialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn freeEleFn, PrintEleFn printEleFn) {
-  if (elementSize == 0) exitWithError("@arrayInitialize elementSize can't be 0");
+  if (elementSize == 0) exitWithError("@Array_initialize elementSize can't be 0");
   ArrayCDT* a = sysMalloc(sizeof(ArrayCDT));
-  if (a == NULL) exitWithError("@arrayInitialize malloc error");
+  if (a == NULL) exitWithError("@Array_initialize malloc error");
   a->capacity = initialCapacity ? initialCapacity : 1;
   a->array = sysMalloc(a->capacity * elementSize);
   if (a->array == NULL) {
     sysFree(a);
-    exitWithError("@arrayInitialize malloc error");
+    exitWithError("@Array_initialize malloc error");
   }
   a->length = 0;
   a->elementSize = elementSize;
@@ -36,20 +36,20 @@ void* Array_initialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn
   return a;
 }
 
-void arrayFree(Array a) {
-  if (a == NULL) exitWithError("@arrayFree Array instance can't be NULL");
+void Array_free(Array a) {
+  if (a == NULL) exitWithError("@Array_free Array instance can't be NULL");
 
   if (a->freeEleFn != NULL) {
-    for (int i = 0; i < a->length; ++i) a->freeEleFn(arrayGet(a, i));
+    for (int i = 0; i < a->length; ++i) a->freeEleFn(Array_get(a, i));
   }
   sysFree(a->array);
   sysFree(a);
 }
 
-void arrayPush(Array a, const void* ele) {
+void Array_push(Array a, const void* ele) {
   if (a == NULL) {
-    exitWithError("@arrayPush Array instance can't be NULL");
-  } else if (ele == NULL) exitWithError("@arrayPush element to push can't be NULL");
+    exitWithError("@Array_push Array instance can't be NULL");
+  } else if (ele == NULL) exitWithError("@Array_push element to push can't be NULL");
 
   if (a->length >= a->capacity) growBy(a, a->capacity);
 
@@ -57,45 +57,45 @@ void arrayPush(Array a, const void* ele) {
   ++a->length;
 }
 
-bool arrayPopGetEle(Array a, void* ele) {
-  if (a == NULL) exitWithError("@arrayPop Array instance can't be NULL");
+bool Array_popGetEle(Array a, void* ele) {
+  if (a == NULL) exitWithError("@Array_pop Array instance can't be NULL");
   if (a->length == 0) return false;
 
-  void* eleToPop = arrayGet(a, -1);
+  void* eleToPop = Array_get(a, -1);
   sysMemcpy(ele, eleToPop, a->elementSize);
   if (a->freeEleFn != NULL) a->freeEleFn(eleToPop);
   --a->length;
   return true;
 }
 
-void arrayPop(Array a) {
-  if (a == NULL) exitWithError("@arrayPop Array instance can't be NULL");
+void Array_pop(Array a) {
+  if (a == NULL) exitWithError("@Array_pop Array instance can't be NULL");
   if (a->length == 0) return;
-  if (a->freeEleFn != NULL) a->freeEleFn(arrayGet(a, -1));
+  if (a->freeEleFn != NULL) a->freeEleFn(Array_get(a, -1));
   --a->length;
 }
 
-void arraySetn(Array a, long idx, const void* eleArray, uint64_t length) {
-  if (a == NULL) exitWithError("@arraySetn Array instance can't be NULL");
+void Array_setn(Array a, long idx, const void* eleArray, uint64_t length) {
+  if (a == NULL) exitWithError("@Array_setn Array instance can't be NULL");
   if (idx < 0) {
-    if (-idx > a->length) exitWithError("@arraySetn idx outside of bounds");
+    if (-idx > a->length) exitWithError("@Array_setn idx outside of bounds");
     idx += a->length;
-  } else if (idx >= a->length) exitWithError("@arraySetn idx outside of bounds");
+  } else if (idx >= a->length) exitWithError("@Array_setn idx outside of bounds");
 
   if (a->freeEleFn != NULL) {
     for (int i = idx; i < idx + length; ++i) {
-      a->freeEleFn(arrayGet(a, i));
+      a->freeEleFn(Array_get(a, i));
     }
   }
   if (length > a->length - idx) growBy(a, length - (a->length - idx));
   copynEleAt(a, idx, eleArray, length);
 }
 
-void arraySet(Array a, long idx, void* ele) {
-  arraySetn(a, idx, ele, 1);
+void Array_set(Array a, long idx, void* ele) {
+  Array_setn(a, idx, ele, 1);
 }
 
-void* arrayGet(Array a, long idx) {
+void* Array_get(Array a, long idx) {
   if (a == NULL) return NULL;
   // We need to first check if idx < 0 because if it's negative and we compare directly
   // against length (unsigned) then idx will be cast to unsigned and will be a huge number
@@ -108,18 +108,18 @@ void* arrayGet(Array a, long idx) {
   return a->array + idx * a->elementSize;
 }
 
-void arrayClear(Array a) {
-  if (a == NULL) exitWithError("@arrayClear Array instance can't be NULL");
+void Array_clear(Array a) {
+  if (a == NULL) exitWithError("@Array_clear Array instance can't be NULL");
   if (a->freeEleFn != NULL) {
     for (int i = 0; i < a->length; ++i) {
-      a->freeEleFn(arrayGet(a, i));
+      a->freeEleFn(Array_get(a, i));
     }
   }
   a->length = 0;
 }
 
-uint64_t arrayGetLen(Array a) {
-  if (a == NULL) exitWithError("@arrayGetLen Array instance can't be NULL");
+uint64_t Array_getLen(Array a) {
+  if (a == NULL) exitWithError("@Array_getLen Array instance can't be NULL");
   return a->length;
 }
 
@@ -127,9 +127,9 @@ void Array_print(Array a) {
   if (a == NULL) exitWithError("@Array_print Array instance can't be NULL");
   if (a->printEleFn == NULL) exitWithError("@Array_print call without having set an element print function");
   printf("[ ");
-  for (int i = 0; i < arrayGetLen(a); ++i) {
-    a->printEleFn(arrayGet(a, i));
-    if (i < arrayGetLen(a) - 1) printf(", ");
+  for (int i = 0; i < Array_getLen(a); ++i) {
+    a->printEleFn(Array_get(a, i));
+    if (i < Array_getLen(a) - 1) printf(", ");
   }
   printf(" ]\n");
 }
@@ -155,8 +155,8 @@ Array Array_map(Array a, MapFn mapFn, uint64_t newElemSize, PrintEleFn newPrintE
     void* mappedEle = sysMalloc(newElemSize);
     if (mappedEle == NULL) exitWithError("@Array_map malloc error");
 
-    mapFn(mappedEle, arrayGet(a, i), i);
-    arrayPush(mapped, mappedEle);
+    mapFn(mappedEle, Array_get(a, i), i);
+    Array_push(mapped, mappedEle);
     sysFree(mappedEle);
   }
   return mapped;
@@ -171,10 +171,10 @@ Array Array_fromVanillaArray(
   return a;
 }
 
-void arrayConcat(Array dst, Array src) {
-  if (dst == NULL || src == NULL) exitWithError("@arrayConcat Array instances can't be NULL");
+void Array_concat(Array dst, Array src) {
+  if (dst == NULL || src == NULL) exitWithError("@Array_concat Array instances can't be NULL");
   if (dst->elementSize != src->elementSize) {
-    exitWithError("@arrayConcat both Array instances should be of same element type");
+    exitWithError("@Array_concat both Array instances should be of same element type");
   }
 
   uint64_t neededCapacity = dst->length + src->length;
@@ -183,21 +183,21 @@ void arrayConcat(Array dst, Array src) {
   dst->length += src->length;
 }
 
-const void* arrayGetVanillaArray(Array a) {
-  if (a == NULL) exitWithError("@arrayGetVanillaArray Array instance can't be NULL");
+const void* Array_getVanillaArray(Array a) {
+  if (a == NULL) exitWithError("@Array_getVanillaArray Array instance can't be NULL");
   return a->array;
 }
 
-void* arrayCopyVanillaArrayInto(Array a, void* array) {
-  if (a == NULL) exitWithError("@arrayCopyVanillaArrayInto Array instance can't be NULL");
+void* Array_copyVanillaArrayInto(Array a, void* array) {
+  if (a == NULL) exitWithError("@Array_copyVanillaArrayInto Array instance can't be NULL");
   sysMemcpy(array, a->array, a->length * a->elementSize);
   return array;
 }
 
-void* arrayGetVanillaArrayCopy(Array a) {
-  if (a == NULL) exitWithError("@arrayGetVanillaArrayCopy Array instance can't be NULL");
+void* Array_getVanillaArrayCopy(Array a) {
+  if (a == NULL) exitWithError("@Array_getVanillaArrayCopy Array instance can't be NULL");
   void* array = sysMalloc(a->length * a->elementSize);
-  arrayCopyVanillaArrayInto(a, array);
+  Array_copyVanillaArrayInto(a, array);
   return array;
 }
 

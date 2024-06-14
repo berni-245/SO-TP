@@ -16,8 +16,8 @@ static Array freedPositions;
 sem_t findName(char* name);
 
 void initializeSemaphores() {
-  semArray = arrayInitialize(sizeof(Semaphore), INITIAL_CAPACITY, NULL);
-  freedPositions = arrayInitialize(sizeof(int), INITIAL_CAPACITY, NULL);
+  semArray = Array_initialize(sizeof(Semaphore), INITIAL_CAPACITY, NULL);
+  freedPositions = Array_initialize(sizeof(int), INITIAL_CAPACITY, NULL);
 }
 
 sem_t addSem(char* name, uint32_t initialValue) {
@@ -28,11 +28,11 @@ sem_t addSem(char* name, uint32_t initialValue) {
   }
   if (name[i] != 0) return -1;
   int freeToUseSem;
-  if (arrayPopGetEle(freedPositions, &freeToUseSem)) {
-    arraySet(semArray, freeToUseSem, &sem);
+  if (Array_popGetEle(freedPositions, &freeToUseSem)) {
+    Array_set(semArray, freeToUseSem, &sem);
     return freeToUseSem;
   } else {
-    return arrayPush(semArray, &sem);
+    return Array_push(semArray, &sem);
   }
 }
 
@@ -46,7 +46,7 @@ sem_t createSemaphore(char* name, uint32_t initialValue) {
 }
 
 bool fifoQueue(sem_t semId, PCB* pcb) {
-  Semaphore* sem = arrayGet(semArray, semId);
+  Semaphore* sem = Array_get(semArray, semId);
   if (sem == NULL) return false;
 
   PCBNodeSem* node = globalMalloc(sizeof(PCBNodeSem));
@@ -65,7 +65,7 @@ bool fifoQueue(sem_t semId, PCB* pcb) {
 }
 
 PCB* fifoUnqueue(sem_t semId) {
-  Semaphore* sem = arrayGet(semArray, semId);
+  Semaphore* sem = Array_get(semArray, semId);
   if (sem == NULL || sem->pcbNodeHead == NULL) return NULL;
   PCB* pcb = sem->pcbNodeHead->pcb;
   PCBNodeSem* temp = sem->pcbNodeHead;
@@ -76,7 +76,7 @@ PCB* fifoUnqueue(sem_t semId) {
 
 bool destroySemaphore(sem_t semId) {
   if (semId < 0) return false;
-  Semaphore* sem = arrayGet(semArray, semId);
+  Semaphore* sem = Array_get(semArray, semId);
   if (sem == NULL || sem->destroyed) return false;
   _enter_region(&sem->lock);
   while (sem->pcbNodeHead != NULL) {
@@ -90,7 +90,7 @@ bool destroySemaphore(sem_t semId) {
   }
   _leave_region(&sem->lock);
   sem->destroyed = true;
-  arrayPush(freedPositions, &semId);
+  Array_push(freedPositions, &semId);
   return true;
 }
 
@@ -100,7 +100,7 @@ bool destroySemaphoreByName(char* name) {
 
 bool waitSemaphore(sem_t semId) {
   if (semId < 0) return false;
-  Semaphore* sem = arrayGet(semArray, semId);
+  Semaphore* sem = Array_get(semArray, semId);
   if (sem == NULL || sem->destroyed) return false;
   _enter_region(&sem->lock);
   if (sem->value > 0) {
@@ -117,14 +117,14 @@ bool waitSemaphore(sem_t semId) {
 
 bool decSemOnlyForKernel(int semId) {
   if (semId < 0) return false;
-  Semaphore* sem = arrayGet(semArray, semId);
+  Semaphore* sem = Array_get(semArray, semId);
   if (sem->value > 0) sem->value--;
   return true;
 }
 
 bool postSemaphore(sem_t semId) {
   if (semId < 0) return false;
-  Semaphore* sem = arrayGet(semArray, semId);
+  Semaphore* sem = Array_get(semArray, semId);
   if (sem == NULL || sem->destroyed) return false;
   _enter_region(&sem->lock);
 
@@ -156,9 +156,9 @@ sem_t openSemaphore(char* name, uint32_t value) {
 }
 
 sem_t findName(char* name) {
-  int len = arrayGetLen(semArray);
+  int len = Array_getLen(semArray);
   for (int i = 0; i < len; ++i) {
-    Semaphore* sem = arrayGet(semArray, i);
+    Semaphore* sem = Array_get(semArray, i);
     if (!sem->destroyed) {
       if (strcmp(name, sem->name) == 0) return i;
     }

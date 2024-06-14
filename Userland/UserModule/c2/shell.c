@@ -17,7 +17,7 @@ Array currentCommand;
 Array commands;
 
 void freeArrayPtr(Array* ele) {
-  arrayFree(*ele);
+  Array_free(*ele);
 }
 
 int shell() {
@@ -109,17 +109,17 @@ int shell() {
         printChar(key.character);
         commandReturnCode = parseCommand();
         newPrompt();
-        arrayClear(currentCommand);
+        Array_clear(currentCommand);
       } else if (key.character == '\b') {
-        if (arrayGetLen(currentCommand) > 0) {
+        if (Array_getLen(currentCommand) > 0) {
           printChar(key.character);
-          arrayPop(currentCommand);
+          Array_pop(currentCommand);
         }
       } else if (key.character == '\t') {
         autocomplete();
       } else {
         printChar(key.character);
-        arrayPush(currentCommand, &key.character);
+        Array_push(currentCommand, &key.character);
       }
     }
   }
@@ -128,24 +128,24 @@ int shell() {
 }
 
 void clearLine() {
-  int i = arrayGetLen(currentCommand);
+  int i = Array_getLen(currentCommand);
   while (i--) printChar('\b');
-  arrayClear(currentCommand);
+  Array_clear(currentCommand);
 }
 
 void historyCopy(Array argv) {
   clearLine();
-  int argc = arrayGetLen(argv);
+  int argc = Array_getLen(argv);
   for (int i = 0; i < argc; ++i) {
-    const char* arg = arrayGetVanillaArray(*(Array*)arrayGet(argv, i));
+    const char* arg = Array_getVanillaArray(*(Array*)Array_get(argv, i));
     for (int i = 0; arg[i] != 0; ++i) {
       printChar(arg[i]);
-      arrayPush(currentCommand, arg + i);
+      Array_push(currentCommand, arg + i);
     }
     if (i < argc - 1) {
       char c = ' ';
       printChar(c);
-      arrayPush(currentCommand, &c);
+      Array_push(currentCommand, &c);
     }
   }
 }
@@ -164,7 +164,7 @@ void historyNext() {
 }
 
 int getCurrentChar() {
-  char* c = arrayGet(currentCommand, -1);
+  char* c = Array_get(currentCommand, -1);
   if (c == NULL) return 0;
   return *c;
 }
@@ -175,12 +175,12 @@ void deleteWord() {
   if (!strContains(wordSeps, c)) {
     do {
       printChar('\b');
-      arrayPop(currentCommand);
+      Array_pop(currentCommand);
     } while ((c = getCurrentChar()) != 0 && !strContains(wordSeps, c));
   } else {
     do {
       printChar('\b');
-      arrayPop(currentCommand);
+      Array_pop(currentCommand);
     } while ((c = getCurrentChar()) != 0 && strContains(wordSeps, c));
   }
 }
@@ -208,8 +208,8 @@ void newPrompt() {
 void clearScreenKeepCommand() {
   clearScreen();
   newPrompt();
-  const char* cc = arrayGetVanillaArray(currentCommand);
-  int len = arrayGetLen(currentCommand);
+  const char* cc = Array_getVanillaArray(currentCommand);
+  int len = Array_getLen(currentCommand);
   for (int i = 0; i < len; ++i) {
     printChar(cc[i]);
   }
@@ -226,11 +226,11 @@ void decFont() {
 
 void addCommand(char* name, char* description, ShellFunction function) {
   ShellCommand newCommand = {.name = name, .description = description, .function = function};
-  arrayPush(commands, &newCommand);
+  Array_push(commands, &newCommand);
 }
 ShellFunction getCommand(const char* name) {
-  for (int i = 0; i < arrayGetLen(commands); ++i) {
-    ShellCommand* command = arrayGet(commands, i);
+  for (int i = 0; i < Array_getLen(commands); ++i) {
+    ShellCommand* command = Array_get(commands, i);
     if (strcmp(name, command->name) == 0) return command->function;
   }
   return NULL;
@@ -238,10 +238,10 @@ ShellFunction getCommand(const char* name) {
 
 void autocomplete() {
   int matchCount = 0, matchIdx = 0, len = 0;
-  const char* cc = arrayGetVanillaArray(currentCommand);
-  int ccLen = arrayGetLen(currentCommand);
-  for (int i = 0; i < arrayGetLen(commands); ++i) {
-    char* command = ((ShellCommand*)arrayGet(commands, i))->name;
+  const char* cc = Array_getVanillaArray(currentCommand);
+  int ccLen = Array_getLen(currentCommand);
+  for (int i = 0; i < Array_getLen(commands); ++i) {
+    char* command = ((ShellCommand*)Array_get(commands, i))->name;
     bool match = true;
     int k = 0;
     for (int j = 0; j < ccLen && command[k] != 0 && match; ++j, ++k) {
@@ -256,37 +256,37 @@ void autocomplete() {
     }
   }
   if (matchCount == 0) return;
-  char* match = ((ShellCommand*)arrayGet(commands, matchIdx))->name;
+  char* match = ((ShellCommand*)Array_get(commands, matchIdx))->name;
   for (int i = len; match[i] != 0; ++i) {
     printChar(match[i]);
-    arrayPush(currentCommand, match + i);
+    Array_push(currentCommand, match + i);
   }
 }
 
 ShellFunction verifyCommand(Array argv) {
-  Array arg = *(Array*)arrayGet(argv, 0);
-  const char* argv0 = arrayGetVanillaArray(arg);
+  Array arg = *(Array*)Array_get(argv, 0);
+  const char* argv0 = Array_getVanillaArray(arg);
   ShellFunction command = getCommand(argv0);
   if (command == NULL) {
     printf("%s: %s\n", CommandResultStrings[COMMAND_NOT_FOUND], argv0);
     // argv shouldn't be freed because I'm saving invalid commands to history too.
-    // arrayFree(argv);
+    // Array_free(argv);
     return NULL;
   }
   return command;
 }
 
 void setArgsNullTerminaor(Array argv) {
-  int argc = arrayGetLen(argv);
+  int argc = Array_getLen(argv);
   for (int i = 0; i < argc; ++i) {
     char end = 0;
-    arrayPush(*(Array*)arrayGet(argv, i), &end);
+    Array_push(*(Array*)Array_get(argv, i), &end);
   }
 }
 
 void setRealArgv(int argc, const char* realArgv[argc], Array argv) {
   for (int i = 0; i < argc; ++i) {
-    realArgv[i] = arrayGetVanillaArray(*(Array*)arrayGet(argv, i));
+    realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
   }
 }
 
@@ -297,34 +297,34 @@ ExitCode parseCommand() {
   ShellFunction command;
   ShellFunction command2 = NULL;
   Array arg = NULL;
-  const char* cc = arrayGetVanillaArray(currentCommand);
-  int commandLength = arrayGetLen(currentCommand);
+  const char* cc = Array_getVanillaArray(currentCommand);
+  int commandLength = Array_getLen(currentCommand);
   bool newWord = true;
   for (int i = 0; i < commandLength; ++i) {
     if (cc[i] == ' ') newWord = true;
     else {
       if (newWord) {
         if (arg != NULL) {
-          if (arrayGetLen(arg) == 1 && *(char*)arrayGet(arg, 0) == '!') {
+          if (Array_getLen(arg) == 1 && *(char*)Array_get(arg, 0) == '!') {
             // No freeEleFn because it will get concatenated with argv in the end.
             argv2 = Array_initialize(sizeof(Array), 10, NULL, NULL);
             currentArgv = argv2;
           }
         }
         arg = Array_initialize(sizeof(char), 30, NULL, NULL);
-        arrayPush(currentArgv, &arg);
+        Array_push(currentArgv, &arg);
         newWord = false;
       }
-      arrayPush(arg, cc + i);
+      Array_push(arg, cc + i);
     }
   }
 
-  int argc = arrayGetLen(argv);
+  int argc = Array_getLen(argv);
   if (argc == 0) return SUCCESS;
 
   int ret = SUCCESS;
   if (argv2 != NULL) {
-    int argc2 = arrayGetLen(argv2);
+    int argc2 = Array_getLen(argv2);
     command2 = verifyCommand(argv2);
     if (command2 == NULL) ret = COMMAND_NOT_FOUND;
     else {
@@ -351,8 +351,8 @@ ExitCode parseCommand() {
         sysDestroyPipe(pipe);
       } else ret = COMMAND_NOT_FOUND;
     }
-    arrayConcat(argv, argv2);
-    arrayFree(argv2);
+    Array_concat(argv, argv2);
+    Array_free(argv2);
   } else {
     // I need this before verifyCommand because that function uses argv0
     // for error message if command is not found.
@@ -361,7 +361,7 @@ ExitCode parseCommand() {
     if (command != NULL) {
       const char* realArgv[argc];
       for (int i = 0; i < argc; ++i) {
-        realArgv[i] = arrayGetVanillaArray(*(Array*)arrayGet(argv, i));
+        realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
       }
       if (strcmp(realArgv[argc - 1], "&") == 0) {
         int pid = sysCreateProcess(argc - 1, realArgv, command);

@@ -9,20 +9,20 @@ typedef struct ArrayCDT* Array;
 typedef void (*FreeEleFn)(void* ele);
 typedef void (*MapFn)(void* mappedEle, void* ele, uint64_t idx);
 
-void* arrayInitialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn freeEleFn);
-bool arrayFree(Array a);
-int64_t arrayPush(Array a, const void* ele);
-bool arrayPopGetEle(Array a, void* ele);
-bool arrayPop(Array a);
-bool arrayClear(Array a);
-uint64_t arrayGetLen(Array a);
-void* arrayGet(Array a, long idx);
-bool arraySetn(Array a, long idx, const void* eleArray, uint64_t length);
-bool arraySet(Array a, long idx, void* ele);
-Array arrayFromVanillaArray(const void* array, uint64_t length, uint64_t elementSize, FreeEleFn freeFn);
-bool arrayConcat(Array dst, Array src);
-const void* arrayGetVanillaArray(Array a);
-void* arrayCopyVanillaArrayInto(Array a, void* array);
-void* arrayGetVanillaArrayCopy(Array a);
+void* Array_initialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn freeEleFn);
+bool Array_free(Array a);
+int64_t Array_push(Array a, const void* ele);
+bool Array_popGetEle(Array a, void* ele);
+bool Array_pop(Array a);
+bool Array_clear(Array a);
+uint64_t Array_getLen(Array a);
+void* Array_get(Array a, long idx);
+bool Array_setn(Array a, long idx, const void* eleArray, uint64_t length);
+bool Array_set(Array a, long idx, void* ele);
+Array Array_fromVanillaArray(const void* array, uint64_t length, uint64_t elementSize, FreeEleFn freeFn);
+bool Array_concat(Array dst, Array src);
+const void* Array_getVanillaArray(Array a);
+void* Array_copyVanillaArrayInto(Array a, void* array);
+void* Array_getVanillaArrayCopy(Array a);
 
 #endif

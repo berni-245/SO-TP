@@ -19,12 +19,12 @@ static Pipe stdinPipe;
 static Pipe stderrPipe;
 
 void initializePipes() {
-  pipeArray = arrayInitialize(sizeof(Pipe*), INITIAL_CAPACITY, (FreeEleFn)freePipe);
-  freedPositions = arrayInitialize(sizeof(int), INITIAL_CAPACITY, NULL);
+  pipeArray = Array_initialize(sizeof(Pipe*), INITIAL_CAPACITY, (FreeEleFn)freePipe);
+  freedPositions = Array_initialize(sizeof(int), INITIAL_CAPACITY, NULL);
   // stdout --> Not used but I need to occupy this index anyways.
   pipeInit();
-  stdinPipe = **(Pipe**)arrayGet(pipeArray, pipeInit());
-  stderrPipe = **(Pipe**)arrayGet(pipeArray, pipeInit());
+  stdinPipe = **(Pipe**)Array_get(pipeArray, pipeInit());
+  stderrPipe = **(Pipe**)Array_get(pipeArray, pipeInit());
 }
 
 long pipeInit() {
@@ -38,18 +38,18 @@ long pipeInit() {
   // p->readerPcb = NULL;
   // p->writerPcb = NULL;
   int freeToUse;
-  if (arrayPopGetEle(freedPositions, &freeToUse)) {
+  if (Array_popGetEle(freedPositions, &freeToUse)) {
     // I could use get and save having to allocate a new pipe.
-    arraySet(pipeArray, freeToUse, &p);
+    Array_set(pipeArray, freeToUse, &p);
     return freeToUse;
   } else {
-    return arrayPush(pipeArray, &p);
+    return Array_push(pipeArray, &p);
   }
 }
 
 Pipe* getPipe(int pipeId) {
   if (pipeId < 0) return NULL;
-  Pipe** pPtr = arrayGet(pipeArray, pipeId);
+  Pipe** pPtr = Array_get(pipeArray, pipeId);
   if (pPtr == NULL) return NULL;
   Pipe* p = *pPtr;
   if (p->destroyed) return NULL;
@@ -119,10 +119,10 @@ bool destroyPipe(int pipeId) {
   Pipe* p = getPipe(pipeId);
   if (p == NULL) return false;
   p->destroyed = true;
-  arrayPush(freedPositions, &pipeId);
+  Array_push(freedPositions, &pipeId);
   destroySemaphore(p->mutex);
   destroySemaphore(p->writtenCountSem);
   destroySemaphore(p->emptyCountSem);
-  // arraySet will do the free of the pipe itself when it overrides this position.
+  // Array_set will do the free of the pipe itself when it overrides this position.
   return true;
 }

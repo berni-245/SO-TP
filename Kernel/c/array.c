@@ -19,7 +19,7 @@ void copyEleAt(Array a, uint64_t idx, const void* ele);
 bool growTo(Array a, uint64_t newCapacity);
 bool growBy(Array a, uint64_t extraCapacity);
 
-void* arrayInitialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn freeEleFn) {
+void* Array_initialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn freeEleFn) {
   if (elementSize == 0) return NULL;
   ArrayCDT* a = globalMalloc(sizeof(ArrayCDT));
   if (a == NULL) return NULL;
@@ -35,18 +35,18 @@ void* arrayInitialize(uint64_t elementSize, uint64_t initialCapacity, FreeEleFn 
   return a;
 }
 
-bool arrayFree(Array a) {
+bool Array_free(Array a) {
   if (a == NULL) return false;
 
   if (a->freeEleFn != NULL) {
-    for (int i = 0; i < a->length; ++i) a->freeEleFn(arrayGet(a, i));
+    for (int i = 0; i < a->length; ++i) a->freeEleFn(Array_get(a, i));
   }
   globalFree(a->array);
   globalFree(a);
   return true;
 }
 
-int64_t arrayPush(Array a, const void* ele) {
+int64_t Array_push(Array a, const void* ele) {
   if (a == NULL || ele == NULL) return -1;
 
   if (a->length >= a->capacity) growBy(a, a->capacity);
@@ -55,24 +55,24 @@ int64_t arrayPush(Array a, const void* ele) {
   return a->length - 1;
 }
 
-bool arrayPopGetEle(Array a, void* ele) {
+bool Array_popGetEle(Array a, void* ele) {
   if (a == NULL || a->length == 0) return false;
 
-  void* eleToPop = arrayGet(a, -1);
+  void* eleToPop = Array_get(a, -1);
   memcpy(ele, eleToPop, a->elementSize);
   if (a->freeEleFn != NULL) a->freeEleFn(eleToPop);
   --a->length;
   return true;
 }
 
-bool arrayPop(Array a) {
+bool Array_pop(Array a) {
   if (a == NULL || a->length == 0) return false;
-  if (a->freeEleFn != NULL) a->freeEleFn(arrayGet(a, -1));
+  if (a->freeEleFn != NULL) a->freeEleFn(Array_get(a, -1));
   --a->length;
   return true;
 }
 
-bool arraySetn(Array a, long idx, const void* eleArray, uint64_t length) {
+bool Array_setn(Array a, long idx, const void* eleArray, uint64_t length) {
   if (a == NULL) return false;
   if (idx < 0) {
     if (-idx > a->length) return false;
@@ -80,7 +80,7 @@ bool arraySetn(Array a, long idx, const void* eleArray, uint64_t length) {
   } else if (idx >= a->length) return NULL;
   if (a->freeEleFn != NULL) {
     for (int i = idx; i < idx + length; ++i) {
-      a->freeEleFn(arrayGet(a, i));
+      a->freeEleFn(Array_get(a, i));
     }
   }
   if (length > a->length - idx) growBy(a, length - (a->length - idx));
@@ -88,11 +88,11 @@ bool arraySetn(Array a, long idx, const void* eleArray, uint64_t length) {
   return true;
 }
 
-bool arraySet(Array a, long idx, void* ele) {
-  return arraySetn(a, idx, ele, 1);
+bool Array_set(Array a, long idx, void* ele) {
+  return Array_setn(a, idx, ele, 1);
 }
 
-void* arrayGet(Array a, long idx) {
+void* Array_get(Array a, long idx) {
   if (a == NULL) return NULL;
   if (idx < 0) {
     // Note: we negate idx because a->length is unsigned
@@ -102,31 +102,31 @@ void* arrayGet(Array a, long idx) {
   return a->array + idx * a->elementSize;
 }
 
-bool arrayClear(Array a) {
+bool Array_clear(Array a) {
   if (a == NULL) return false;
   if (a->freeEleFn != NULL) {
     for (int i = 0; i < a->length; ++i) {
-      a->freeEleFn(arrayGet(a, i));
+      a->freeEleFn(Array_get(a, i));
     }
   }
   a->length = 0;
   return true;
 }
 
-uint64_t arrayGetLen(Array a) {
+uint64_t Array_getLen(Array a) {
   if (a == NULL) return -1;
   return a->length;
 }
 
-Array arrayFromVanillaArray(const void* array, uint64_t length, uint64_t elementSize, FreeEleFn freeFn) {
-  Array a = arrayInitialize(elementSize, length, freeFn);
+Array Array_fromVanillaArray(const void* array, uint64_t length, uint64_t elementSize, FreeEleFn freeFn) {
+  Array a = Array_initialize(elementSize, length, freeFn);
   if (a == NULL) return NULL;
   a->length = length;
   copynEleAt(a, 0, array, length);
   return a;
 }
 
-bool arrayConcat(Array dst, Array src) {
+bool Array_concat(Array dst, Array src) {
   if (dst == NULL || src == NULL || dst->elementSize != src->elementSize) return false;
   uint64_t neededCapacity = dst->length + src->length;
   if (dst->capacity < neededCapacity) growTo(dst, neededCapacity);
@@ -135,21 +135,21 @@ bool arrayConcat(Array dst, Array src) {
   return true;
 }
 
-const void* arrayGetVanillaArray(Array a) {
+const void* Array_getVanillaArray(Array a) {
   if (a == NULL) return NULL;
   return a->array;
 }
 
-void* arrayCopyVanillaArrayInto(Array a, void* array) {
+void* Array_copyVanillaArrayInto(Array a, void* array) {
   if (a == NULL) return NULL;
   memcpy(array, a->array, a->length * a->elementSize);
   return array;
 }
 
-void* arrayGetVanillaArrayCopy(Array a) {
+void* Array_getVanillaArrayCopy(Array a) {
   if (a == NULL) return NULL;
   void* array = globalMalloc(a->length * a->elementSize);
-  arrayCopyVanillaArrayInto(a, array);
+  Array_copyVanillaArrayInto(a, array);
   return array;
 }
 
