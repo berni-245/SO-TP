@@ -244,7 +244,6 @@ void autocomplete() {
     char* command = ((ShellCommand*)arrayGet(commands, i))->name;
     bool match = true;
     int k = 0;
-    // Needs to be updated to use currentCommand array.
     for (int j = 0; j < ccLen && command[k] != 0 && match; ++j, ++k) {
       if (cc[j] == ' ') return;
       else if (cc[j] != command[k]) match = false;
@@ -279,7 +278,6 @@ ShellFunction verifyCommand(Array argv) {
 
 void setArgsNullTerminaor(Array argv) {
   int argc = arrayGetLen(argv);
-  if (argc == 0) return;
   for (int i = 0; i < argc; ++i) {
     char end = 0;
     arrayPush(*(Array*)arrayGet(argv, i), &end);
@@ -356,9 +354,11 @@ ExitCode parseCommand() {
     arrayConcat(argv, argv2);
     arrayFree(argv2);
   } else {
+    // I need this before verifyCommand because that function uses argv0
+    // for error message if command is not found.
+    setArgsNullTerminaor(argv);
     command = verifyCommand(argv);
     if (command != NULL) {
-      setArgsNullTerminaor(argv);
       const char* realArgv[argc];
       for (int i = 0; i < argc; ++i) {
         realArgv[i] = arrayGetVanillaArray(*(Array*)arrayGet(argv, i));
