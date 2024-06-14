@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #define NULL (void*)0
+#define MAX_STRING_SIZE 1000
 
 #ifdef BUDDY
 typedef struct Block {

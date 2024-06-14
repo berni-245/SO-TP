@@ -175,8 +175,6 @@ void free(void* ptr) {
   internalFree(ptr, pcb->freeListStart, pcb->freeListEnd, &(pcb->bytesAvailable));
 }
 
-#define MAX_STRING_SIZE 200
-
 char* internalGetMemoryState(int heapSize, uint64_t* bytesAvailable) {
   char* toReturn = malloc(MAX_STRING_SIZE);
   if (toReturn == NULL) return NULL;
