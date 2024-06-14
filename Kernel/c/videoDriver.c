@@ -1,6 +1,6 @@
 #include <lib.h>
-#include <videoDriver.h>
 #include <utils.h>
+#include <videoDriver.h>
 
 struct vbe_mode_info_structure {
   uint16_t attributes; // deprecated, only bit 7 should be of interest
@@ -145,6 +145,7 @@ void eraseChar() {
   }
 }
 
+static char* tab = "  ";
 void printNextChar(char c) {
   if (c == '\b') {
     eraseChar();
@@ -165,7 +166,8 @@ void printNextChar(char c) {
         framebuffer[i] = bgColor;
       }
     }
-    printChar(cursorCol, cursorRow, c);
+    if (c == '\t') printNextString(tab);
+    else printChar(cursorCol, cursorRow, c);
     cursorNext();
   }
 }
