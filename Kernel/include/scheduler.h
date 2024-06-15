@@ -58,9 +58,8 @@ typedef struct {
 // void freePCBNode(PCBNode* node);
 void initializePCBList();
 void* schedule(void* rsp);
-uint32_t createUserProcess(int argc, const char* argv[], void* processRip);
-uint32_t createUserProcessWithPipeSwap(int argc, const char* argv[], void* processRip, ProcessPipes pipes);
-extern void exit(int exitCode);
+int32_t createUserProcess(int argc, const char* argv[], void* processRip);
+int32_t createUserProcessWithPipeSwap(int argc, const char* argv[], void* processRip, ProcessPipes pipes);
 void startFirstProcess(void* processAddress);
 void exitProcessByPCB(PCB* pcb, int exitCode);
 void exitCurrentProcess(int exitCode);

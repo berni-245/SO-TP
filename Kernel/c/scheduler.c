@@ -14,6 +14,8 @@
 
 const char* const StateStrings[] = {"READY", "RUNNING", "BLOCKED", "EXITED", "W-EXIT", "BLK_USER"};
 
+#define IDLE_PID -1
+
 typedef struct PCBNode {
   PCB* pcb;
   struct PCBNode* next;
@@ -43,9 +45,14 @@ PCBNode* createPCBNode(
     uint32_t pid, uint8_t priority, State state, void* stack, void* rsp, void* rbp, char* name, ProcessPipes pipes
 ) {
   PCBNode* node = globalMalloc(sizeof(PCBNode));
+  if (node == NULL) return NULL;
   node->next = NULL;
 
   PCB* pcb = globalMalloc(sizeof(PCB));
+  if (pcb == NULL) {
+    globalFree(node);
+    return NULL;
+  }
   pcb->pid = pid;
   pcb->priority = priority;
   pcb->state = state;
@@ -56,12 +63,23 @@ PCBNode* createPCBNode(
   pcb->parentProc = pcbList.current->pcb;
   pcb->wfmLen = 0;
   pcb->pipes = pipes;
-  if ((int)pid != -1) {
+  if ((int)pid != IDLE_PID) {
     pcb->heap = globalMalloc(PROCESS_HEAP_SIZE);
+    if (pcb->heap == NULL) {
+      globalFree(node);
+      globalFree(pcb);
+      return NULL;
+    }
 #ifdef BUDDY
     freeListInit(pcb->heap, pcb->freeList);
 #else
     pcb->freeListStart = globalMalloc(sizeof(Block));
+    if (pcb->freeListStart == NULL) {
+      globalFree(node);
+      globalFree(pcb);
+      globalFree(pcb->heap);
+      return NULL;
+    }
     freeListInit(pcb->heap, pcb->freeListStart, &(pcb->freeListEnd), &(pcb->bytesAvailable));
 #endif
   } else pcb->heap = NULL;
@@ -71,8 +89,9 @@ PCBNode* createPCBNode(
   return node;
 }
 
-void addPCB(uint32_t pid, void* stack, void* rsp, void* rbp, char* name, ProcessPipes pipes) {
+bool addPCB(uint32_t pid, void* stack, void* rsp, void* rbp, char* name, ProcessPipes pipes) {
   PCBNode* node = createPCBNode(pid, 1, READY, stack, rsp, rbp, name, pipes);
+  if (node == NULL) return false;
 
   if (pcbList.head == NULL) {
     pcbList.head = node;
@@ -86,6 +105,7 @@ void addPCB(uint32_t pid, void* stack, void* rsp, void* rbp, char* name, Process
   }
 
   ++pcbList.len;
+  return true;
 }
 
 void freeCurrentProcess() {
@@ -129,7 +149,7 @@ void initializePCBList() {
   stackAlloc(&stackStart, &stackEnd);
   void* rsp = initializeProcessStack(0, NULL, idleProc, stackStart);
   ProcessPipes pipes = {.write = stdout, .read = stdin, .err = stderr};
-  idleProcPCBNode = createPCBNode(-1, 1, READY, stackEnd, rsp, rsp, "idle", pipes);
+  idleProcPCBNode = createPCBNode(IDLE_PID, 1, READY, stackEnd, rsp, rsp, "idle", pipes);
   pcbList.head = NULL;
   pcbList.tail = NULL;
   pcbList.current = NULL;
@@ -227,7 +247,7 @@ void* createProcess(int argc, const char* argv[], void* processRip, ProcessPipes
     arg = arg + j + 1;
   }
   void* rsp = initializeProcessStack(argc, argvStack, processRip, stackStart);
-  addPCB(pid++, stackEnd, rsp, stackStart, argvStack[0], pipes);
+  if (!addPCB(pid++, stackEnd, rsp, stackStart, argvStack[0], pipes)) return NULL;
   return rsp;
 }
 
@@ -235,20 +255,21 @@ void* createUserModuleProcess() {
   const char* argv[1] = {"init"};
   ProcessPipes pipes = {.write = stdout, .read = stdin, .err = stderr};
   void* rsp = createProcess(1, argv, userModule, pipes);
+  if (rsp == NULL) return NULL;
   nextPCB();
   processInForeground = pcbList.current->pcb;
   pcbList.current->pcb->parentProc = NULL;
   return rsp;
 }
 
-uint32_t createUserProcessWithPipeSwap(int argc, const char* argv[], void* processRip, ProcessPipes pipes) {
-  createProcess(argc, argv, processRip, pipes);
+int32_t createUserProcessWithPipeSwap(int argc, const char* argv[], void* processRip, ProcessPipes pipes) {
+  if (createProcess(argc, argv, processRip, pipes) == NULL) return -1;
   return pid - 1;
 }
 
-uint32_t createUserProcess(int argc, const char* argv[], void* processRip) {
+int32_t createUserProcess(int argc, const char* argv[], void* processRip) {
   ProcessPipes pipes = {.write = stdout, .read = stdin, .err = stderr};
-  createProcess(argc, argv, processRip, pipes);
+  if (createProcess(argc, argv, processRip, pipes) == NULL) return -1;
   return pid - 1;
 }
 
