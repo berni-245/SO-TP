@@ -62,7 +62,6 @@ bool Array_popGetEle(Array a, void* ele) {
 
   void* eleToPop = Array_get(a, -1);
   sysMemcpy(ele, eleToPop, a->elementSize);
-  if (a->freeEleFn != NULL) a->freeEleFn(eleToPop);
   --a->length;
   return true;
 }
