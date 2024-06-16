@@ -400,12 +400,12 @@ ProcessPipes getPipes() {
   return pcbList.current->pcb->pipes;
 }
 
-long read(int32_t pipeId, char* buf, int32_t len) {
+int64_t read(int32_t pipeId, char* buf, int32_t len) {
   if (pipeId == stdin) return readStdin(buf, len);
   return readPipe(pipeId, buf, len);
 }
 
-long write(int32_t pipeId, const char* buf, int32_t len) {
+int64_t write(int32_t pipeId, const char* buf, int32_t len) {
   if (pipeId == stdout) {
     printNextBuf(buf, len);
     return len;
