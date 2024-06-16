@@ -32,7 +32,7 @@ static const char* const CommandResultStrings[] = {
     "Illegal argument", "Argument of bounds", "Process failure",   "No memory available"
 };
 
-typedef void (*ShellFunction)(int argc, char* [argc]);
+typedef void (*ShellFunction)(int32_t argc, char* [argc]);
 
 typedef struct ShellCommand {
   char* name;
@@ -40,7 +40,7 @@ typedef struct ShellCommand {
   ShellFunction function;
 } ShellCommand;
 
-extern int commandReturnCode;
+extern int32_t commandReturnCode;
 extern Array commands;
 
 void newPrompt();
@@ -57,37 +57,37 @@ void historyNext();
 void resetHistoryCurrentVals();
 
 ExitCode parseCommand();
-void commandEcho(int argc, char* argv[argc]);
+void commandEcho(int32_t argc, char* argv[argc]);
 void commandGetReturnCode();
 void commandRealTime();
-void commandHelp(int argc, char* argv[argc]);
+void commandHelp(int32_t argc, char* argv[argc]);
 void commandGetKeyInfo();
-void commandRand(int argc, char* argv[argc]);
-void commandLayout(int argc, char* argv[argc]);
-void commandSetColors(int argc, char* argv[argc]);
+void commandRand(int32_t argc, char* argv[argc]);
+void commandLayout(int32_t argc, char* argv[argc]);
+void commandSetColors(int32_t argc, char* argv[argc]);
 void commandSysInfo();
-void commandGetRegisters(int argc, char* argv[argc]);
-void commandSnake(int argc, char* argv[argc]);
+void commandGetRegisters(int32_t argc, char* argv[argc]);
+void commandSnake(int32_t argc, char* argv[argc]);
 void commandTest();
 void commandZeroDivisionError();
 void commandInvalidOpcodeError();
 void commandPs();
-void commandCreateSemaphore(int argc, char* argv[argc]);
-void commandDestroySemaphore(int argc, char* argv[argc]);
-void commandTestSem(int argc, char* argv[argc]);
+void commandCreateSemaphore(int32_t argc, char* argv[argc]);
+void commandDestroySemaphore(int32_t argc, char* argv[argc]);
+void commandTestSem(int32_t argc, char* argv[argc]);
 void commandChangeProcess(); // Arreglar. Esto no es un command...
 void commandGetPid();
-void commandKill(int argc, char* argv[argc]);
-void commandGetMemoryState(int argc, char* argv[argc]);
-void commandLoop(int argc, char* argv[argc]);
-void commandPhylo(int argc, char* argv[argc]);
-void commandNice(int argc, char* argv[argc]);
-void commandTestPipes(int argc, char* argv[argc]);
-void commandDestroyPipe(int argc, char* argv[argc]);
-void commandBlock(int argc, char* argv[argc]);
-void commandUnBlock(int argc, char* argv[argc]);
-void commandTestMM(int argc, char* argv[]);
-void commandTestPriority(int argc, char* argv[argc]);
+void commandKill(int32_t argc, char* argv[argc]);
+void commandGetMemoryState(int32_t argc, char* argv[argc]);
+void commandLoop(int32_t argc, char* argv[argc]);
+void commandPhylo(int32_t argc, char* argv[argc]);
+void commandNice(int32_t argc, char* argv[argc]);
+void commandTestPipes(int32_t argc, char* argv[argc]);
+void commandDestroyPipe(int32_t argc, char* argv[argc]);
+void commandBlock(int32_t argc, char* argv[argc]);
+void commandUnBlock(int32_t argc, char* argv[argc]);
+void commandTestMM(int32_t argc, char* argv[]);
+void commandTestPriority(int32_t argc, char* argv[argc]);
 void commandTestProcesses(int32_t argc, char* argv[]);
 void commandCat();
 void commandWordCount();

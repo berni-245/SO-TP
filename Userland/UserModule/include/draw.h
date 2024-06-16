@@ -1,12 +1,14 @@
 #ifndef DRAW_H
 #define DRAW_H
 
-void strokeHorizontalLine(int x, int y, int length, int width);
-void strokeVerticalLine(int x, int y, int length, int width);
-void strokeRectangle(int x, int y, int width, int height, int strokeWidth);
-void strokeRectangleOutward(int x, int y, int width, int height, int strokeWidth);
-void fillRectangle(int x, int y, int width, int height);
-void clearRectangle(int x, int y, int width, int height);
-void fillRectangleWithBorder(int x, int y, int width, int height, int strokeWidth);
+#include <stdint.h>
+
+void strokeHorizontalLine(int32_t x, int32_t y, int32_t length, int32_t width);
+void strokeVerticalLine(int32_t x, int32_t y, int32_t length, int32_t width);
+void strokeRectangle(int32_t x, int32_t y, int32_t width, int32_t height, int32_t strokeWidth);
+void strokeRectangleOutward(int32_t x, int32_t y, int32_t width, int32_t height, int32_t strokeWidth);
+void fillRectangle(int32_t x, int32_t y, int32_t width, int32_t height);
+void clearRectangle(int32_t x, int32_t y, int32_t width, int32_t height);
+void fillRectangleWithBorder(int32_t x, int32_t y, int32_t width, int32_t height, int32_t strokeWidth);
 
 #endif

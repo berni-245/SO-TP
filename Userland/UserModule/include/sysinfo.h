@@ -28,21 +28,21 @@ typedef struct Register {
 } Register;
 
 typedef struct SystemInfo {
-  int screenWidth;
-  int screenHeight;
-  int charWidth;
-  int charHeight;
-  int layout;
-  int fontSize;
-  int charSeparation;
-  int fontCols;
-  int fontRows;
+  int32_t screenWidth;
+  int32_t screenHeight;
+  int32_t charWidth;
+  int32_t charHeight;
+  int32_t layout;
+  int32_t fontSize;
+  int32_t charSeparation;
+  int32_t fontCols;
+  int32_t fontRows;
 } SystemInfo;
 
 extern SystemInfo systemInfo;
 
 void getSysInfo();
-void setFontSize(int size);
+void setFontSize(int32_t size);
 void setLayout(KbLayout code);
 
 #endif

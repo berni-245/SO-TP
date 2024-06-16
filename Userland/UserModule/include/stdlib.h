@@ -20,26 +20,26 @@
 
 bool getKey(KeyStruct* key);
 char getChar();
-int printChar(char c);
+int32_t printChar(char c);
 void clearScreen();
-int printString(const char* s);
+int32_t printString(const char* s);
 void puts(const char* s);
-uint32_t uintToBase(unsigned long value, char* buffer, uint32_t base);
+uint32_t uintToBase(uint64_t value, char* buffer, uint32_t base);
 uint32_t intToBase(long value, char* buffer, uint32_t base);
-int strcmp(const char*, const char*);
-int strFindChar(const char* s, char c);
-unsigned int strlen(char* s);
-int printf(const char* fmt, ...);
-int strToInt(char* s);
+int32_t strcmp(const char*, const char*);
+int32_t strFindChar(const char* s, char c);
+uint32_t strlen(char* s);
+int32_t printf(const char* fmt, ...);
+int32_t strToInt(char* s);
 void printKey(KeyStruct* key);
-void setSrand(unsigned int seed);
-unsigned int rand();
+void setSrand(uint32_t seed);
+uint32_t rand();
 // double normalizedRand();
-unsigned int randBetween(int min, int max);
-void printStringXY(int x, int y, char* s, int fontSize, int charsPerRow);
-int strTrimStartOffset(const char* s);
+uint32_t randBetween(int32_t min, int32_t max);
+void printStringXY(int32_t x, int32_t y, char* s, int32_t fontSize, int32_t charsPerRow);
+int32_t strTrimStartOffset(const char* s);
 bool strContains(const char* s, const char c);
 char toLower(char c);
-long pow(int x, int n);
+long pow(int32_t x, int32_t n);
 
 #endif

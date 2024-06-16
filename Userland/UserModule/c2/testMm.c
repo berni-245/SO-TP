@@ -15,7 +15,7 @@ static char* usageMessage = "Usage: %s <max_memory>\n\tmax_memory: maximum numbe
 
 // We use another process to print because sysGetProcessMemoryState allocates memory at
 // the current process' heap so the memory state would be off.
-void printMemState(int pid) {
+void printMemState(int32_t pid) {
   char pidStr[200];
   uintToBase(pid, pidStr, 10);
   char name[206] = "mem_p";
@@ -25,14 +25,14 @@ void printMemState(int pid) {
   sysWaitPid(pid);
 }
 
-void commandTestMM(int argc, char* argv[]) {
+void commandTestMM(int32_t argc, char* argv[]) {
 
   mm_rq mm_rqs[MAX_BLOCKS];
   uint8_t rq;
   uint32_t total;
   int64_t max_memory;
 
-  int pid = sysGetPid();
+  int32_t pid = sysGetPid();
 
   if (argc < 2) {
     printf(usageMessage, argv[0]);

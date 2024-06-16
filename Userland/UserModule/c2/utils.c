@@ -6,7 +6,7 @@ bool justCtrlMod(KeyStruct* key) {
   return key->md.ctrlPressed && !key->md.altPressed && !key->md.leftShiftPressed && !key->md.rightShiftPressed;
 }
 
-void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize) {
+void* shittyRealloc(void* ptr, uint64_t oldSize, uint64_t newSize) {
   void* mem = sysMalloc(newSize);
   if (mem == NULL) return NULL;
   sysMemcpy(mem, ptr, oldSize);
@@ -19,8 +19,8 @@ void exitWithError(const char* msg) {
   sysExit(1);
 }
 
-int strncpy(char* dst, const char* src, int max) {
-  int i = 0;
+int32_t strncpy(char* dst, const char* src, int32_t max) {
+  int32_t i = 0;
   if (max > 0)
     for (; i < max && src[i] != 0; ++i) dst[i] = src[i];
   else
@@ -29,6 +29,6 @@ int strncpy(char* dst, const char* src, int max) {
   return i;
 }
 
-int strcpy(char* dst, char* src) {
+int32_t strcpy(char* dst, char* src) {
   return strncpy(dst, src, 0);
 }

@@ -2,12 +2,12 @@
 #include <time.h>
 
 static double freq = 65536 / 3600.0; // interruptions/second
-unsigned long getMs() {
+uint64_t getMs() {
   return sysGetTicks() * 1000 / freq;
 }
 
-void sleep(unsigned long ms) {
-  unsigned long end = ms + getMs();
+void sleep(uint64_t ms) {
+  uint64_t end = ms + getMs();
   while (getMs() < end) {
     sysHalt();
   }

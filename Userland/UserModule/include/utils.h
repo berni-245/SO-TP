@@ -5,9 +5,9 @@
 #include <stdbool.h>
 
 bool justCtrlMod(KeyStruct* key);
-void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize);
+void* shittyRealloc(void* ptr, uint64_t oldSize, uint64_t newSize);
 void exitWithError(const char* msg);
-int strncpy(char* dst, const char* src, int max);
-int strcpy(char* dst, char* src);
+int32_t strncpy(char* dst, const char* src, int32_t max);
+int32_t strcpy(char* dst, char* src);
 
 #endif

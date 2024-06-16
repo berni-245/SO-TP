@@ -15,6 +15,6 @@ typedef struct {
   char* location;
 } PCB;
 
-void printPCBList(PCB* pcbList, int len);
+void printPCBList(PCB* pcbList, int32_t len);
 
 #endif

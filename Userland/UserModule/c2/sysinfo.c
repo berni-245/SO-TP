@@ -3,7 +3,7 @@
 #include <sysinfo.h>
 
 // Por alguna razón sin esto gdb la flashea con la dirección de systemInfo ¯\_()_/¯
-const int asdf = 1;
+const int32_t asdf = 1;
 
 SystemInfo systemInfo;
 
@@ -19,7 +19,7 @@ void getSysInfo() {
   setFontGridValues();
 }
 
-void setFontSize(int size) {
+void setFontSize(int32_t size) {
   systemInfo.fontSize = sysSetFontSize(size);
   setFontGridValues();
 }

@@ -36,7 +36,7 @@ void* setMem(void* destination, int32_t c, uint64_t length) {
   uint8_t chr = (uint8_t)c;
   char* dst = (char*)destination;
 
-  for (int i = 0; i < length; i++) {
+  for (int32_t i = 0; i < length; i++) {
     dst[i] = chr;
   }
 
@@ -70,11 +70,11 @@ void bussy_wait(uint64_t n) {
   for (i = 0; i < n; i++);
 }
 
-void endless_loop(int argc, char* argv[]) {
+void endless_loop(int32_t argc, char* argv[]) {
   while (1) sysHalt();
 }
 
-void endless_loop_print(int argc, char* argv[]) {
+void endless_loop_print(int32_t argc, char* argv[]) {
   if (argc != 2) {
     printf("Argument error");
     sysExit(ILLEGAL_ARGUMENT);

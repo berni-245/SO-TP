@@ -1,6 +1,8 @@
 #ifndef SHELL_H
 #define SHELL_H
 
-int shell();
+#include <stdint.h>
+
+int32_t shell();
 
 #endif

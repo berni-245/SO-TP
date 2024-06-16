@@ -16,9 +16,9 @@
 #define CHAR_SPACE_UP 2
 #define CHAR_SPACE_LEFT 3
 #define ESC 27
-#define UP -1
+#define UP (-1)
 #define DOWN 1
-#define LEFT -1
+#define LEFT (-1)
 #define RIGHT 1
 #define STOPPED 0
 
@@ -28,38 +28,38 @@
 // }bodyT;
 
 typedef struct {
-  int x, y;
+  int32_t x, y;
 } Point;
 
 typedef struct {
   Point body[SNAKE_MAX_LEN];
-  int len;
-  int score;
-  int dirX, dirY;
-  int color;
+  int32_t len;
+  int32_t score;
+  int32_t dirX, dirY;
+  int32_t color;
   char* name;
-  int nameLen;
-  int nameX, nameY;
-  int scoreX, scoreY;
+  int32_t nameLen;
+  int32_t nameX, nameY;
+  int32_t scoreX, scoreY;
 } Snake;
 
 typedef struct {
-  int rows;
-  int cols;
-  int cellSize;
-  int color;
-  int borderWidth;
-  int lineWidth;
-  int x0, y0;
-  int width, height;
+  int32_t rows;
+  int32_t cols;
+  int32_t cellSize;
+  int32_t color;
+  int32_t borderWidth;
+  int32_t lineWidth;
+  int32_t x0, y0;
+  int32_t width, height;
 } Grid;
 
 void setGrid();
 void drawGrid();
-void fillGridCell(int col, int row);
-void clearGridCell(int col, int row);
+void fillGridCell(int32_t col, int32_t row);
+void clearGridCell(int32_t col, int32_t row);
 
-void setSnake(Snake* s, int col, int row, uint32_t color, char* name, int scoreX, int scoreY);
+void setSnake(Snake* s, int32_t col, int32_t row, uint32_t color, char* name, int32_t scoreX, int32_t scoreY);
 void growSnake(Snake* s);
 bool moveInput();
 bool specialKeyInput();
@@ -69,7 +69,7 @@ bool pointEquals(Point a, Point b);
 bool snakeCollision(Snake*);
 bool onSnake(Snake* s, Point p);
 void appleGen();
-int eaten(Snake* s);
+int32_t eaten(Snake* s);
 void updateScoreBoard();
 void reset();
 void changeDirections(Snake* snake, char input, char* movKeys);

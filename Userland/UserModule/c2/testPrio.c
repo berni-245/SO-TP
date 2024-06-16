@@ -13,7 +13,7 @@
 
 int64_t prio[TOTAL_PROCESSES] = {LOWEST, MEDIUM, HIGHEST};
 
-void commandTestPriority(int argc, char* argv[argc]) {
+void commandTestPriority(int32_t argc, char* argv[argc]) {
   if(argc!=2){
     printf("Usage: %s <0: small wait, 1: long wait>\n", argv[0]);
     sysExit(TOO_MANY_ARGUMENTS);

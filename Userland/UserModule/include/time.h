@@ -1,7 +1,7 @@
 #ifndef TIME_H
 #define TIME_H
 
-unsigned long getMs();
-void sleep(unsigned long ms);
+uint64_t getMs();
+void sleep(uint64_t ms);
 
 #endif

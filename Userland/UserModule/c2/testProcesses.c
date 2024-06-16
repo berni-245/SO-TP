@@ -31,7 +31,7 @@ void commandTestProcesses(int32_t argc, char* argv[]) {
     sysExit(MISSING_ARGUMENTS);
   }
 
-  int print_is_active = satoi(argv[2]);
+  int32_t print_is_active = satoi(argv[2]);
   if ((max_processes = satoi(argv[1])) <= 0 || (print_is_active != 1 && print_is_active != 0)) {
     printUsage(argv[0]);
     sysExit(ILLEGAL_ARGUMENT);
@@ -101,7 +101,7 @@ void commandTestProcesses(int32_t argc, char* argv[]) {
       }
 
       if (printPs) {
-        int len;
+        int32_t len;
         PCB* pcbList = sysPCBList(&len);
         printPCBList(pcbList, len);
         sysFree(pcbList);
