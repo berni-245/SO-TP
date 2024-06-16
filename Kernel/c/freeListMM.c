@@ -176,6 +176,7 @@ void free(void* ptr) {
 }
 
 char* internalGetMemoryState(int heapSize, uint64_t* bytesAvailable) {
+  heapSize -= sizeof(Block);
   static char* unit = " B ";
   char* toReturn = malloc(MAX_STRING_SIZE);
   if (toReturn == NULL) return NULL;
@@ -183,7 +184,7 @@ char* internalGetMemoryState(int heapSize, uint64_t* bytesAvailable) {
   i += uintToBase(heapSize, toReturn + i, 10);
   i += strcpy(toReturn + i, unit);
   i += strcpy(toReturn + i, "| Used: ");
-  i += uintToBase(heapSize - *bytesAvailable - sizeof(Block), toReturn + i, 10);
+  i += uintToBase(heapSize - *bytesAvailable, toReturn + i, 10);
   i += strcpy(toReturn + i, unit);
   i += strcpy(toReturn + i, "| Unused: ");
   i += uintToBase(*bytesAvailable, toReturn + i, 10);
