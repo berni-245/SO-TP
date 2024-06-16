@@ -3,6 +3,7 @@
 #include <keyboard.h>
 #include <stdint.h>
 #include <syscalls.h>
+#include <scheduler.h>
 
 InterruptionDescriptor* idt = (InterruptionDescriptor*)0;
 
@@ -42,4 +43,5 @@ void irqDispatcher(uint8_t index) {
 
 void exceptionDispatcher(uint8_t index) {
   exceptions[index]();
+  killCurrentProcess();
 }
