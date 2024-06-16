@@ -2,7 +2,7 @@
 #define MEMORY_MANAGER_H
 
 // comment/uncomment this to change to the other mm implementation
-#define BUDDY
+// #define BUDDY
 
 #include <stdbool.h>
 #include <stdint.h>

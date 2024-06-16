@@ -6,13 +6,13 @@
 #include <stdint.h>
 #include <utils.h>
 
-#define heapBITS_PER_BYTE ((uint64_t) 8)
+#define BITS_PER_BYTE ((uint64_t) 8)
 // Marks the most significant bit in 64 bits as 1, and the rest as 0
-#define heapBLOCK_ALLOCATED_BITMASK (((uint64_t)1) << ((sizeof(uint64_t) * heapBITS_PER_BYTE) - 1))
-#define heapBLOCK_SIZE_IS_VALID(blockSize) (((blockSize) & heapBLOCK_ALLOCATED_BITMASK) == 0)
-#define heapBLOCK_IS_ALLOCATED(block) (((block->blockSize) & heapBLOCK_ALLOCATED_BITMASK) != 0)
-#define heapALLOCATE_BLOCK(block) ((block->blockSize) |= heapBLOCK_ALLOCATED_BITMASK)
-#define heapFREE_BLOCK(block) ((block->blockSize) &= ~heapBLOCK_ALLOCATED_BITMASK)
+#define BLOCK_ALLOCATED_BITMASK (((uint64_t)1) << ((sizeof(uint64_t) * BITS_PER_BYTE) - 1))
+#define BLOCK_SIZE_IS_VALID(blockSize) (((blockSize) & BLOCK_ALLOCATED_BITMASK) == 0)
+#define BLOCK_IS_ALLOCATED(block) (((block->blockSize) & BLOCK_ALLOCATED_BITMASK) != 0)
+#define ALLOCATE_BLOCK(block) ((block->blockSize) |= BLOCK_ALLOCATED_BITMASK)
+#define FREE_BLOCK(block) ((block->blockSize) &= ~BLOCK_ALLOCATED_BITMASK)
 
 // 64MB max heap size
 #define MAX_MEMORY_AVAILABLE ((1 << 20) * 64)
@@ -21,19 +21,19 @@ static Block listStart;
 static Block * listEnd = NULL;
 
 static const uint64_t addressByteSize = sizeof(void*);
-static const uint64_t heapStructSize = sizeof(Block); // should be 16 bytes
+static const uint64_t structSize = sizeof(Block); // should be 16 bytes
 
 static uint64_t freeBytesRemaining;
 
 // Used so it doesn't split into too small blocks, it's value should be 32 bytes
-#define MINIMUM_BLOCK_SIZE_FOR_SPLIT ((uint64_t) (heapStructSize << 1)) 
+#define MINIMUM_BLOCK_SIZE_FOR_SPLIT ((uint64_t) (structSize << 1)) 
 
 void internalFreeListInit(void* heapStart, uint32_t heapSize, Block* freeListStart, Block** freeListEnd, uint64_t* bytesAvailable) {
   void * alinedHeapStart = (void*)(((uint64_t)heapStart + addressByteSize - 1) & ~(addressByteSize - 1));
   freeListStart->nextFreeBlock = (Block *) alinedHeapStart;
   freeListStart->blockSize = 0;
 
-  void * alinedHeapEnd = (void*)((uint64_t) (alinedHeapStart + heapSize - heapStructSize));
+  void * alinedHeapEnd = (void*)((uint64_t) (alinedHeapStart + heapSize - structSize));
   *freeListEnd = (Block *) alinedHeapEnd;
   (*freeListEnd)->blockSize = 0;
   (*freeListEnd)->nextFreeBlock = NULL;
@@ -100,10 +100,10 @@ void* internalMalloc(uint64_t size, Block* freeListStart, Block* freeListEnd, ui
 
   if(size > 0){
     // We need to align it since the user can request any size
-    alinedRequiredSize = (size + heapStructSize + addressByteSize - 1) & ~(addressByteSize - 1);
+    alinedRequiredSize = (size + structSize + addressByteSize - 1) & ~(addressByteSize - 1);
   }
 
-  if(heapBLOCK_SIZE_IS_VALID(alinedRequiredSize) && alinedRequiredSize > 0 && alinedRequiredSize <= (*bytesAvailable)){
+  if(BLOCK_SIZE_IS_VALID(alinedRequiredSize) && alinedRequiredSize > 0 && alinedRequiredSize <= (*bytesAvailable)){
     previousBlock = freeListStart;
     block = freeListStart->nextFreeBlock;
 
@@ -129,7 +129,7 @@ void* internalMalloc(uint64_t size, Block* freeListStart, Block* freeListEnd, ui
 
       *bytesAvailable -= block->blockSize;
 
-      heapALLOCATE_BLOCK(block);
+      ALLOCATE_BLOCK(block);
       block->nextFreeBlock = NULL;
     }
     else{
@@ -157,8 +157,8 @@ void internalFree(void* ptr, Block* freeListStart, Block* freeListEnd, uint64_t*
   // The block structure is before the useful memory
   Block *freeBlock = (Block *) ptr - 1;
 
-  if (heapBLOCK_IS_ALLOCATED(freeBlock) != 0 && freeBlock->nextFreeBlock == NULL) {
-      heapFREE_BLOCK(freeBlock);
+  if (BLOCK_IS_ALLOCATED(freeBlock) != 0 && freeBlock->nextFreeBlock == NULL) {
+      FREE_BLOCK(freeBlock);
       *bytesAvailable += freeBlock->blockSize;
       insertBlockIntoFreeList(((Block *)freeBlock), freeListStart, freeListEnd);
   }
@@ -176,7 +176,7 @@ void free(void* ptr) {
 }
 
 char* internalGetMemoryState(int heapSize, uint64_t* bytesAvailable) {
-  heapSize -= sizeof(Block);
+  heapSize -= structSize;
   static char* unit = " B ";
   char* toReturn = malloc(MAX_STRING_SIZE);
   if (toReturn == NULL) return NULL;
