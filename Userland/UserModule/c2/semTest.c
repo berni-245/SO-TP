@@ -9,7 +9,7 @@ int64_t globalForSemTest;
 
 void slowInc(int64_t* p, int64_t inc) {
   int64_t aux = *p;
-  commandChangeProcess(); // This makes the race condition highly probable
+  sysYield(); // This makes the race condition highly probable
   aux += inc;
   *p = aux;
 }

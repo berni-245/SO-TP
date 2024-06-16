@@ -52,5 +52,6 @@ extern bool sysUnblock(uint32_t pid);
 extern ProcessPipes sysGetPipes();
 extern long sysRead(int pipeId, char* buf, int len);
 extern long sysWrite(int pipeId, const char* buf, int len);
+extern void sysYield();
 
 #endif
