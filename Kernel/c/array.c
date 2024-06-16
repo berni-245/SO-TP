@@ -39,7 +39,7 @@ bool Array_free(Array a) {
   if (a == NULL) return false;
 
   if (a->freeEleFn != NULL) {
-    for (int i = 0; i < a->length; ++i) a->freeEleFn(Array_get(a, i));
+    for (int32_t i = 0; i < a->length; ++i) a->freeEleFn(Array_get(a, i));
   }
   globalFree(a->array);
   globalFree(a);
@@ -73,14 +73,14 @@ bool Array_pop(Array a) {
   return true;
 }
 
-bool Array_setn(Array a, long idx, const void* eleArray, uint64_t length) {
+bool Array_setn(Array a, int64_t idx, const void* eleArray, uint64_t length) {
   if (a == NULL) return false;
   if (idx < 0) {
     if (-idx > a->length) return false;
     idx += a->length;
   } else if (idx >= a->length) return NULL;
   if (a->freeEleFn != NULL) {
-    for (int i = idx; i < idx + length; ++i) {
+    for (int32_t i = idx; i < idx + length; ++i) {
       a->freeEleFn(Array_get(a, i));
     }
   }
@@ -89,11 +89,11 @@ bool Array_setn(Array a, long idx, const void* eleArray, uint64_t length) {
   return true;
 }
 
-bool Array_set(Array a, long idx, void* ele) {
+bool Array_set(Array a, int64_t idx, void* ele) {
   return Array_setn(a, idx, ele, 1);
 }
 
-void* Array_get(Array a, long idx) {
+void* Array_get(Array a, int64_t idx) {
   if (a == NULL) return NULL;
   if (idx < 0) {
     // Note: we negate idx because a->length is unsigned
@@ -106,7 +106,7 @@ void* Array_get(Array a, long idx) {
 bool Array_clear(Array a) {
   if (a == NULL) return false;
   if (a->freeEleFn != NULL) {
-    for (int i = 0; i < a->length; ++i) {
+    for (int32_t i = 0; i < a->length; ++i) {
       a->freeEleFn(Array_get(a, i));
     }
   }
