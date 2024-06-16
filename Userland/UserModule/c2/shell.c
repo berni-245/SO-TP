@@ -6,10 +6,10 @@
 extern uint8_t bss;
 
 CircularHistoryBuffer commandHistory;
-int currentCommandIdx = 0;
+int32_t currentCommandIdx = 0;
 
-int commandReturnCode = 0;
-static int currentPromptLen = 0;
+int32_t commandReturnCode = 0;
+static int32_t currentPromptLen = 0;
 
 // int commandCount = 0;
 Array currentCommand;
@@ -20,14 +20,14 @@ void freeArrayPtr(Array* ele) {
   Array_free(*ele);
 }
 
-int compareArgv(Array* argv1, Array* argv2) {
-  int argc = Array_getLen(*argv1);
-  int cmp = argc - Array_getLen(*argv2);
+int32_t compareArgv(Array* argv1, Array* argv2) {
+  int32_t argc = Array_getLen(*argv1);
+  int32_t cmp = argc - Array_getLen(*argv2);
   if (cmp == 0) cmp = Array_equals(*argv1, *argv2) == 0;
   return cmp;
 }
 
-int shell() {
+int32_t shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
 
@@ -135,17 +135,17 @@ int shell() {
 }
 
 void clearLine() {
-  int i = Array_getLen(currentCommand);
+  int32_t i = Array_getLen(currentCommand);
   while (i--) printChar('\b');
   Array_clear(currentCommand);
 }
 
 void historyCopy(Array argv) {
   clearLine();
-  int argc = Array_getLen(argv);
-  for (int i = 0; i < argc; ++i) {
+  int32_t argc = Array_getLen(argv);
+  for (int32_t i = 0; i < argc; ++i) {
     const char* arg = Array_getVanillaArray(*(Array*)Array_get(argv, i));
-    for (int i = 0; arg[i] != 0; ++i) {
+    for (int32_t i = 0; arg[i] != 0; ++i) {
       printChar(arg[i]);
       Array_push(currentCommand, arg + i);
     }
@@ -171,7 +171,7 @@ void historyNext() {
   historyCopy(*argv);
 }
 
-int getCurrentChar() {
+int32_t getCurrentChar() {
   char* c = Array_get(currentCommand, -1);
   if (c == NULL) return 0;
   return *c;
@@ -217,8 +217,8 @@ void clearScreenKeepCommand() {
   clearScreen();
   newPrompt();
   const char* cc = Array_getVanillaArray(currentCommand);
-  int len = Array_getLen(currentCommand);
-  for (int i = 0; i < len; ++i) {
+  int32_t len = Array_getLen(currentCommand);
+  for (int32_t i = 0; i < len; ++i) {
     printChar(cc[i]);
   }
 }
@@ -237,7 +237,7 @@ void addCommand(char* name, char* description, ShellFunction function) {
   Array_push(commands, &newCommand);
 }
 ShellFunction getCommand(const char* name) {
-  for (int i = 0; i < Array_getLen(commands); ++i) {
+  for (int32_t i = 0; i < Array_getLen(commands); ++i) {
     ShellCommand* command = Array_get(commands, i);
     if (strcmp(name, command->name) == 0) return command->function;
   }
@@ -245,14 +245,14 @@ ShellFunction getCommand(const char* name) {
 }
 
 void autocomplete() {
-  int matchCount = 0, matchIdx = 0, len = 0;
+  int32_t matchCount = 0, matchIdx = 0, len = 0;
   const char* cc = Array_getVanillaArray(currentCommand);
-  int ccLen = Array_getLen(currentCommand);
-  for (int i = 0; i < Array_getLen(commands); ++i) {
+  int32_t ccLen = Array_getLen(currentCommand);
+  for (int32_t i = 0; i < Array_getLen(commands); ++i) {
     char* command = ((ShellCommand*)Array_get(commands, i))->name;
     bool match = true;
-    int k = 0;
-    for (int j = 0; j < ccLen && command[k] != 0 && match; ++j, ++k) {
+    int32_t k = 0;
+    for (int32_t j = 0; j < ccLen && command[k] != 0 && match; ++j, ++k) {
       if (cc[j] == ' ') return;
       else if (cc[j] != command[k]) match = false;
     }
@@ -265,7 +265,7 @@ void autocomplete() {
   }
   if (matchCount == 0) return;
   char* match = ((ShellCommand*)Array_get(commands, matchIdx))->name;
-  for (int i = len; match[i] != 0; ++i) {
+  for (int32_t i = len; match[i] != 0; ++i) {
     printChar(match[i]);
     Array_push(currentCommand, match + i);
   }
@@ -285,22 +285,22 @@ ShellFunction verifyCommand(Array argv) {
 }
 
 void setArgsNullTerminaor(Array argv) {
-  int argc = Array_getLen(argv);
-  for (int i = 0; i < argc; ++i) {
+  int32_t argc = Array_getLen(argv);
+  for (int32_t i = 0; i < argc; ++i) {
     char end = 0;
     Array_push(*(Array*)Array_get(argv, i), &end);
   }
 }
 
-void setRealArgv(int argc, const char* realArgv[argc], Array argv) {
-  for (int i = 0; i < argc; ++i) {
+void setRealArgv(int32_t argc, const char* realArgv[argc], Array argv) {
+  for (int32_t i = 0; i < argc; ++i) {
     realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
   }
 }
 
-int compareArgs(Array* arg1, Array* arg2) {
-  int len = Array_getLen(*arg1);
-  int cmp = len - Array_getLen(*arg2);
+int32_t compareArgs(Array* arg1, Array* arg2) {
+  int32_t len = Array_getLen(*arg1);
+  int32_t cmp = len - Array_getLen(*arg2);
   if (cmp == 0) {
     cmp = strcmp(Array_getVanillaArray(*arg1), Array_getVanillaArray(*arg2));
   }
@@ -315,9 +315,9 @@ ExitCode parseCommand() {
   ShellFunction command2 = NULL;
   Array arg = NULL;
   const char* cc = Array_getVanillaArray(currentCommand);
-  int commandLength = Array_getLen(currentCommand);
+  int32_t commandLength = Array_getLen(currentCommand);
   bool newWord = true;
-  for (int i = 0; i < commandLength; ++i) {
+  for (int32_t i = 0; i < commandLength; ++i) {
     if (cc[i] == ' ') newWord = true;
     else {
       if (newWord) {
@@ -336,15 +336,15 @@ ExitCode parseCommand() {
     }
   }
 
-  int argc = Array_getLen(argv);
+  int32_t argc = Array_getLen(argv);
   if (argc == 0) {
     Array_free(argv);
     return SUCCESS;
   }
 
-  int ret = SUCCESS;
+  int32_t ret = SUCCESS;
   if (argv2 != NULL) {
-    int argc2 = Array_getLen(argv2);
+    int32_t argc2 = Array_getLen(argv2);
     command2 = verifyCommand(argv2);
     if (command2 == NULL) ret = COMMAND_NOT_FOUND;
     else {
@@ -358,12 +358,12 @@ ExitCode parseCommand() {
         const char* realArgv2[argc2];
         setRealArgv(argc, realArgv, argv);
         setRealArgv(argc2, realArgv2, argv2);
-        int pipe = sysPipeInit();
+        int32_t pipe = sysPipeInit();
         ProcessPipes pipes = {.write = pipe, .read = stdin, .err = stderr};
-        int pid = sysCreateProcessWithPipeSwap(argc, realArgv, command, pipes);
+        int32_t pid = sysCreateProcessWithPipeSwap(argc, realArgv, command, pipes);
         pipes.write = stdout;
         pipes.read = pipe;
-        int pid2 = sysCreateProcessWithPipeSwap(argc2, realArgv2, command2, pipes);
+        int32_t pid2 = sysCreateProcessWithPipeSwap(argc2, realArgv2, command2, pipes);
         sysWaitPid(pid);
         char eof = EOF;
         sysWrite(pipe, &eof, 1);
@@ -380,15 +380,15 @@ ExitCode parseCommand() {
     command = verifyCommand(argv);
     if (command != NULL) {
       const char* realArgv[argc];
-      for (int i = 0; i < argc; ++i) {
+      for (int32_t i = 0; i < argc; ++i) {
         realArgv[i] = Array_getVanillaArray(*(Array*)Array_get(argv, i));
       }
       if (strcmp(realArgv[argc - 1], "&") == 0) {
-        int pid = sysCreateProcess(argc - 1, realArgv, command);
+        int32_t pid = sysCreateProcess(argc - 1, realArgv, command);
         printf("Running in background '%s', pid: %d\n", realArgv[0], pid);
         ret = SUCCESS;
       } else {
-        int pid = sysCreateProcess(argc, realArgv, command);
+        int32_t pid = sysCreateProcess(argc, realArgv, command);
         ret = sysWaitPid(pid);
       }
     } else ret = COMMAND_NOT_FOUND;

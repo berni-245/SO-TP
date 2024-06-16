@@ -86,7 +86,7 @@ void CHB_readRest(CircularHistoryBuffer cb) {
 // [ 4, 6, 7, 5, 1, 2, 3 ]
 
 void CHB_moveToFrontOrPush(CircularHistoryBuffer cb, void* ele) {
-  int idx = Array_find(cb->array, ele);
+  int32_t idx = Array_find(cb->array, ele);
   if (idx >= 0 && idx != cb->writeIdx) {
     cb->freeEleFn(Array_get(cb->array, idx));
     if (idx < cb->writeIdx) {

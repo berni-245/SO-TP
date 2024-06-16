@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <syscalls.h>
 
-void commandEcho(int argc, char* argv[argc]) {
+void commandEcho(int32_t argc, char* argv[argc]) {
   // Starts at 1 because first arg is the command name
-  for (int i = 1; i < argc; ++i) {
+  for (int32_t i = 1; i < argc; ++i) {
     printf("%s ", argv[i]);
   }
   printChar('\n');
@@ -26,11 +26,11 @@ void commandRealTime() {
 }
 
 #define COMMANDS_PER_PAGE 10
-void commandHelp(int argc, char* argv[argc]) {
-  int commandCount = Array_getLen(commands);
+void commandHelp(int32_t argc, char* argv[argc]) {
+  int32_t commandCount = Array_getLen(commands);
   // Rounded up number of pages.
-  int nbrPages = (commandCount + COMMANDS_PER_PAGE - 1) / COMMANDS_PER_PAGE;
-  int page = 1;
+  int32_t nbrPages = (commandCount + COMMANDS_PER_PAGE - 1) / COMMANDS_PER_PAGE;
+  int32_t page = 1;
   if (argc > 1) page = strToInt(argv[1]);
 
   if (page > nbrPages) {
@@ -40,9 +40,9 @@ void commandHelp(int argc, char* argv[argc]) {
 
   printf("Available commands (Page %d/%d)\n", page, nbrPages);
 
-  int startIdx = (page - 1) * COMMANDS_PER_PAGE;
-  int end = startIdx + COMMANDS_PER_PAGE > commandCount ? commandCount : startIdx + COMMANDS_PER_PAGE;
-  for (int i = startIdx; i < end; ++i) {
+  int32_t startIdx = (page - 1) * COMMANDS_PER_PAGE;
+  int32_t end = startIdx + COMMANDS_PER_PAGE > commandCount ? commandCount : startIdx + COMMANDS_PER_PAGE;
+  for (int32_t i = startIdx; i < end; ++i) {
     ShellCommand* command = Array_get(commands, i);
     printf("\t- %s: %s\n", command->name, command->description);
   }
@@ -59,7 +59,7 @@ void commandGetKeyInfo() {
 }
 
 // argc aka rdi is arriving as 0 for some reason.
-void commandRand(int argc, char* argv[argc]) {
+void commandRand(int32_t argc, char* argv[argc]) {
   static bool randInitialized = false;
   if (!randInitialized) {
     setSrand(sysGetTicks());
@@ -71,13 +71,13 @@ void commandRand(int argc, char* argv[argc]) {
     printf("Where all arguments are integers and count is optional.\n");
     sysExit(MISSING_ARGUMENTS);
   }
-  int min = strToInt(argv[1]);
-  int max = strToInt(argv[2]);
+  int32_t min = strToInt(argv[1]);
+  int32_t max = strToInt(argv[2]);
   if (max < min) {
     printf("Error: min (%d) can't be greater than max (%d)\n", min, max);
     sysExit(ILLEGAL_ARGUMENT);
   }
-  int count = (argc > 3) ? strToInt(argv[3]) : 1;
+  int32_t count = (argc > 3) ? strToInt(argv[3]) : 1;
   while (count--) {
     printf("%u%s", randBetween(min, max), (count == 0) ? "" : ", ");
   }
@@ -85,7 +85,7 @@ void commandRand(int argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-void commandLayout(int argc, char* argv[argc]) {
+void commandLayout(int32_t argc, char* argv[argc]) {
   if (argc == 1) {
     printf("Current layout: %s - %d\n", LayoutStrings[systemInfo.layout], systemInfo.layout);
     sysExit(SUCCESS);
@@ -103,7 +103,7 @@ void commandLayout(int argc, char* argv[argc]) {
     printf("- %s: %d\n", LayoutStrings[QWERTY_LATAM], QWERTY_LATAM);
     printf("- %s: %d\n", LayoutStrings[QWERTY_US], QWERTY_US);
   } else {
-    int code = strToInt(argv[1]);
+    int32_t code = strToInt(argv[1]);
     if (code != QWERTY_LATAM && code != QWERTY_US) {
       printf("Layout not available: %s\n", argv[1]);
       sysExit(ILLEGAL_ARGUMENT);
@@ -114,16 +114,16 @@ void commandLayout(int argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-void commandSetColors(int argc, char* argv[argc]) {
+void commandSetColors(int32_t argc, char* argv[argc]) {
   if (argc < 4) {
     puts("Usage:");
     printf("\t\t%s <fontColor> <backgroundColor> <cursorColor>\n", argv[0]);
     printf("Where all arguments should be numeric representations of rgb colors (can use '0x' prefix for hexa).\n");
     sysExit(MISSING_ARGUMENTS);
   }
-  int fontColor = strToInt(argv[1]);
-  int bgColor = strToInt(argv[2]);
-  int cursorColor = strToInt(argv[3]);
+  int32_t fontColor = strToInt(argv[1]);
+  int32_t bgColor = strToInt(argv[2]);
+  int32_t cursorColor = strToInt(argv[3]);
   setFontColor(fontColor);
   setBgColor(bgColor);
   setCursorColor(cursorColor);
@@ -144,7 +144,7 @@ void commandSysInfo() {
   sysExit(SUCCESS);
 }
 
-void commandGetRegisters(int argc, char* argv[argc]) {
+void commandGetRegisters(int32_t argc, char* argv[argc]) {
   if (argc >= 2 && strcmp(argv[1], "--help") == 0) {
     puts("Usage:");
     printf("\t\t%s\n", argv[0]);
@@ -156,7 +156,7 @@ void commandGetRegisters(int argc, char* argv[argc]) {
   Register registers[REGISTER_QUANTITY];
   sysGetRegisters(registers);
   // Print 3 registers per row.
-  for (int i = 0; i < REGISTER_QUANTITY; i++) {
+  for (int32_t i = 0; i < REGISTER_QUANTITY; i++) {
     printf("%s %016lx ", registers[i].name, registers[i].value);
     if (i % 3 == 0) printf("\n");
   }
@@ -176,13 +176,13 @@ void commandSnakeUsage(char* commandName) {
   printf(" ctrl + c: exit game\n");
 }
 
-void commandSnake(int argc, char* argv[argc]) {
+void commandSnake(int32_t argc, char* argv[argc]) {
   if (argc < 2) {
     commandSnakeUsage(argv[0]);
     sysExit(MISSING_ARGUMENTS);
   } else {
-    int argIdx = 1;
-    int playerCount = argc - 1;
+    int32_t argIdx = 1;
+    int32_t playerCount = argc - 1;
     bool mute = false;
     if (strcmp(argv[argIdx], "--mute") == 0) {
       mute = true;
@@ -218,7 +218,7 @@ void commandZeroDivisionError() {
 }
 
 void commandPs() {
-  int len;
+  int32_t len;
   PCB* pcbList = sysPCBList(&len);
   printPCBList(pcbList, len);
   sysFree(pcbList);
@@ -230,13 +230,13 @@ void commandGetPid() {
   sysExit(SUCCESS);
 }
 
-void commandKill(int argc, char* argv[argc]) {
+void commandKill(int32_t argc, char* argv[argc]) {
   if (argc < 2) {
     printf("Usage: kill <pid_1> [pid_2] ... [pid_n]\n");
     sysExit(ILLEGAL_ARGUMENT);
   }
-  for (int i = 1; i < argc; ++i) {
-    int pid = strToInt(argv[i]);
+  for (int32_t i = 1; i < argc; ++i) {
+    int32_t pid = strToInt(argv[i]);
     if (pid == 0) {
       if (strcmp(argv[i], "0") == 0) printf("https://youtu.be/31g0YE61PLQ?si=G3tv2y_iw8InNCec\n");
       else printf("Invalid pid: %s\n", argv[i]);
@@ -250,10 +250,10 @@ void commandKill(int argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-void commandGetMemoryState(int argc, char* argv[argc]) {
+void commandGetMemoryState(int32_t argc, char* argv[argc]) {
   char* memState;
   if (argc > 1) {
-    int pid = strToInt(argv[1]);
+    int32_t pid = strToInt(argv[1]);
     memState = sysGetProcessMemoryState(pid);
   } else {
     memState = sysGetGlobalMemoryState();
@@ -268,13 +268,13 @@ void commandGetMemoryState(int argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-void commandLoop(int argc, char* argv[argc]) {
+void commandLoop(int32_t argc, char* argv[argc]) {
   if (argc < 2) {
     puts("Usage:");
     printf("\t\t%s <secs>\n", argv[0]);
     sysExit(MISSING_ARGUMENTS);
   }
-  int secs = strToInt(argv[1]);
+  int32_t secs = strToInt(argv[1]);
   printf("secs: %d\n", secs);
   if (secs > 0) {
     while (1) {
@@ -285,13 +285,13 @@ void commandLoop(int argc, char* argv[argc]) {
   sysExit(PROCESS_FAILURE);
 }
 
-void commandNice(int argc, char* argv[argc]) {
+void commandNice(int32_t argc, char* argv[argc]) {
   if (argc < 3) {
     puts("Usage:");
     printf("\t\t%s <pid> <priority between 1-9>\n", argv[0]);
     sysExit(MISSING_ARGUMENTS);
   }
-  int newPriority = strToInt(argv[2]);
+  int32_t newPriority = strToInt(argv[2]);
   if (newPriority <= 0 || newPriority >= 10) {
     puts("Usage:");
     printf("\t\t%s <pid> <priority between 1-9>\n", argv[0]);
@@ -302,24 +302,24 @@ void commandNice(int argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-void pipeWriter(int argc, char* argv[argc]) {
+void pipeWriter(int32_t argc, char* argv[argc]) {
   static char* words[] = {"0000000", "1111111", "2222222", "3333333", "4444444",
                           "5555555", "6666666", "7777777", "8888888", "9999999"};
-  static int wordsCount = sizeof(words) / sizeof(*words);
-  static int wordLen = 7;
-  int bufLen = 5 * wordsCount * wordLen;
+  static int32_t wordsCount = sizeof(words) / sizeof(*words);
+  static int32_t wordLen = 7;
+  int32_t bufLen = 5 * wordsCount * wordLen;
   char buf[bufLen];
-  for (int i = 0, j = 0; i < bufLen; ++j) {
+  for (int32_t i = 0, j = 0; i < bufLen; ++j) {
     i += strcpy(buf + i, words[j % wordsCount]);
   }
   printf("%s", buf);
   sysExit(SUCCESS);
 }
-void pipeReader(int argc, char* argv[argc]) {
+void pipeReader(int32_t argc, char* argv[argc]) {
   char buf[200];
-  int i = 0, tot = 0;
+  int32_t i = 0, tot = 0;
   ProcessPipes pipes = sysGetPipes();
-  int pid = sysGetPid();
+  int32_t pid = sysGetPid();
   do {
     i = sysRead(pipes.read, buf, 40);
     if (i < 0) {
@@ -335,17 +335,17 @@ void pipeReader(int argc, char* argv[argc]) {
   printf("%s - %u: Found EOF\n", argv[0], pid);
   sysExit(SUCCESS);
 }
-void commandTestPipes(int argc, char* argv[argc]) {
-  int pid = sysGetPid();
-  int pipe = sysPipeInit();
+void commandTestPipes(int32_t argc, char* argv[argc]) {
+  int32_t pid = sysGetPid();
+  int32_t pipe = sysPipeInit();
   printf("%s - %u - Using pipe: %d\n", argv[0], pid, pipe);
   const char* argv2[] = {"pipeWriter"};
   ProcessPipes pipes = {.write = pipe, .read = stdin, .err = stderr};
-  int pidWriter = sysCreateProcessWithPipeSwap(1, argv2, pipeWriter, pipes);
+  int32_t pidWriter = sysCreateProcessWithPipeSwap(1, argv2, pipeWriter, pipes);
   argv2[0] = "pipeReader";
   pipes.write = stdout;
   pipes.read = pipe;
-  int pidReader = sysCreateProcessWithPipeSwap(1, argv2, pipeReader, pipes);
+  int32_t pidReader = sysCreateProcessWithPipeSwap(1, argv2, pipeReader, pipes);
 
   sysWaitPid(pidWriter);
   char eof = EOF;
@@ -358,12 +358,12 @@ void commandTestPipes(int argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-void commandDestroyPipe(int argc, char* argv[argc]) {
+void commandDestroyPipe(int32_t argc, char* argv[argc]) {
   if (argc < 2) {
     printf("Usage: %s <pip_id>\n", argv[0]);
     sysExit(ILLEGAL_ARGUMENT);
   }
-  int pipe = strToInt(argv[1]);
+  int32_t pipe = strToInt(argv[1]);
   if (!sysDestroyPipe(pipe)) {
     printf("Error destroying pipe: %d\n", pipe);
     sysExit(ILLEGAL_ARGUMENT);
@@ -372,12 +372,12 @@ void commandDestroyPipe(int argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-void commandBlock(int argc, char* argv[argc]) {
+void commandBlock(int32_t argc, char* argv[argc]) {
   if (argc < 2) {
     printf("Usage: block <pid>\n");
     sysExit(ILLEGAL_ARGUMENT);
   }
-  int pid = strToInt(argv[1]);
+  int32_t pid = strToInt(argv[1]);
 
   if (!sysBlockByUser(pid)) {
     printf("Process %d not found or already blocked or exited\n", pid);
@@ -386,12 +386,12 @@ void commandBlock(int argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-void commandUnBlock(int argc, char* argv[argc]) {
+void commandUnBlock(int32_t argc, char* argv[argc]) {
   if (argc < 2) {
     printf("Usage: unblock <pid>\n");
     sysExit(ILLEGAL_ARGUMENT);
   }
-  int pid = strToInt(argv[1]);
+  int32_t pid = strToInt(argv[1]);
 
   if (pid == 0) {
     printf("https://youtu.be/31g0YE61PLQ?si=G3tv2y_iw8InNCec\n");
@@ -412,8 +412,8 @@ void commandCat() {
 
 void commandWordCount() {
   char c;
-  int words = 0;
-  int lines = 0;
+  int32_t words = 0;
+  int32_t lines = 0;
   bool inWord = false;
   bool lastReadNewLine = false;
 
@@ -440,7 +440,7 @@ void commandWordCount() {
   sysExit(SUCCESS);
 }
 
-int charIsAVocal(char c) {
+int32_t charIsAVocal(char c) {
   return (
       c == 'a' || c == 'A' || c == 'e' || c == 'E' || c == 'i' || c == 'I' || c == 'o' || c == 'O' || c == 'u' ||
       c == 'U'

@@ -6,50 +6,50 @@
 #define PHYLO_MIN_AMOUNT 2
 
 typedef struct philosopher{
-  int state;
-  int fork_at_index;
-  unsigned int pid;
+  int32_t state;
+  int32_t fork_at_index;
+  uint32_t pid;
 }philosopher;
 
-int phylos_on_table;
-int change_phylos_sem;
-int print_mutex;
+int32_t phylos_on_table;
+int32_t change_phylos_sem;
+int32_t print_mutex;
 philosopher phylo[PHYLO_MAX_AMOUNT];
-int add_rem_value;
+int32_t add_rem_value;
 
 enum phylo { EATING, HUNGRY, THINKING, NOTHING };
 
-int right_fork(int i) {
+int32_t right_fork(int32_t i) {
   return (i + 1) % phylos_on_table;
 }
 
 void blockAll() {
-  for (int i = 0; i < phylos_on_table; i++) {
+  for (int32_t i = 0; i < phylos_on_table; i++) {
     sysWaitSem(change_phylos_sem);
   }
 }
 void blockAllToInitiate(){
-  for (int i = 0; i < PHYLO_AMOUNT; i++) {
+  for (int32_t i = 0; i < PHYLO_AMOUNT; i++) {
     sysWaitSem(change_phylos_sem);
   }
 }
 
 void freeAll(){
-  for (int i = 0; i < phylos_on_table; i++) {
+  for (int32_t i = 0; i < phylos_on_table; i++) {
     sysPostSem(change_phylos_sem);
   }
 }
 
 void monitor() {
   sysWaitSem(print_mutex);
-  for (int i = 0; i < phylos_on_table; i++) {
+  for (int32_t i = 0; i < phylos_on_table; i++) {
     printf("%c ", phylo[i].state ? '.' : 'E');
   }
   printf("\n");
   sysPostSem(print_mutex);
 }
 
-void takeForks(int i) {
+void takeForks(int32_t i) {
   phylo[i].state = HUNGRY;
   if (i % 2) {
     sysWaitSem(phylo[right_fork(i)].fork_at_index);
@@ -60,24 +60,24 @@ void takeForks(int i) {
   }
 }
 
-void leaveForks(int i) {
+void leaveForks(int32_t i) {
   sysPostSem(phylo[i].fork_at_index);
   sysPostSem(phylo[right_fork(i)].fork_at_index);
   phylo[i].state = NOTHING;
 }
 
-void think(int i) {
+void think(int32_t i) {
   phylo[i].state = THINKING;
   sysSleep(randBetween(600, 800));
 }
-void eat(int i) {
+void eat(int32_t i) {
   phylo[i].state = EATING;
   sysSleep(randBetween(600, 800));
   monitor();
 }
 
 void myPhyloProcess(uint64_t argc, char* argv[argc]) {
-  int n = strToInt(argv[1]);
+  int32_t n = strToInt(argv[1]);
   if (n < 0) {
     sysExit(ILLEGAL_ARGUMENT);
   }
@@ -91,7 +91,7 @@ void myPhyloProcess(uint64_t argc, char* argv[argc]) {
   }
 }
 
-int addPhylo(int pos) {
+int32_t addPhylo(int32_t pos) {
   if (pos < PHYLO_MIN_AMOUNT || pos >= PHYLO_MAX_AMOUNT) return -1;
   blockAll();
   phylo[pos].fork_at_index = sysSemInit(1);
@@ -111,7 +111,7 @@ int addPhylo(int pos) {
   return 0;
 }
 
-int remPhylo(int pos) {
+int32_t remPhylo(int32_t pos) {
   if (pos < PHYLO_MIN_AMOUNT || pos >= phylos_on_table) return -2;
   blockAll();
   if (!sysKill(phylo[pos].pid)){
@@ -133,7 +133,7 @@ int remPhylo(int pos) {
 void endPhylos() {
   blockAll();
   while (phylos_on_table > 0) {
-    int pos = phylos_on_table - 1;
+    int32_t pos = phylos_on_table - 1;
     if (!sysDestroySemaphore(phylo[pos].fork_at_index) || !sysKill(phylo[pos].pid)) {
       printf("Error deleting philosopher %d\n", pos + 1);
       freeAll();
@@ -149,7 +149,7 @@ void endPhylos() {
   printf("All philosophers have left the table.\n");
 }
 
-void commandPhylo(int argc, char* argv[argc]) {
+void commandPhylo(int32_t argc, char* argv[argc]) {
   if (argc != 1) {
     sysExit(TOO_MANY_ARGUMENTS);
   }
@@ -161,7 +161,7 @@ void commandPhylo(int argc, char* argv[argc]) {
     sysExit(PROCESS_FAILURE);
   }
   blockAllToInitiate();
-  for (int i = 0; i < PHYLO_AMOUNT; i++) {
+  for (int32_t i = 0; i < PHYLO_AMOUNT; i++) {
     phylo[i].fork_at_index = sysSemInit(1);
     if (phylo[i].fork_at_index  == -1) {
       printf("Error creating semaphore\n");

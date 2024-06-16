@@ -21,7 +21,7 @@ void growBy(Array a, uint64_t extraCapacity);
 int64_t toRealIdx(Array a, int64_t idx);
 
 void* Array_initialize(
-    unsigned long elementSize, unsigned long initialCapacity, FreeEleFn freeEleFn, CompareEleFn cmpEleFn
+    uint64_t elementSize, uint64_t initialCapacity, FreeEleFn freeEleFn, CompareEleFn cmpEleFn
 ) {
   if (elementSize == 0) exitWithError("@Array_initialize elementSize can't be 0");
   ArrayCDT* a = sysMalloc(sizeof(ArrayCDT));
@@ -43,7 +43,7 @@ void Array_free(Array a) {
   if (a == NULL) exitWithError("@Array_free Array instance can't be NULL");
 
   if (a->freeEleFn != NULL) {
-    for (int i = 0; i < a->length; ++i) a->freeEleFn(Array_get(a, i));
+    for (int32_t i = 0; i < a->length; ++i) a->freeEleFn(Array_get(a, i));
   }
   sysFree(a->array);
   sysFree(a);
@@ -77,14 +77,14 @@ void Array_pop(Array a) {
   --a->length;
 }
 
-void Array_setn(Array a, long idx, const void* eleArray, uint64_t length, bool free) {
+void Array_setn(Array a, int64_t idx, const void* eleArray, uint64_t length, bool free) {
   if (a == NULL) exitWithError("@Array_setn Array instance can't be NULL");
   idx = toRealIdx(a, idx);
   if (idx < 0) exitWithError("@Array_setn idx outside of bounds");
   if (length <= 0) return;
 
   if (free && a->freeEleFn != NULL) {
-    for (int i = idx; i < idx + length; ++i) {
+    for (int32_t i = idx; i < idx + length; ++i) {
       a->freeEleFn(Array_get(a, i));
     }
   }
@@ -93,11 +93,11 @@ void Array_setn(Array a, long idx, const void* eleArray, uint64_t length, bool f
   copynEleAt(a, idx, eleArray, length);
 }
 
-void Array_set(Array a, long idx, void* ele) {
+void Array_set(Array a, int64_t idx, void* ele) {
   Array_setn(a, idx, ele, 1, true);
 }
 
-void* Array_get(Array a, long idx) {
+void* Array_get(Array a, int64_t idx) {
   if (a == NULL) return NULL;
   idx = toRealIdx(a, idx);
   if (idx < 0) return NULL;
@@ -115,7 +115,7 @@ void Array_getnCopy(Array a, int64_t idx, uint64_t n, void* eleArr) {
 void Array_clear(Array a) {
   if (a == NULL) exitWithError("@Array_clear Array instance can't be NULL");
   if (a->freeEleFn != NULL) {
-    for (int i = 0; i < a->length; ++i) {
+    for (int32_t i = 0; i < a->length; ++i) {
       a->freeEleFn(Array_get(a, i));
     }
   }
@@ -177,7 +177,7 @@ bool Array_equals(Array a1, Array a2) {
 
   CompareEleFn cmp = (a1->cmpEleFn != NULL) ? a1->cmpEleFn : a2->cmpEleFn;
   bool equal = true;
-  for (int i = 0; i < a1->length && equal; ++i) {
+  for (int32_t i = 0; i < a1->length && equal; ++i) {
     void* ele1 = Array_get(a1, i);
     void* ele2 = Array_get(a2, i);
     if (cmp(ele1, ele2) != 0) equal = false;
@@ -186,11 +186,11 @@ bool Array_equals(Array a1, Array a2) {
   return equal;
 }
 
-int Array_find(Array a, void* ele) {
+int32_t Array_find(Array a, void* ele) {
   if (a == NULL) exitWithError("@Array_find Array instances can't be NULL");
   if (a->cmpEleFn == NULL) exitWithError("@Array_find Array must've been initalized with compare function");
 
-  for (int i = 0; i < a->length; ++i) {
+  for (int32_t i = 0; i < a->length; ++i) {
     void* ele1 = Array_get(a, i);
     if (a->cmpEleFn(ele, ele1) == 0) return i;
   }
@@ -211,7 +211,7 @@ void Array_remove(Array a, int64_t idx) {
     return;
   }
   if (a->freeEleFn != NULL) a->freeEleFn(Array_get(a, idx));
-  int lenToCopy = a->length - (idx + 1);
+  int32_t lenToCopy = a->length - (idx + 1);
   // Don't want to free the elements that will remain.
   Array_setn(a, idx, a->array + (idx + 1) * a->elementSize, lenToCopy, false);
   --a->length;
