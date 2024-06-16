@@ -2,6 +2,7 @@
 #include <registers.h>
 #include <timer.h>
 #include <videoDriver.h>
+#include <scheduler.h>
 
 void zeroDivisionException() {
   clearScreen();
@@ -9,6 +10,8 @@ void zeroDivisionException() {
   printExceptionRegisters();
   printNextString("Returning to shell in 10 seconds\n");
   sleep(10000);
+  clearScreen();
+  killCurrentProcess();
 }
 
 void invalidOpcodeException() {
@@ -17,4 +20,6 @@ void invalidOpcodeException() {
   printExceptionRegisters();
   printNextString("Returning to shell in 10 seconds\n");
   sleep(10000);
+  clearScreen();
+  killCurrentProcess();
 }

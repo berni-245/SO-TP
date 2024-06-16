@@ -279,6 +279,7 @@ void exitProcessByPCB(PCB* pcb, int32_t exitCode) {
     pcb->state = WAITING_FOR_EXIT;
     globalFree(pcb->heap);
     pcb->heapFreed = true;
+    if (pcb->pid == pcbList.current->pcb->pid) asdfInterruption();
     return;
   }
 
@@ -293,6 +294,7 @@ void exitProcessByPCB(PCB* pcb, int32_t exitCode) {
       exitProcessByPCB(pcb2, KILL_EXIT_CODE);
     }
   }
+  if (pcb->pid == pcbList.current->pcb->pid) asdfInterruption();
 }
 
 void exitCurrentProcess(int32_t exitCode) {
@@ -373,6 +375,10 @@ bool kill(uint32_t pid) {
   if (pcb == NULL || pcb->state == EXITED || pcb->state == WAITING_FOR_EXIT) return false;
   exitProcessByPCB(pcb, KILL_EXIT_CODE);
   return true;
+}
+
+void killCurrentProcess() {
+  kill(pcbList.current->pcb->pid);
 }
 
 void killCurrentProcessInForeground() {
