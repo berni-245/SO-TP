@@ -6,7 +6,7 @@
 
 InterruptionDescriptor* idt = (InterruptionDescriptor*)0;
 
-void setupIdtEntry(int index, void* irqHandler) {
+void setupIdtEntry(int32_t index, void* irqHandler) {
   uint64_t offset = (uint64_t)irqHandler;
   idt[index].offset_0_15 = offset & 0xFFFF;
   idt[index].offset_16_31 = (offset >> 16) & 0xFFFF;

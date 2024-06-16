@@ -18,7 +18,7 @@ extern uint8_t endOfKernel;
 
 static const uint64_t PageSize = 0x1000;
 
-typedef int (*EntryPoint)();
+typedef int32_t (*EntryPoint)();
 
 EntryPoint const userModule = (EntryPoint)0x400000;
 static EntryPoint const sampleDataModule = (EntryPoint)0x500000;
@@ -51,7 +51,7 @@ void* initializeKernelBinary() {
   return getStackBase();
 }
 
-int main() {
+int32_t main() {
   loadIdt();
   initializeFrameBuffer();
   setFontGridValues();

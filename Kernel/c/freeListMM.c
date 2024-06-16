@@ -175,12 +175,12 @@ void free(void* ptr) {
   internalFree(ptr, pcb->freeListStart, pcb->freeListEnd, &(pcb->bytesAvailable));
 }
 
-char* internalGetMemoryState(int heapSize, uint64_t* bytesAvailable) {
+char* internalGetMemoryState(int32_t heapSize, uint64_t* bytesAvailable) {
   heapSize -= structSize;
   static char* unit = " B ";
   char* toReturn = malloc(MAX_STRING_SIZE);
   if (toReturn == NULL) return NULL;
-  int i = strcpy(toReturn, "Total: ");
+  int32_t i = strcpy(toReturn, "Total: ");
   i += uintToBase(heapSize, toReturn + i, 10);
   i += strcpy(toReturn + i, unit);
   i += strcpy(toReturn + i, "| Used: ");

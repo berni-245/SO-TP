@@ -17,8 +17,8 @@ static const uint64_t addressByteSize = sizeof(void*);
 Block* freeList[ORDER_COUNT];
 void* iniAddress;
 
-void internalFreeListInit(int orderCount, void* heapStart, uint32_t heapSize, Block* freeList[]) {
-  for (int i = 0; i < orderCount; i++) {
+void internalFreeListInit(int32_t orderCount, void* heapStart, uint32_t heapSize, Block* freeList[]) {
+  for (int32_t i = 0; i < orderCount; i++) {
     freeList[i] = NULL;
   }
   Block* initialBlock = (Block*)(((uint64_t)heapStart + addressByteSize - 1) & ~(addressByteSize - 1));
@@ -37,7 +37,7 @@ void memoryInit(void* endOfModules) {
   internalFreeListInit(ORDER_COUNT, endOfModules, MAX_MEMORY_AVAILABLE, freeList);
 }
 
-static int getOrder(uint32_t size) {
+static int32_t getOrder(uint32_t size) {
   uint32_t order = 0;
   uint32_t iniBlockSize = 1;
   while (iniBlockSize < size) {
@@ -56,9 +56,9 @@ static Block* splitBlock(Block* block) {
   return buddy;
 }
 
-void* internalMalloc(uint64_t size, int orderCount, Block* freeList[]) {
-  int order = getOrder(size + sizeof(Block));
-  for (int currentOrder = order; currentOrder < orderCount; currentOrder++) {
+void* internalMalloc(uint64_t size, int32_t orderCount, Block* freeList[]) {
+  int32_t order = getOrder(size + sizeof(Block));
+  for (int32_t currentOrder = order; currentOrder < orderCount; currentOrder++) {
     if (freeList[currentOrder] != NULL && freeList[currentOrder]->isFree) {
       Block* block = freeList[currentOrder];
       freeList[currentOrder] = block->next;
@@ -135,7 +135,7 @@ void globalFree(void* ptr) {
   if (ptr == NULL) return;
   Block* block = (Block*)ptr - 1;
   block->isFree = true;
-  int order = getOrder(block->size);
+  int32_t order = getOrder(block->size);
   mergeBlock(block, order, iniAddress, MAX_MEMORY_AVAILABLE, freeList);
 }
 
@@ -145,22 +145,22 @@ void free(void* ptr) {
   if (ptr < pcb->heap || ptr >= pcb->heap + PROCESS_HEAP_SIZE) return;
   Block* block = (Block*)ptr - 1;
   block->isFree = true;
-  int order = getOrder(block->size);
+  int32_t order = getOrder(block->size);
   mergeBlock(block, order, pcb->heap, PROCESS_HEAP_SIZE, pcb->freeList);
 }
 
-char* internalGetMemoryState(int orderCount, int heapSize, Block* freeList[]) {
+char* internalGetMemoryState(int32_t orderCount, int32_t heapSize, Block* freeList[]) {
   static char* unit = " B ";
   char* toReturn = malloc(MAX_STRING_SIZE);
   if (toReturn == NULL) return NULL;
-  int i = strcpy(toReturn, "Total: ");
+  int32_t i = strcpy(toReturn, "Total: ");
   i += uintToBase(heapSize, toReturn + i, 10);
   i += strcpy(toReturn + i, unit);
 
   uint32_t totalFreeMemory = 0;
   uint32_t totalBlocks = 0;
   Block* currentBlock;
-  for (int j = 0; j < orderCount; j++) {
+  for (int32_t j = 0; j < orderCount; j++) {
     currentBlock = freeList[j];
     while (currentBlock != NULL) {
       totalFreeMemory += currentBlock->size;
