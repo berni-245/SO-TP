@@ -1,6 +1,6 @@
 #include <utils.h>
 
-int strncpy(char* dst, const char* src, int max) {
+int32_t strncpy(char* dst, const char* src, int32_t max) {
   if (max < 0) return -1;
   int32_t i = 0;
   for (; i < max && src[i] != 0; ++i) dst[i] = src[i];
@@ -8,7 +8,7 @@ int strncpy(char* dst, const char* src, int max) {
   return i;
 }
 
-int strcpy(char* dst, char* src) {
+int32_t strcpy(char* dst, char* src) {
   int32_t i = 0;
   for (; src[i] != 0; ++i) dst[i] = src[i];
   dst[i] = 0;
@@ -20,7 +20,7 @@ uint32_t strlen(char* s) {
   while (s[len++] != 0);
   return len - 1;
 }
-int strcmp(const char* s1, const char* s2) {
+int32_t strcmp(const char* s1, const char* s2) {
   int32_t i = 0;
   for (; s1[i] != 0 && s2[i] != 0; ++i) {
     if (s1[i] < s2[i]) return -1;

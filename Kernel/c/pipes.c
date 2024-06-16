@@ -27,7 +27,7 @@ void initializePipes() {
   stderrPipe = **(Pipe**)Array_get(pipeArray, pipeInit());
 }
 
-long pipeInit() {
+int64_t pipeInit() {
   Pipe* p = globalMalloc(sizeof(Pipe));
   p->mutex = semInit(1);
   p->writtenCountSem = semInit(0);
@@ -56,11 +56,11 @@ Pipe* getPipe(int32_t pipeId) {
   return p;
 }
 
-long readPipe(int32_t pipeId, char* buf, int32_t len) {
+int64_t readPipe(int32_t pipeId, char* buf, int32_t len) {
   if (len <= 0) return 0;
   Pipe* p = getPipe(pipeId);
   if (p == NULL) return -1;
-  long pos = 0;
+  int64_t pos = 0;
   bool reachedEnd = false;
   do {
     waitSemaphore(p->writtenCountSem);
@@ -75,12 +75,12 @@ long readPipe(int32_t pipeId, char* buf, int32_t len) {
   return pos;
 }
 
-long writePipe(int32_t pipeId, const char* buf, int32_t len) {
+int64_t writePipe(int32_t pipeId, const char* buf, int32_t len) {
   if (pipeId == stdin) return -1;
   if (len <= 0) return 0;
   Pipe* p = getPipe(pipeId);
   if (p == NULL) return -1;
-  long pos = 0;
+  int64_t pos = 0;
   while (pos < len) {
     waitSemaphore(p->emptyCountSem);
     waitSemaphore(p->mutex);
@@ -98,9 +98,9 @@ void writeStdin(char c) {
   postSemaphore(stdinPipe.writtenCountSem);
 }
 
-long readStdin(char* buf, int32_t len) {
+int64_t readStdin(char* buf, int32_t len) {
   if (len <= 0) return 0;
-  long pos = 0;
+  int64_t pos = 0;
   bool reachedEnd = false;
   do {
     waitSemaphore(stdinPipe.writtenCountSem);
