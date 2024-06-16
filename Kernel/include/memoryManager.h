@@ -39,6 +39,6 @@ char* getProcessMemoryState(uint32_t pid);
 // bellow are the functions in memory.c
 
 void stackAlloc(void** stackStart, void** stackEnd);
-void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize);
+void* shittyRealloc(void* ptr, uint64_t oldSize, uint64_t newSize);
 
 #endif

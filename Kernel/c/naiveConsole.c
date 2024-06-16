@@ -11,7 +11,7 @@ static const uint32_t height = 25;
 static uint8_t* const maxVideo = (uint8_t*)0xb8000 + 2 * 80 * 25;
 
 void ncPrint(const char* string) {
-  int i;
+  int32_t i;
 
   for (i = 0; string[i] != 0; i++) ncPrintChar(string[i]);
 }
@@ -49,7 +49,7 @@ void ncPrintBase(uint64_t value, uint32_t base) {
 }
 
 void ncClear() {
-  int i;
+  int32_t i;
 
   for (i = 0; i < height * width; i++) video[i * 2] = ' ';
   currentVideo = video;
@@ -118,8 +118,8 @@ void printKeyStruct(KeyStruct k) {
   ncNewline();
 }
 
-void printBuffer2(KeyStruct buf[], int len) {
-  for (int i = 0; i < len; ++i) {
+void printBuffer2(KeyStruct buf[], int32_t len) {
+  for (int32_t i = 0; i < len; ++i) {
     printKeyStruct(buf[i]);
   }
 }

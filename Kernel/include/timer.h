@@ -2,8 +2,8 @@
 #define TIMER_H
 
 void incTicks();
-unsigned long getTicks();
-unsigned long getMs();
-void sleep(unsigned long ms);
+uint64_t getTicks();
+uint64_t getMs();
+void sleep(uint64_t ms);
 
 #endif

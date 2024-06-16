@@ -20,7 +20,7 @@ static Pipe stderrPipe;
 
 void initializePipes() {
   pipeArray = Array_initialize(sizeof(Pipe*), INITIAL_CAPACITY, (FreeEleFn)freePipe);
-  freedPositions = Array_initialize(sizeof(int), INITIAL_CAPACITY, NULL);
+  freedPositions = Array_initialize(sizeof(int32_t), INITIAL_CAPACITY, NULL);
   // stdout --> Not used but I need to occupy this index anyways.
   pipeInit();
   stdinPipe = **(Pipe**)Array_get(pipeArray, pipeInit());
@@ -37,7 +37,7 @@ long pipeInit() {
   p->destroyed = false;
   // p->readerPcb = NULL;
   // p->writerPcb = NULL;
-  int freeToUse;
+  int32_t freeToUse;
   if (Array_popGetEle(freedPositions, &freeToUse)) {
     // I could use get and save having to allocate a new pipe.
     Array_set(pipeArray, freeToUse, &p);
@@ -47,7 +47,7 @@ long pipeInit() {
   }
 }
 
-Pipe* getPipe(int pipeId) {
+Pipe* getPipe(int32_t pipeId) {
   if (pipeId < 0) return NULL;
   Pipe** pPtr = Array_get(pipeArray, pipeId);
   if (pPtr == NULL) return NULL;
@@ -56,7 +56,7 @@ Pipe* getPipe(int pipeId) {
   return p;
 }
 
-long readPipe(int pipeId, char* buf, int len) {
+long readPipe(int32_t pipeId, char* buf, int32_t len) {
   if (len <= 0) return 0;
   Pipe* p = getPipe(pipeId);
   if (p == NULL) return -1;
@@ -75,7 +75,7 @@ long readPipe(int pipeId, char* buf, int len) {
   return pos;
 }
 
-long writePipe(int pipeId, const char* buf, int len) {
+long writePipe(int32_t pipeId, const char* buf, int32_t len) {
   if (pipeId == stdin) return -1;
   if (len <= 0) return 0;
   Pipe* p = getPipe(pipeId);
@@ -98,7 +98,7 @@ void writeStdin(char c) {
   postSemaphore(stdinPipe.writtenCountSem);
 }
 
-long readStdin(char* buf, int len) {
+long readStdin(char* buf, int32_t len) {
   if (len <= 0) return 0;
   long pos = 0;
   bool reachedEnd = false;
@@ -114,7 +114,7 @@ long readStdin(char* buf, int len) {
   return pos;
 }
 
-bool destroyPipe(int pipeId) {
+bool destroyPipe(int32_t pipeId) {
   if (0 <= pipeId && pipeId <= 2) return false;
   Pipe* p = getPipe(pipeId);
   if (p == NULL) return false;

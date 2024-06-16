@@ -48,7 +48,7 @@ extern void picMask(uint16_t mask);
 
 void irqDispatcher(uint8_t index);
 // void setupIdtEntry(int index, InterruptionFunction irqHandler);
-void setupIdtEntry(int index, void* irqHandler);
+void setupIdtEntry(int32_t index, void* irqHandler);
 void loadIdt();
 
 extern void timerTickIrqHandler();

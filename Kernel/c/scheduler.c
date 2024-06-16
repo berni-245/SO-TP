@@ -14,7 +14,7 @@
 
 const char* const StateStrings[] = {"READY", "RUNNING", "BLOCKED", "EXITED", "W-EXIT", "BLK_USER"};
 
-#define IDLE_PID -1
+#define IDLE_PID (-1)
 
 typedef struct PCBNode {
   PCB* pcb;
@@ -26,16 +26,16 @@ typedef struct {
   PCBNode* tail;
   PCBNode* current;
   PCBNode* prev;
-  int len;
+  int32_t len;
 } PCBList;
 
-extern void* initializeProcessStack(int argc, char* argv[], void* processRip, void* stackStart);
+extern void* initializeProcessStack(int32_t argc, char* argv[], void* processRip, void* stackStart);
 extern void idleProc();
 extern void* userModule;
 extern void asdfInterruption();
 
 PCB* getPCBByPid(uint32_t pid);
-void exitProcessByPCB(PCB* pcb, int exitCode);
+void exitProcessByPCB(PCB* pcb, int32_t exitCode);
 
 PCB* processInForeground;
 PCBList pcbList;
@@ -63,7 +63,7 @@ PCBNode* createPCBNode(
   pcb->parentProc = pcbList.current->pcb;
   pcb->wfmLen = 0;
   pcb->pipes = pipes;
-  if ((int)pid != IDLE_PID) {
+  if ((int32_t)pid != IDLE_PID) {
     pcb->heap = globalMalloc(PROCESS_HEAP_SIZE);
     if (pcb->heap == NULL) {
       globalFree(node);
@@ -159,7 +159,7 @@ void initializePCBList() {
 
 // Should only be called after creating userModule process, so head and current won't be NULL.
 void* schedule(void* rsp) {
-  static int quantumsLeft = 0;
+  static int32_t quantumsLeft = 0;
 
   pcbList.current->pcb->rsp = rsp;
   pcbList.current->pcb->rbp = *(void**)(rsp + 8 * 8);
@@ -235,15 +235,15 @@ argc = 3
 0xXXXXX  00 00 00 00 00 00 00 00
  */
 static uint32_t pid = 0;
-void* createProcess(int argc, const char* argv[], void* processRip, ProcessPipes pipes) {
+void* createProcess(int32_t argc, const char* argv[], void* processRip, ProcessPipes pipes) {
   void* stackStart;
   void* stackEnd;
   stackAlloc(&stackStart, &stackEnd);
   char** argvStack = stackEnd;
   char* arg = stackEnd + argc * sizeof(char*);
-  for (int i = 0; i < argc; ++i) {
+  for (int32_t i = 0; i < argc; ++i) {
     argvStack[i] = arg;
-    int j = strncpy(arg, argv[i], MAX_NAME_LENGTH);
+    int32_t j = strncpy(arg, argv[i], MAX_NAME_LENGTH);
     arg = arg + j + 1;
   }
   void* rsp = initializeProcessStack(argc, argvStack, processRip, stackStart);
@@ -262,18 +262,18 @@ void* createUserModuleProcess() {
   return rsp;
 }
 
-int32_t createUserProcessWithPipeSwap(int argc, const char* argv[], void* processRip, ProcessPipes pipes) {
+int32_t createUserProcessWithPipeSwap(int32_t argc, const char* argv[], void* processRip, ProcessPipes pipes) {
   if (createProcess(argc, argv, processRip, pipes) == NULL) return -1;
   return pid - 1;
 }
 
-int32_t createUserProcess(int argc, const char* argv[], void* processRip) {
+int32_t createUserProcess(int32_t argc, const char* argv[], void* processRip) {
   ProcessPipes pipes = {.write = stdout, .read = stdin, .err = stderr};
   if (createProcess(argc, argv, processRip, pipes) == NULL) return -1;
   return pid - 1;
 }
 
-void exitProcessByPCB(PCB* pcb, int exitCode) {
+void exitProcessByPCB(PCB* pcb, int32_t exitCode) {
   if (pcb->state == EXITED) return;
   if (pcb->state == BLOCKED) {
     pcb->state = WAITING_FOR_EXIT;
@@ -284,7 +284,7 @@ void exitProcessByPCB(PCB* pcb, int exitCode) {
 
   pcb->state = EXITED;
   if (pcb->pid == processInForeground->pid) processInForeground = pcb->parentProc;
-  for (int i = 0; i < pcb->wfmLen; ++i) {
+  for (int32_t i = 0; i < pcb->wfmLen; ++i) {
     PCB* pcb2 = pcb->waitingForMe[i];
     if (pcb2->state == BLOCKED) {
       pcb2->state = READY;
@@ -295,12 +295,12 @@ void exitProcessByPCB(PCB* pcb, int exitCode) {
   }
 }
 
-void exitCurrentProcess(int exitCode) {
+void exitCurrentProcess(int32_t exitCode) {
   exitProcessByPCB(pcbList.current->pcb, exitCode);
   asdfInterruption();
 }
 
-void exitCurrentProcessInForeground(int exitCode) {
+void exitCurrentProcessInForeground(int32_t exitCode) {
   exitProcessByPCB(processInForeground, exitCode);
   asdfInterruption();
 }
@@ -316,7 +316,7 @@ PCB* getPCBByPid(uint32_t pid) {
   return NULL;
 }
 
-int waitPid(uint32_t pid) {
+int32_t waitPid(uint32_t pid) {
   if (pid == pcbList.current->pcb->pid) return pcbList.current->pcb->waitedProcessExitCode;
 
   PCB* pcb = getPCBByPid(pid);
@@ -343,7 +343,7 @@ PCBForUserland* getPCBList(int* len) {
   PCBForUserland* pcbArray = malloc(sizeof(PCBForUserland) * pcbList.len);
   if (pcbArray == NULL) return NULL;
   PCBNode* node = pcbList.head;
-  for (int i = 0; i < pcbList.len; ++i) {
+  for (int32_t i = 0; i < pcbList.len; ++i) {
     copyPCBToPCBForUserland(pcbArray + i, node->pcb);
     node = node->next;
   }
@@ -388,11 +388,11 @@ void changePriority(uint32_t pid, uint32_t newPriority) {
   }
 }
 
-void changePipeRead(int p) {
+void changePipeRead(int32_t p) {
   pcbList.current->pcb->pipes.read = p;
 }
 
-void changePipeWrite(int p) {
+void changePipeWrite(int32_t p) {
   pcbList.current->pcb->pipes.write = p;
 }
 
@@ -400,12 +400,12 @@ ProcessPipes getPipes() {
   return pcbList.current->pcb->pipes;
 }
 
-long read(int pipeId, char* buf, int len) {
+long read(int32_t pipeId, char* buf, int32_t len) {
   if (pipeId == stdin) return readStdin(buf, len);
   return readPipe(pipeId, buf, len);
 }
 
-long write(int pipeId, const char* buf, int len) {
+long write(int32_t pipeId, const char* buf, int32_t len) {
   if (pipeId == stdout) {
     printNextBuf(buf, len);
     return len;

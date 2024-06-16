@@ -13,9 +13,9 @@ typedef enum { READY, RUNNING, BLOCKED, EXITED, WAITING_FOR_EXIT, BLOCKED_BY_USE
 extern const char* const StateStrings[];
 
 typedef struct {
-  int write;
-  int read;
-  int err;
+  int32_t write;
+  int32_t read;
+  int32_t err;
 } ProcessPipes;
 
 #define PROCESS_HEAP_ORDER_COUNT 17
@@ -28,10 +28,10 @@ typedef struct PCB {
   void* rsp;
   void* rbp;
   char* name;
-  int waitedProcessExitCode;
+  int32_t waitedProcessExitCode;
   struct PCB* waitingForMe[10]; // This should be of dynamic length
   struct PCB* parentProc;
-  int wfmLen;
+  int32_t wfmLen;
   void* stack;
   ProcessPipes pipes;
   void* heap;
@@ -59,13 +59,13 @@ extern void asdfInterruption();
 // void freePCBNode(PCBNode* node);
 void initializePCBList();
 void* schedule(void* rsp);
-int32_t createUserProcess(int argc, const char* argv[], void* processRip);
-int32_t createUserProcessWithPipeSwap(int argc, const char* argv[], void* processRip, ProcessPipes pipes);
+int32_t createUserProcess(int32_t argc, const char* argv[], void* processRip);
+int32_t createUserProcessWithPipeSwap(int32_t argc, const char* argv[], void* processRip, ProcessPipes pipes);
 void startFirstProcess(void* processAddress);
-void exitProcessByPCB(PCB* pcb, int exitCode);
-void exitCurrentProcess(int exitCode);
+void exitProcessByPCB(PCB* pcb, int32_t exitCode);
+void exitCurrentProcess(int32_t exitCode);
 PCB* getPCBByPid(uint32_t pid);
-int waitPid(uint32_t pid);
+int32_t waitPid(uint32_t pid);
 PCBForUserland* getPCBList(int* len);
 PCB* getCurrentPCB();
 void blockCurrentProcess();
@@ -75,13 +75,13 @@ bool kill(uint32_t pid);
 void killCurrentProcessInForeground();
 void changePriority(uint32_t pid, uint32_t newPriority);
 void killCurrentProcess();
-void changePipeRead(int p);
-void changePipeWrite(int p);
+void changePipeRead(int32_t p);
+void changePipeWrite(int32_t p);
 bool blockByUser(uint32_t pid);
 bool unblock(uint32_t pid);
 ProcessPipes getPipes();
-long read(int pipeId, char* buf, int len);
-long write(int pipeId, const char* buf, int len);
+int64_t read(int32_t pipeId, char* buf, int32_t len);
+int64_t write(int32_t pipeId, const char* buf, int32_t len);
 
 
 #endif

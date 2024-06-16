@@ -2,7 +2,7 @@
 #include <memoryManager.h>
 
 // 4KB stack size
-static const int stackSize = (1 << 10) * 4;
+static const uint32_t stackSize = (1 << 10) * 4;
 static const uint64_t addressByteSize = sizeof(void*);
 
 /*
@@ -36,7 +36,7 @@ void stackAlloc(void** stackStart, void** stackEnd) {
   *stackStart = (void*)(((uint64_t)*stackStart - addressByteSize) & ~(addressByteSize - 1));
 }
 
-void* shittyRealloc(void* ptr, unsigned long oldSize, unsigned long newSize) {
+void* shittyRealloc(void* ptr, uint64_t oldSize, uint64_t newSize) {
   void* mem = globalMalloc(newSize);
   if (mem == NULL) return NULL;
   memcpy(mem, ptr, oldSize);

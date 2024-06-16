@@ -17,17 +17,17 @@ sem_t findName(char* name);
 
 void initializeSemaphores() {
   semArray = Array_initialize(sizeof(Semaphore), INITIAL_CAPACITY, NULL);
-  freedPositions = Array_initialize(sizeof(int), INITIAL_CAPACITY, NULL);
+  freedPositions = Array_initialize(sizeof(int32_t), INITIAL_CAPACITY, NULL);
 }
 
 sem_t addSem(char* name, uint32_t initialValue) {
   Semaphore sem = {.value = initialValue, .lock = 0, .pcbNodeHead = NULL, .pcbNodeTail = NULL, .destroyed = false};
-  int i;
+  int32_t i;
   for (i = 0; i < MAX_SEM_NAME && name[i] != 0; ++i) {
     sem.name[i] = name[i];
   }
   if (name[i] != 0) return -1;
-  int freeToUseSem;
+  int32_t freeToUseSem;
   if (Array_popGetEle(freedPositions, &freeToUseSem)) {
     Array_set(semArray, freeToUseSem, &sem);
     return freeToUseSem;
@@ -115,7 +115,7 @@ bool waitSemaphore(sem_t semId) {
   return true;
 }
 
-bool decSemOnlyForKernel(int semId) {
+bool decSemOnlyForKernel(int32_t semId) {
   if (semId < 0) return false;
   Semaphore* sem = Array_get(semArray, semId);
   if (sem->value > 0) sem->value--;
@@ -156,8 +156,8 @@ sem_t openSemaphore(char* name, uint32_t value) {
 }
 
 sem_t findName(char* name) {
-  int len = Array_getLen(semArray);
-  for (int i = 0; i < len; ++i) {
+  int32_t len = Array_getLen(semArray);
+  for (int32_t i = 0; i < len; ++i) {
     Semaphore* sem = Array_get(semArray, i);
     if (!sem->destroyed) {
       if (strcmp(name, sem->name) == 0) return i;

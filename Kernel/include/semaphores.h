@@ -14,8 +14,8 @@
 struct PCB;
 typedef int32_t sem_t;
 
-extern int _enter_region(int32_t* lock);
-extern int _leave_region(int32_t* lock);
+extern int32_t _enter_region(int32_t* lock);
+extern int32_t _leave_region(int32_t* lock);
 
 typedef struct PCBNodeSem {
   struct PCB* pcb;
@@ -39,6 +39,6 @@ bool destroySemaphoreByName(char* name);
 bool waitSemaphore(sem_t semId);
 bool postSemaphore(sem_t semId);
 sem_t openSemaphore(char* name, uint32_t value);
-bool decSemOnlyForKernel(int semId);
+bool decSemOnlyForKernel(int32_t semId);
 
 #endif

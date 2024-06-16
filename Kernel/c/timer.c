@@ -4,10 +4,10 @@
 #include <timer.h>
 
 static double freq = 65536 / 3600.0; // interruptions/second
-static unsigned long ticks = 0;
+static uint64_t ticks = 0;
 
 typedef struct SleptProcess {
-  unsigned long ticksRemaining;
+  uint64_t ticksRemaining;
   PCB* pcb;
   struct SleptProcess* next;
 } SleptProcess;
@@ -50,20 +50,20 @@ void incTicks() {
   }
 }
 
-unsigned long getTicks() {
+uint64_t getTicks() {
   return ticks;
 }
 
-unsigned long getMs() {
+uint64_t getMs() {
   return ticks * 1000 / freq;
 }
 
-unsigned long calcTicks(unsigned long ms) {
+uint64_t calcTicks(uint64_t ms) {
   return (ms / 1000.0) * freq;
 }
 
-void sleep(unsigned long ms) {
-  unsigned long initialTicks = calcTicks(ms);
+void sleep(uint64_t ms) {
+  uint64_t initialTicks = calcTicks(ms);
   if (initialTicks > 0) {
     SleptProcess* aux = globalMalloc(sizeof(*aux));
     aux->ticksRemaining = initialTicks;

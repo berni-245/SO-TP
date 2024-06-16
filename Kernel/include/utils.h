@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 
-int strncpy(char* dst, const char* src, int max);
-int strcpy(char* dst, char* src);
-unsigned int strlen(char* s);
-int strcmp(const char* s1, const char* s2);
+int32_t strncpy(char* dst, const char* src, int32_t max);
+int32_t strcpy(char* dst, char* src);
+uint32_t strlen(char* s);
+int32_t strcmp(const char* s1, const char* s2);
 uint32_t uintToBase(uint64_t value, char* buffer, uint32_t base);
 #endif

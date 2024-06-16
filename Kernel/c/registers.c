@@ -15,8 +15,8 @@ uint64_t* getExceptionRegisterValues() {
 }
 
 void getRegisters(Register regs[REGISTER_QUANTITY]) {
-  for (int i = 0; i < REGISTER_QUANTITY; i++) {
-    for (int j = 0; j < STR_LEN; j++) {
+  for (int32_t i = 0; i < REGISTER_QUANTITY; i++) {
+    for (int32_t j = 0; j < STR_LEN; j++) {
       // debería almacenar el 0/, hago esto porque no me deja hacer
       // asignación directa, así que hago un strCopy manual
       regs[i].name[j] = registerNames[i][j];
@@ -26,7 +26,7 @@ void getRegisters(Register regs[REGISTER_QUANTITY]) {
 }
 
 void printGenericRegisters(uint64_t regs[REGISTER_QUANTITY]) {
-  for (int i = 0; i < REGISTER_QUANTITY; i++) {
+  for (int32_t i = 0; i < REGISTER_QUANTITY; i++) {
     printNextString(registerNames[i]);
     printNextChar(' ');
     printNextHexWithPadding(regs[i]);

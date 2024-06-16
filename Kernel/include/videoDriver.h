@@ -12,13 +12,13 @@ typedef struct {
 
 void initializeFrameBuffer();
 
-void printPixel(int x, int y, RGBColor color);
-void fillRectangle(int x, int y, int width, int height, RGBColor color);
+void printPixel(int32_t x, int32_t y, RGBColor color);
+void fillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, RGBColor color);
 
-int getFontSize();
-int getScreenWidth();
-int getScreenHeight();
-int getCharSeparation();
+int32_t getFontSize();
+int32_t getScreenWidth();
+int32_t getScreenHeight();
+int32_t getCharSeparation();
 
 typedef enum {
   BACKGROUND = 0,
@@ -28,9 +28,9 @@ typedef enum {
 void setColor(ColorType c, uint32_t hexColor);
 
 void setFontGridValues();
-int setFontSize(int fs);
-void printCharXY(int x, int y, char c, int fontSize);
-void printChar(int col, int row, char c);
+int32_t setFontSize(int32_t fs);
+void printCharXY(int32_t x, int32_t y, char c, int32_t fontSize);
+void printChar(int32_t col, int32_t row, char c);
 void printNextChar(char c);
 void printNextString(const char* str);
 void printNextBuf(const char* buf, uint32_t len);
@@ -38,10 +38,10 @@ void printNextBase(uint64_t value, uint32_t base);
 void printNextDec(uint64_t value);
 void printNextHex(uint64_t value);
 void printNextHexWithPadding(uint64_t value);
-void moveCursor(int col, int row);
-int cursorHasNext();
-int cursorNext();
-int cursorPrev();
+void moveCursor(int32_t col, int32_t row);
+int32_t cursorHasNext();
+int32_t cursorNext();
+int32_t cursorPrev();
 void printCursor();
 void eraseCursor();
 void clearScreen();

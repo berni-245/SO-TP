@@ -57,11 +57,11 @@ typedef struct vbe_mode_info_structure* VBEInfoPtr;
 VBEInfoPtr VBE_mode_info = (VBEInfoPtr)0x0000000000005C00;
 
 #define MAX_FONT_SIZE 4
-static int fontSize = 1;
-static int fontCols, fontRows;
-static int charSeparation = 3;
-static int cursorCol = 0;
-static int cursorRow = 0;
+static int32_t fontSize = 1;
+static int32_t fontCols, fontRows;
+static int32_t charSeparation = 3;
+static int32_t cursorCol = 0;
+static int32_t cursorRow = 0;
 
 // static uint32_t uintToBase(uint64_t value, char* buffer, uint32_t base);
 
@@ -69,17 +69,17 @@ void setFontGridValues() {
   fontCols = VBE_mode_info->width / (ASCII_BF_WIDTH * fontSize + charSeparation);
   fontRows = VBE_mode_info->height / (ASCII_BF_HEIGHT * fontSize + charSeparation);
 }
-int getFontSize() {
+int32_t getFontSize() {
   return fontSize;
 }
 
-int getScreenWidth() {
+int32_t getScreenWidth() {
   return VBE_mode_info->width;
 }
-int getScreenHeight() {
+int32_t getScreenHeight() {
   return VBE_mode_info->height;
 }
-int getCharSeparation() {
+int32_t getCharSeparation() {
   return charSeparation;
 }
 
@@ -88,20 +88,20 @@ void initializeFrameBuffer() {
   framebuffer = (RGBColor*)VBE_mode_info->framebuffer;
 }
 
-void printPixel(int x, int y, RGBColor color) {
+void printPixel(int32_t x, int32_t y, RGBColor color) {
   uint64_t offset = x + (y * VBE_mode_info->pitch / (VBE_mode_info->bpp / 8));
   framebuffer[offset] = color;
 }
 
-void fillRectangle(int x, int y, int width, int height, RGBColor color) {
-  for (int i = 0; i < height; ++i) {
-    for (int j = 0; j < width; ++j) {
+void fillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, RGBColor color) {
+  for (int32_t i = 0; i < height; ++i) {
+    for (int32_t j = 0; j < width; ++j) {
       printPixel(x + j, y + i, color);
     }
   }
 }
 
-int setFontSize(int fs) {
+int32_t setFontSize(int32_t fs) {
   if (1 <= fs && fs <= MAX_FONT_SIZE) {
     fontSize = fs;
     setFontGridValues();
@@ -109,11 +109,11 @@ int setFontSize(int fs) {
   return fontSize;
 }
 
-void printCharXY(int x, int y, char c, int fontSize) {
+void printCharXY(int32_t x, int32_t y, char c, int32_t fontSize) {
   if (c < ASCII_BF_MIN || c > ASCII_BF_MAX) return;
   c -= ASCII_BF_MIN;
-  for (int i = 0; i < ASCII_BF_HEIGHT; ++i) {
-    for (int j = 0; j < ASCII_BF_WIDTH; ++j) {
+  for (int32_t i = 0; i < ASCII_BF_HEIGHT; ++i) {
+    for (int32_t j = 0; j < ASCII_BF_WIDTH; ++j) {
       if (asciiBitFields[(int)c][i * ASCII_BF_WIDTH + j] != 0) {
         fillRectangle(x + j * fontSize, y + i * fontSize, fontSize, fontSize, fontColor);
       }
@@ -126,20 +126,20 @@ void colRowToXY(int* col, int* row) {
   *row *= ASCII_BF_HEIGHT * fontSize + charSeparation;
 }
 
-void printChar(int col, int row, char c) {
-  int x = col;
-  int y = row;
+void printChar(int32_t col, int32_t row, char c) {
+  int32_t x = col;
+  int32_t y = row;
   colRowToXY(&x, &y);
   printCharXY(x, y, c, fontSize);
 }
 
 void eraseChar() {
   if (cursorPrev() != 0) return;
-  int x = cursorCol;
-  int y = cursorRow;
+  int32_t x = cursorCol;
+  int32_t y = cursorRow;
   colRowToXY(&x, &y);
-  for (int i = 0; i < ASCII_BF_HEIGHT; ++i) {
-    for (int j = 0; j < ASCII_BF_WIDTH; ++j) {
+  for (int32_t i = 0; i < ASCII_BF_HEIGHT; ++i) {
+    for (int32_t j = 0; j < ASCII_BF_WIDTH; ++j) {
       fillRectangle(x + j * fontSize, y + i * fontSize, fontSize, fontSize, bgColor);
     }
   }
@@ -157,12 +157,12 @@ void printNextChar(char c) {
     if (!cursorHasNext()) {
       cursorCol = 0;
       cursorRow = fontRows - 1;
-      int pixelsInCharRow = (ASCII_BF_HEIGHT * fontSize + charSeparation) * VBE_mode_info->width;
-      int pixelsInScreen = VBE_mode_info->width * VBE_mode_info->height;
-      for (int i = 0; i < pixelsInScreen - pixelsInCharRow; ++i) {
+      int32_t pixelsInCharRow = (ASCII_BF_HEIGHT * fontSize + charSeparation) * VBE_mode_info->width;
+      int32_t pixelsInScreen = VBE_mode_info->width * VBE_mode_info->height;
+      for (int32_t i = 0; i < pixelsInScreen - pixelsInCharRow; ++i) {
         framebuffer[i] = framebuffer[i + pixelsInCharRow];
       }
-      for (int i = pixelsInScreen - pixelsInCharRow; i < pixelsInScreen; ++i) {
+      for (int32_t i = pixelsInScreen - pixelsInCharRow; i < pixelsInScreen; ++i) {
         framebuffer[i] = bgColor;
       }
     }
@@ -173,13 +173,13 @@ void printNextChar(char c) {
 }
 
 void printNextString(const char* str) {
-  for (int i = 0; str[i] != 0; i++) {
+  for (int32_t i = 0; str[i] != 0; i++) {
     printNextChar(str[i]);
   }
 }
 
 void printNextBuf(const char* buf, uint32_t len) {
-  for (int i = 0; i < len; i++) {
+  for (int32_t i = 0; i < len; i++) {
     printNextChar(buf[i]);
   }
 }
@@ -200,28 +200,28 @@ void printNextHex(uint64_t value) {
 }
 
 void printNextHexWithPadding(uint64_t value) {
-  static int padding = 16;
+  static int32_t padding = 16;
   char buffer[getScreenWidth()];
-  int digits = uintToBase(value, buffer, 16);
+  int32_t digits = uintToBase(value, buffer, 16);
   printNextString("0x");
-  for (int i = 0 + digits; i < padding; i++) {
+  for (int32_t i = 0 + digits; i < padding; i++) {
     printNextChar('0');
   }
   printNextBase(value, 16);
 }
 
-void moveCursor(int col, int row) {
+void moveCursor(int32_t col, int32_t row) {
   if (col < 0 || row < 0 || col >= fontCols || row >= fontRows) return;
   cursorCol = col;
   cursorRow = row;
 }
 
-int cursorHasNext() {
+int32_t cursorHasNext() {
   return (cursorCol < fontCols) && (cursorRow < fontRows);
 }
 
 // Return 0 if cursor moved normally, 1 if end of screen (and cursor is reset so start of last line).
-int cursorNext() {
+int32_t cursorNext() {
   eraseCursor();
   if (++cursorCol >= fontCols) {
     if (++cursorRow >= fontRows) {
@@ -236,7 +236,7 @@ int cursorNext() {
 }
 
 // Return 0 if cursor moved normally, 1 if start of screen.
-int cursorPrev() {
+int32_t cursorPrev() {
   eraseCursor();
   if (--cursorCol < 0) {
     if (--cursorRow < 0) {
@@ -252,8 +252,8 @@ int cursorPrev() {
 
 void printCursorOfColor(RGBColor color) {
   if (cursorCol <= 0) return;
-  int x = cursorCol;
-  int y = cursorRow;
+  int32_t x = cursorCol;
+  int32_t y = cursorRow;
   colRowToXY(&x, &y);
   fillRectangle(x - 2, y, fontSize, (ASCII_BF_HEIGHT - 3) * fontSize, color);
 }
