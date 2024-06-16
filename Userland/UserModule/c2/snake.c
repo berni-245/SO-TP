@@ -19,12 +19,12 @@ void snake(bool multiplayer, char* player1Name, char* player2Name, bool mute) {
   GAME_OVER = false;
   EXIT = false;
   setGrid();
-  int bgColor = 0x262626;
+  int32_t bgColor = 0x262626;
   setBgColor(bgColor);
   setCursorColor(bgColor);
   setStrokeColor(grid.color);
   setFontColor(0xFFFFFF);
-  int prevFontSize = systemInfo.fontSize;
+  int32_t prevFontSize = systemInfo.fontSize;
   setFontSize(1);
   clearScreen();
   drawGrid();
@@ -84,35 +84,35 @@ Point apple = {0};
 
 void drawSnake(Snake* s) {
   setFillColor(s->color);
-  for (int i = 0; i < s->len; ++i) {
+  for (int32_t i = 0; i < s->len; ++i) {
     fillGridCell(s->body[i].x, s->body[i].y);
   }
 }
 
 void eraseSnake(Snake* s) {
-  for (int i = 0; i < s->len; ++i) {
+  for (int32_t i = 0; i < s->len; ++i) {
     clearGridCell(s->body[i].x, s->body[i].y);
   }
 }
 
 void drawGrid() {
   strokeRectangleOutward(grid.x0, grid.y0, grid.width, grid.height, grid.borderWidth);
-  for (int i = 1; i < grid.rows; i++) {
+  for (int32_t i = 1; i < grid.rows; i++) {
     strokeHorizontalLine(grid.x0, grid.y0 + (i - 1) * grid.lineWidth + i * grid.cellSize, grid.width, grid.lineWidth);
   }
-  for (int i = 1; i < grid.cols; i++) {
+  for (int32_t i = 1; i < grid.cols; i++) {
     strokeVerticalLine(grid.x0 + (i - 1) * grid.lineWidth + i * grid.cellSize, grid.y0, grid.height, grid.lineWidth);
   }
 }
 
-void fillGridCell(int col, int row) {
+void fillGridCell(int32_t col, int32_t row) {
   fillRectangle(
       grid.x0 + col * (grid.cellSize + grid.lineWidth), grid.y0 + row * (grid.cellSize + grid.lineWidth), grid.cellSize,
       grid.cellSize
   );
 }
 
-void clearGridCell(int col, int row) {
+void clearGridCell(int32_t col, int32_t row) {
   clearRectangle(
       grid.x0 + col * (grid.cellSize + grid.lineWidth), grid.y0 + row * (grid.cellSize + grid.lineWidth), grid.cellSize,
       grid.cellSize
@@ -128,7 +128,7 @@ void printSnakeName(Snake* s) {
   s->scoreX += 2 * systemInfo.charWidth + systemInfo.charSeparation;
 }
 
-void setSnake(Snake* s, int col, int row, uint32_t color, char* name, int nameX, int nameY) {
+void setSnake(Snake* s, int32_t col, int32_t row, uint32_t color, char* name, int32_t nameX, int32_t nameY) {
   s->body[0].x = col;
   s->body[0].y = row;
   s->dirX = 0;
@@ -150,7 +150,7 @@ void setSnake(Snake* s, int col, int row, uint32_t color, char* name, int nameX,
 
 void growSnake(Snake* s) {
   if (s->len == SNAKE_MAX_LEN) return;
-  int l = ++s->len;
+  int32_t l = ++s->len;
   s->body[l - 1].x = s->body[l - 2].x;
   s->body[l - 1].y = s->body[l - 2].y;
   // fillGridCell(s->body[l - 1].x, s->body[l - 1].y);
@@ -223,7 +223,7 @@ bool specialKeyInput() {
 void moveSnake(Snake* s) {
   setFillColor(s->color);
   clearGridCell(s->body[s->len - 1].x, s->body[s->len - 1].y);
-  for (int i = s->len - 1; i > 0; i--) {
+  for (int32_t i = s->len - 1; i > 0; i--) {
     s->body[i].x = s->body[i - 1].x;
     s->body[i].y = s->body[i - 1].y;
   }
@@ -235,8 +235,8 @@ void moveSnake(Snake* s) {
 void gameOver() {
   GAME_OVER = true;
   char* message = "Game Over";
-  int len = strlen(message);
-  int fontSize = 3;
+  int32_t len = strlen(message);
+  int32_t fontSize = 3;
   printStringXY(
       grid.width / 2 - (len / 2) * (systemInfo.charWidth * fontSize + systemInfo.charSeparation), grid.height / 2,
       message, fontSize, 0
@@ -252,7 +252,7 @@ bool snakeCollision(Snake* s) {
   if (s->body[0].x == grid.cols - 1 || s->body[0].x == 0 || s->body[0].y == grid.rows - 1 || s->body[0].y == 0) {
     return true;
   }
-  for (int i = s->len; i > 1; i--) {
+  for (int32_t i = s->len; i > 1; i--) {
     if (pointEquals(s->body[0], s->body[i])) {
       return true;
     }
@@ -261,7 +261,7 @@ bool snakeCollision(Snake* s) {
 }
 
 bool onSnake(Snake* s, Point p) {
-  for (int i = 0; i < s->len; i++) {
+  for (int32_t i = 0; i < s->len; i++) {
     if (pointEquals(p, s->body[i])) return true;
   }
   return false;
@@ -272,7 +272,7 @@ void appleGen() {
   do {
     apple.x = randBetween(1, grid.cols - 2);
     apple.y = randBetween(1, grid.rows - 2);
-    for (int i = 0; i < s1.len && !regen; ++i) {
+    for (int32_t i = 0; i < s1.len && !regen; ++i) {
       if (onSnake(&s1, apple) || onSnake(&s2, apple)) {
         apple.x = randBetween(1, grid.cols - 2);
         apple.y = randBetween(1, grid.rows - 2);
@@ -283,7 +283,7 @@ void appleGen() {
   fillGridCell(apple.x, apple.y);
 }
 
-int eaten(Snake* s) {
+int32_t eaten(Snake* s) {
   if (pointEquals(apple, s->body[0])) {
     s->score++;
     if (!MUTE) sysPlaySound(600, 50);
@@ -294,9 +294,9 @@ int eaten(Snake* s) {
   return 0;
 }
 
-void eraseScore(int col, int row, int nameLen) {
+void eraseScore(int32_t col, int32_t row, int32_t nameLen) {
   sysMoveCursor(col + nameLen + SCORE_MAX_DIGITS, row);
-  for (int i = 0; i < nameLen + SCORE_MAX_DIGITS; ++i) {
+  for (int32_t i = 0; i < nameLen + SCORE_MAX_DIGITS; ++i) {
     // printf("\b");
   }
   sysMoveCursor(col, row);
