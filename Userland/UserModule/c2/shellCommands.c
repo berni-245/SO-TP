@@ -305,48 +305,40 @@ void commandNice(int argc, char* argv[argc]) {
 void pipeWriter(int argc, char* argv[argc]) {
   static char* words[] = {"0000000", "1111111", "2222222", "3333333", "4444444",
                           "5555555", "6666666", "7777777", "8888888", "9999999"};
-  static int wordsLen = sizeof(words) / sizeof(*words);
-  static int bufLen = 400;
+  static int wordsCount = sizeof(words) / sizeof(*words);
+  static int wordLen = 7;
+  int bufLen = 5 * wordsCount * wordLen;
   char buf[bufLen];
   for (int i = 0, j = 0; i < bufLen; ++j) {
-    i += strcpy(buf + i, words[j % wordsLen]);
+    i += strcpy(buf + i, words[j % wordsCount]);
   }
-  // int writeLen = bufLen / 20;
-  int len = 0;
-  // ProcessPipes pipes = sysGetPipes();
-  while (len < bufLen) {
-    // int l = sysWrite(pipes.write, buf + len, writeLen);
-    int l = printf("%s", buf);
-    if (l < 0) {
-      printf("%s - %u: pipe not found, exiting...", argv[0], sysGetPid());
-      sysExit(PROCESS_FAILURE);
-    }
-    len += l;
-    sleep(1000);
-  }
+  printf("%s", buf);
   sysExit(SUCCESS);
 }
 void pipeReader(int argc, char* argv[argc]) {
   char buf[200];
   int i = 0, tot = 0;
   ProcessPipes pipes = sysGetPipes();
-  while (true) {
+  int pid = sysGetPid();
+  do {
     i = sysRead(pipes.read, buf, 40);
     if (i < 0) {
-      printf("%s - %u: pipe not found, exiting...\n", argv[0], sysGetPid());
-      sysExit(SUCCESS);
+      printf("%s - %u: pipe not found, exiting...\n", argv[0], pid);
+      sysExit(PROCESS_FAILURE);
     }
     buf[i] = 0;
     tot += i;
-    printf("Current read: %d - Total read: %d\n", i, tot);
+    printf("%s - %u - Current read: %d - Total read: %d\n", argv[0], pid, i, tot);
     printf("%s\n", buf);
-    sleep(1000);
-  }
-  sysExit(PROCESS_FAILURE);
+    sleep(500);
+  } while (buf[i - 1] != EOF);
+  printf("%s - %u: Found EOF\n", argv[0], pid);
+  sysExit(SUCCESS);
 }
 void commandTestPipes(int argc, char* argv[argc]) {
+  int pid = sysGetPid();
   int pipe = sysPipeInit();
-  printf("Using pipe: %d\n", pipe);
+  printf("%s - %u - Using pipe: %d\n", argv[0], pid, pipe);
   const char* argv2[] = {"pipeWriter"};
   ProcessPipes pipes = {.write = pipe, .read = stdin, .err = stderr};
   int pidWriter = sysCreateProcessWithPipeSwap(1, argv2, pipeWriter, pipes);
@@ -356,12 +348,12 @@ void commandTestPipes(int argc, char* argv[argc]) {
   int pidReader = sysCreateProcessWithPipeSwap(1, argv2, pipeReader, pipes);
 
   sysWaitPid(pidWriter);
-  printf("%s - %u: Destroying pipe...\n", argv[0], sysGetPid());
-  sleep(2000);
-  if (!sysDestroyPipe(pipe)) {
-    printf("Error destroying pipe: %d\n", pipe);
-  }
+  char eof = EOF;
+  sysWrite(pipe, &eof, 1);
   sysWaitPid(pidReader);
+  printf("%s - %u: Destroying pipe...\n", argv[0], pid);
+  sleep(1000);
+  if (!sysDestroyPipe(pipe)) printf("%s - %u - Error destroying pipe: %d\n", argv[0], pid, pipe);
 
   sysExit(SUCCESS);
 }
