@@ -52,17 +52,18 @@ int32_t shell() {
   );
   addCommand("snake", "Play snake.", commandSnake);
   addCommand(
-      "mem", "View the state of the memory for the whole system or process-wise by specifying pid",
+      "mem", "View the state of the memory for the whole system or\n"
+      "    process-wise by specifying pid",
       commandGetMemoryState
   );
   addCommand("zeroDivisionError", "Test the zero division error.", commandZeroDivisionError);
   addCommand("invalidOpcodeError", "Test the invalid opcode error.", commandInvalidOpcodeError);
   addCommand("ps", "Print process list.", commandPs);
-  addCommand("testSem", "Test semaphores by using multiple processes to modifying shared variable.", commandTestSem);
+  addCommand("testSem", "Test semaphores by using multiple processes to\n"
+      "    modifying shared variable.", commandTestSem);
   addCommand("testMM", "Test Memory manager.", commandTestMM);
   addCommand("kill", "Kill process by pid.", commandKill);
   addCommand("nice", "Change priority of a process by pid", commandNice);
-  addCommand("getpid", "Print pid for current process.", commandGetPid);
   addCommand("loop", "Sends a message with the PID every given seconds", commandLoop);
   addCommand("pipeTest", "Test pipes with reader and writer processes", commandTestPipes);
   addCommand(
@@ -74,9 +75,11 @@ int32_t shell() {
   addCommand("destroyPipe", "Destroy pipe by id", commandDestroyPipe);
   addCommand("block", "Blocks the process with the pid given", commandBlock);
   addCommand("unblock", "Unblocks the process with the pid given", commandUnBlock);
-  addCommand("testPriority", "Checks the priority functionality. 0: small wait. 1: long wait", commandTestPriority);
+  addCommand("testPriority", "Checks the priority functionality. 0: small wait.\n" 
+      "    1: long wait", commandTestPriority);
   addCommand(
-      "testProcesses", "Checks the process creation, blocking, unblocking and destruction", commandTestProcesses
+      "testProcesses", "Checks the process creation, blocking,\n" 
+      "    unblocking and destruction", commandTestProcesses
   );
   addCommand("cat", "Read from stdin and output to stdout", commandCat);
   addCommand("wc", "Cound words from stdin", commandWordCount);

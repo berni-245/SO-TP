@@ -76,7 +76,6 @@ void commandCreateSemaphore(int32_t argc, char* argv[argc]);
 void commandDestroySemaphore(int32_t argc, char* argv[argc]);
 void commandTestSem(int32_t argc, char* argv[argc]);
 void commandChangeProcess(); // Arreglar. Esto no es un command...
-void commandGetPid();
 void commandKill(int32_t argc, char* argv[argc]);
 void commandGetMemoryState(int32_t argc, char* argv[argc]);
 void commandLoop(int32_t argc, char* argv[argc]);

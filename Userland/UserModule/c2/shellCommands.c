@@ -225,11 +225,6 @@ void commandPs() {
   sysExit(SUCCESS);
 }
 
-void commandGetPid() {
-  printf("Current process pid: %u\n", sysGetPid());
-  sysExit(SUCCESS);
-}
-
 void commandKill(int32_t argc, char* argv[argc]) {
   if (argc < 2) {
     printf("Usage: kill <pid_1> [pid_2] ... [pid_n]\n");
