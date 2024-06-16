@@ -20,13 +20,20 @@ void freeArrayPtr(Array* ele) {
   Array_free(*ele);
 }
 
+int compareArgv(Array* argv1, Array* argv2) {
+  int argc = Array_getLen(*argv1);
+  int cmp = argc - Array_getLen(*argv2);
+  if (cmp == 0) cmp = Array_equals(*argv1, *argv2) == 0;
+  return cmp;
+}
+
 int shell() {
   setShellColors(0xC0CAF5, 0x1A1B26, 0xFFFF11);
   clearScreen();
 
-  currentCommand = Array_initialize(sizeof(char), 100, NULL);
-  commandHistory = CHB_initialize(sizeof(Array), MAX_HISTORY_LEN, (FreeEleFn)freeArrayPtr);
-  commands = Array_initialize(sizeof(ShellCommand), 100, NULL);
+  currentCommand = Array_initialize(sizeof(char), 100, NULL, NULL);
+  commandHistory = CHB_initialize(sizeof(Array), MAX_HISTORY_LEN, (FreeEleFn)freeArrayPtr, (CompareEleFn)compareArgv);
+  commands = Array_initialize(sizeof(ShellCommand), 100, NULL, NULL);
 
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
@@ -157,7 +164,8 @@ void historyPrev() {
 void historyNext() {
   Array* argv = CHB_readNext(commandHistory);
   if (argv == NULL) {
-    // clearLine();
+    clearLine();
+    CHB_readRest(commandHistory);
     return;
   }
   historyCopy(*argv);
@@ -290,8 +298,17 @@ void setRealArgv(int argc, const char* realArgv[argc], Array argv) {
   }
 }
 
+int compareArgs(Array* arg1, Array* arg2) {
+  int len = Array_getLen(*arg1);
+  int cmp = len - Array_getLen(*arg2);
+  if (cmp == 0) {
+    cmp = strcmp(Array_getVanillaArray(*arg1), Array_getVanillaArray(*arg2));
+  }
+  return cmp;
+}
+
 ExitCode parseCommand() {
-  Array argv = Array_initialize(sizeof(Array), 10, (FreeEleFn)freeArrayPtr);
+  Array argv = Array_initialize(sizeof(Array), 10, (FreeEleFn)freeArrayPtr, (CompareEleFn)compareArgs);
   Array argv2 = NULL;
   Array currentArgv = argv;
   ShellFunction command;
@@ -307,11 +324,11 @@ ExitCode parseCommand() {
         if (arg != NULL) {
           if (Array_getLen(arg) == 1 && *(char*)Array_get(arg, 0) == '!') {
             // No freeEleFn because it will get concatenated with argv in the end.
-            argv2 = Array_initialize(sizeof(Array), 10, NULL);
+            argv2 = Array_initialize(sizeof(Array), 10, NULL, NULL);
             currentArgv = argv2;
           }
         }
-        arg = Array_initialize(sizeof(char), 30, NULL);
+        arg = Array_initialize(sizeof(char), 30, NULL, NULL);
         Array_push(currentArgv, &arg);
         newWord = false;
       }
@@ -376,6 +393,6 @@ ExitCode parseCommand() {
       }
     } else ret = COMMAND_NOT_FOUND;
   }
-  CHB_push(commandHistory, &argv);
+  CHB_moveToFrontOrPush(commandHistory, &argv);
   return ret;
 }
