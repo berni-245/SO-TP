@@ -2378,4 +2378,4 @@ const uint8_t asciiBitFields[][ASCII_BF_WIDTH * ASCII_BF_HEIGHT] = {
 	},
 };
 
-const unsigned int ASCII_BF_COUNT = sizeof(asciiBitFields) / sizeof(asciiBitFields[0]);
+const uint32_t ASCII_BF_COUNT = sizeof(asciiBitFields) / sizeof(asciiBitFields[0]);

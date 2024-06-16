@@ -9,6 +9,6 @@
 #define ASCII_BF_MAX '~'
 
 extern const uint8_t asciiBitFields[][ASCII_BF_WIDTH * ASCII_BF_HEIGHT];
-extern const unsigned int ASCII_BF_COUNT;
+extern const uint32_t ASCII_BF_COUNT;
 
 #endif
