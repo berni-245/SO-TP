@@ -320,7 +320,10 @@ ExitCode parseCommand() {
   }
 
   int argc = Array_getLen(argv);
-  if (argc == 0) return SUCCESS;
+  if (argc == 0) {
+    Array_free(argv);
+    return SUCCESS;
+  }
 
   int ret = SUCCESS;
   if (argv2 != NULL) {
