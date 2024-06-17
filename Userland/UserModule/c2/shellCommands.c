@@ -34,7 +34,7 @@ void commandHelp(int32_t argc, char* argv[argc]) {
   if (argc > 1) page = strToInt(argv[1]);
 
   if (page > nbrPages) {
-    printString("No such page\n");
+    (void)printString("No such page\n");
     sysExit(ILLEGAL_ARGUMENT);
   }
 
@@ -232,7 +232,7 @@ void commandLoop(int32_t argc, char* argv[argc]) {
   if (secs > 0) {
     while (1) {
       sysSleep(secs * 1000);
-      printf("Hola! Soy el proceso: %d\n", sysGetPid());
+      printf("Hola! Soy el proceso: %u\n", sysGetPid());
     }
   }
   sysExit(PROCESS_FAILURE);
@@ -270,9 +270,9 @@ void pipeWriter(int32_t argc, char* argv[argc]) {
 }
 void pipeReader(int32_t argc, char* argv[argc]) {
   char buf[200];
-  int32_t i = 0, tot = 0;
+  int64_t i = 0, tot = 0;
   ProcessPipes pipes = sysGetPipes();
-  int32_t pid = sysGetPid();
+  uint32_t pid = sysGetPid();
   do {
     i = sysRead(pipes.read, buf, 40);
     if (i < 0) {
@@ -281,7 +281,7 @@ void pipeReader(int32_t argc, char* argv[argc]) {
     }
     buf[i] = 0;
     tot += i;
-    printf("%s - %u - Current read: %d - Total read: %d\n", argv[0], pid, i, tot);
+    printf("%s - %u - Current read: %d - Total read: %li\n", argv[0], pid, i, tot);
     printf("%s\n", buf);
     sysSleep(500);
   } while (buf[i - 1] != EOF);
@@ -289,8 +289,8 @@ void pipeReader(int32_t argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 void commandTestPipes(int32_t argc, char* argv[argc]) {
-  int32_t pid = sysGetPid();
-  int32_t pipe = sysPipeInit();
+  uint32_t pid = sysGetPid();
+  int32_t pipe = (int32_t)sysPipeInit();
   printf("%s - %u - Using pipe: %d\n", argv[0], pid, pipe);
   const char* argv2[] = {"pipeWriter"};
   ProcessPipes pipes = {.write = pipe, .read = stdin, .err = stderr};
@@ -342,7 +342,7 @@ void commandUnBlock(int32_t argc, char* argv[argc]) {
 }
 
 void commandCat() {
-  char c;
+  signed char c;
   while ((c = getChar()) != EOF) {
     if (printChar(c) < 0) sysExit(PROCESS_FAILURE);
   }
@@ -350,7 +350,7 @@ void commandCat() {
 }
 
 void commandWordCount() {
-  char c;
+  signed char c;
   int32_t words = 0;
   int32_t lines = 0;
   bool inWord = false;
@@ -387,7 +387,7 @@ int32_t charIsAVocal(char c) {
 }
 
 void commandFilterVocals() {
-  char c;
+  signed char c;
   while ((c = getChar()) != EOF) {
     if (!charIsAVocal(c)) printf("%c", c);
   }
