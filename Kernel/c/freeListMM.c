@@ -157,7 +157,7 @@ void internalFree(void* ptr, Block* freeListStart, Block* freeListEnd, uint64_t*
   // The block structure is before the useful memory
   Block *freeBlock = (Block *) ptr - 1;
 
-  if (BLOCK_IS_ALLOCATED(freeBlock) != 0 && freeBlock->nextFreeBlock == NULL) {
+  if (BLOCK_IS_ALLOCATED(freeBlock) && freeBlock->nextFreeBlock == NULL) {
       FREE_BLOCK(freeBlock);
       *bytesAvailable += freeBlock->blockSize;
       insertBlockIntoFreeList(((Block *)freeBlock), freeListStart, freeListEnd);
