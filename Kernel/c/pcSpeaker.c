@@ -38,6 +38,9 @@ void speakerProcess() {
     setSpeakerFreq(sound->freq);
     sleep(sound->ms);
     speakerOff();
-    if (i == Array_getLen(sounds)) Array_clear(sounds);
+    if (i == Array_getLen(sounds)) {
+      Array_clear(sounds);
+      i = 0;
+    }
   }
 }
