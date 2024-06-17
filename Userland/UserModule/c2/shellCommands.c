@@ -281,10 +281,10 @@ void pipeReader(int32_t argc, char* argv[argc]) {
     }
     buf[i] = 0;
     tot += i;
-    printf("%s - %u - Current read: %d - Total read: %li\n", argv[0], pid, i, tot);
+    printf("%s - %u - Current read: %li - Total read: %li\n", argv[0], pid, i, tot);
     printf("%s\n", buf);
     sysSleep(500);
-  } while (buf[i - 1] != EOF);
+  } while ((int)buf[i - 1] != EOF);
   printf("%s - %u: Found EOF\n", argv[0], pid);
   sysExit(SUCCESS);
 }
@@ -343,7 +343,7 @@ void commandUnBlock(int32_t argc, char* argv[argc]) {
 
 void commandCat() {
   signed char c;
-  while ((c = getChar()) != EOF) {
+  while ((int)(c = getChar()) != EOF) {
     if (printChar(c) < 0) sysExit(PROCESS_FAILURE);
   }
   sysExit(SUCCESS);
@@ -356,7 +356,7 @@ void commandWordCount() {
   bool inWord = false;
   bool lastReadNewLine = false;
 
-  while ((c = getChar()) != EOF) {
+  while ((int)(c = getChar()) != EOF) {
     lastReadNewLine = false;
     if (c == ' ' || c == '\n') {
       if (inWord) {
@@ -388,7 +388,7 @@ int32_t charIsAVocal(char c) {
 
 void commandFilterVocals() {
   signed char c;
-  while ((c = getChar()) != EOF) {
+  while ((int)(c = getChar()) != EOF) {
     if (!charIsAVocal(c)) printf("%c", c);
   }
   printf("\n");
