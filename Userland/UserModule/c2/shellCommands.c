@@ -165,48 +165,6 @@ void commandGetRegisters(int32_t argc, char* argv[argc]) {
   sysExit(SUCCESS);
 }
 
-void commandSnakeUsage(char* commandName) {
-  puts("Usage:");
-  printf("\t\t%s [options] <player1Name> [player2Name]\n", commandName);
-  printf("Options:\n");
-  printf("\t\t--mute    don't play any sounds.\n");
-  printf("Player 1 moves with wasd, player 2 with ijkl. Other keybinds are:\n");
-  printf(" ctrl + r: reset game\n");
-  printf(" ctrl + x: lose game\n");
-  printf(" ctrl + c: exit game\n");
-}
-
-void commandSnake(int32_t argc, char* argv[argc]) {
-  if (argc < 2) {
-    commandSnakeUsage(argv[0]);
-    sysExit(MISSING_ARGUMENTS);
-  } else {
-    int32_t argIdx = 1;
-    int32_t playerCount = argc - 1;
-    bool mute = false;
-    if (strcmp(argv[argIdx], "--mute") == 0) {
-      mute = true;
-      ++argIdx;
-      --playerCount;
-    }
-    if (playerCount < 1) {
-      commandSnakeUsage(argv[0]);
-      sysExit(MISSING_ARGUMENTS);
-    }
-    uint32_t fontColor = getFontColor();
-    uint32_t bgColor = getBgColor();
-    uint32_t cursorColor = getCursorColor();
-    if (playerCount == 1) {
-      snake(false, argv[argIdx], "", mute);
-    } else {
-      snake(true, argv[argIdx], argv[argIdx + 1], mute);
-    }
-    setShellColors(fontColor, bgColor, cursorColor);
-  }
-  clearScreenKeepCommand();
-  sysExit(SUCCESS);
-}
-
 void commandZeroDivisionError() {
   // Always set srand because after the exception the modules starts anew
   // and srand is zero again.
@@ -325,7 +283,7 @@ void pipeReader(int32_t argc, char* argv[argc]) {
     tot += i;
     printf("%s - %u - Current read: %d - Total read: %d\n", argv[0], pid, i, tot);
     printf("%s\n", buf);
-    sleep(500);
+    sysSleep(500);
   } while (buf[i - 1] != EOF);
   printf("%s - %u: Found EOF\n", argv[0], pid);
   sysExit(SUCCESS);
@@ -347,23 +305,9 @@ void commandTestPipes(int32_t argc, char* argv[argc]) {
   sysWrite(pipe, &eof, 1);
   sysWaitPid(pidReader);
   printf("%s - %u: Destroying pipe...\n", argv[0], pid);
-  sleep(1000);
+  sysSleep(1000);
   if (!sysDestroyPipe(pipe)) printf("%s - %u - Error destroying pipe: %d\n", argv[0], pid, pipe);
 
-  sysExit(SUCCESS);
-}
-
-void commandDestroyPipe(int32_t argc, char* argv[argc]) {
-  if (argc < 2) {
-    printf("Usage: %s <pip_id>\n", argv[0]);
-    sysExit(ILLEGAL_ARGUMENT);
-  }
-  int32_t pipe = strToInt(argv[1]);
-  if (!sysDestroyPipe(pipe)) {
-    printf("Error destroying pipe: %d\n", pipe);
-    sysExit(ILLEGAL_ARGUMENT);
-  }
-  printf("Correctly destroyed pipe: %d\n", pipe);
   sysExit(SUCCESS);
 }
 

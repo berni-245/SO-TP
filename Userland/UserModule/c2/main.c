@@ -4,8 +4,6 @@
 #include <syscalls.h>
 #include <sysinfo.h>
 
-#include <snake.h>
-
 int32_t main() {
   getSysInfo();
 

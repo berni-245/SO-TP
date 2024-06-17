@@ -6,7 +6,6 @@
 #include <circularHistoryBuffer.h>
 #include <colors.h>
 #include <draw.h>
-#include <snake.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -67,7 +66,6 @@ void commandLayout(int32_t argc, char* argv[argc]);
 void commandSetColors(int32_t argc, char* argv[argc]);
 void commandSysInfo();
 void commandGetRegisters(int32_t argc, char* argv[argc]);
-void commandSnake(int32_t argc, char* argv[argc]);
 void commandTest();
 void commandZeroDivisionError();
 void commandInvalidOpcodeError();
@@ -82,7 +80,6 @@ void commandLoop(int32_t argc, char* argv[argc]);
 void commandPhylo(int32_t argc, char* argv[argc]);
 void commandNice(int32_t argc, char* argv[argc]);
 void commandTestPipes(int32_t argc, char* argv[argc]);
-void commandDestroyPipe(int32_t argc, char* argv[argc]);
 void commandBlock(int32_t argc, char* argv[argc]);
 void commandUnBlock(int32_t argc, char* argv[argc]);
 void commandTestMM(int32_t argc, char* argv[]);

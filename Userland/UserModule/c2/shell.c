@@ -51,7 +51,6 @@ int32_t shell() {
       "    Available flags: --help",
       commandGetRegisters
   );
-  addCommand("snake", "Play snake.", commandSnake);
   addCommand(
       "mem", "View the state of the memory for the whole system or\n"
       "    process-wise by specifying pid",
@@ -66,14 +65,13 @@ int32_t shell() {
   addCommand("kill", "Kill process by pid.", commandKill);
   addCommand("nice", "Change priority of a process by pid", commandNice);
   addCommand("loop", "Sends a message with the PID every given seconds", commandLoop);
-  addCommand("pipeTest", "Test pipes with reader and writer processes", commandTestPipes);
+  addCommand("testPipe", "Test pipes with reader and writer processes", commandTestPipes);
   addCommand(
       "phylo",
       "Starts the philosophers problem.\n"
       "    `e` to Exit, `a` to Add philosopher, `r` to Remove philosopher",
       commandPhylo
   );
-  addCommand("destroyPipe", "Destroy pipe by id", commandDestroyPipe);
   addCommand("block", "Blocks the process with the pid given", commandBlock);
   addCommand("unblock", "Unblocks the process with the pid given", commandUnBlock);
   addCommand("testPriority", "Checks the priority functionality. 0: small wait.\n" 

@@ -1,5 +1,6 @@
 #include <shellUtils.h>
 #include <utils.h>
+#include <syscalls.h>
 
 #define PHYLO_AMOUNT 5
 #define PHYLO_MAX_AMOUNT 10
