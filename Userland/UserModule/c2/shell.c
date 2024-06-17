@@ -35,6 +35,7 @@ int32_t shell() {
   commandHistory = CHB_initialize(sizeof(Array), MAX_HISTORY_LEN, (FreeEleFn)freeArrayPtr, (CompareEleFn)compareArgv);
   commands = Array_initialize(sizeof(ShellCommand), 100, NULL, NULL);
 
+  addCommand("superSecret", "???", commandSuperSecret);
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
   addCommand("$?", "Print previous command return code.", commandGetReturnCode);

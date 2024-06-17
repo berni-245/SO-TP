@@ -91,5 +91,6 @@ void commandTestProcesses(int32_t argc, char* argv[]);
 void commandCat();
 void commandWordCount();
 void commandFilterVocals();
+void commandSuperSecret();
 
 #endif

@@ -4,8 +4,7 @@
 #include <stdint.h>
 #include <timer.h>
 
-void playSound(uint32_t nFrequence);
-void playSoundForCertainMs(uint32_t nFrequence, int ms);
-void noSound();
+void initializeSpeaker();
+void playSoundForCertainMs(uint32_t nFrequence, uint32_t ms);
 
 #endif

@@ -1,20 +1,20 @@
 section .text
-global playSound
-global noSound
+global setSpeakerFreq
+global speakerOff
 
 ; fuente: (https://wiki.osdev.org/PC_Speaker)
 
-playSound:
-    ; void playSound(uint32_t nFrequence)
+setSpeakerFreq:
+    ; void setSpeakerFreq(uint32_t nFrequence)
 
     push rbp
     mov rbp, rsp
     push rdx
 
     xor rdx, rdx           ; Limpiar RDX (para la división)
-    mov rax, baseFrequence ; Cargar la frecuencia base
-    div rdi                ; Dividir por la frecuencia deseada
-    mov rdx, rax           ; Guardo la división para usarla después
+    mov eax, baseFrequence ; Cargar la frecuencia base
+    div edi                ; Dividir por la frecuencia deseada
+    mov edx, eax           ; Guardo la división para usarla después
 
     mov al, 0b10110110     ; Configuración del temporizador PIT (https://wiki.osdev.org/Programmable_Interval_Timer)
     out 0x43, al
@@ -24,7 +24,7 @@ playSound:
     out 0x42, al
 
     in al, 0x61            ; Leer el estado actual del puerto 0x61
-    or al, 3               ; Establecer los bits 0 y 1 para habilitar el altavoz (los 2 bits más bajos)
+    or al, 0b11            ; Establecer los bits 0 y 1 para habilitar el altavoz (los 2 bits más bajos)
     out 0x61, al           ; Escribir de vuelta al puerto 0x61
 
     pop rdx
@@ -32,19 +32,14 @@ playSound:
     pop rbp
     ret
 
-noSound:
-    ; void noSound();
-
-    push rbp
-    mov rbp, rsp
+speakerOff:
+    ; void speakerOff();
 
     in al, 0x61 ; Leer el estado actual del puerto 0x61
 
     and al, 0xFC ; Limpiar los dos bits más bajos
     out 0x61, al ; Escribir de vuelta al puerto 0x61 para silenciar el altavoz
 
-    mov rsp, rbp
-    pop rbp
     ret
 
 section .data

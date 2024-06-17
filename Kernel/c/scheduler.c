@@ -1,4 +1,5 @@
 #include <memoryManager.h>
+#include <pcSpeaker.h>
 #include <pipes.h>
 #include <scheduler.h>
 #include <stdbool.h>
@@ -259,6 +260,7 @@ void* createUserModuleProcess() {
   nextPCB();
   processInForeground = pcbList.current->pcb;
   pcbList.current->pcb->parentProc = NULL;
+  initializeSpeaker();
   return rsp;
 }
 

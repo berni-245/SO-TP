@@ -19,7 +19,7 @@ extern void sysWriteCharNext(char c);
 extern int32_t sysMoveCursor(int32_t col, int32_t row);
 extern void sysPrintPixel(int32_t x, int32_t y, RGBColor color);
 extern void sysFillRectangle(int32_t x, int32_t y, int32_t width, int32_t height, RGBColor color);
-extern void sysPlaySound(uint32_t nFrequence, int32_t ms);
+extern void sysPlaySound(uint32_t nFrequence, uint32_t ms);
 extern void sysGetCurrentTime(Time* currentTime);
 extern void sysGetRegisters(Register* registers);
 extern void* sysMalloc(uint64_t size);
