@@ -31,7 +31,7 @@ void playSoundForCertainMs(uint32_t nFrequence, uint32_t ms) {
 }
 
 void speakerProcess() {
-  int i = 0;
+  uint32_t i = 0;
   while (1) {
     waitSemaphore(sem);
     Sound* sound = Array_get(sounds, i++);
