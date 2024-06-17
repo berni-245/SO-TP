@@ -34,7 +34,7 @@ void commandHelp(int32_t argc, char* argv[argc]) {
   if (argc > 1) page = strToInt(argv[1]);
 
   if (page > nbrPages) {
-    printString("No such page\n");
+    (void)printString("No such page\n");
     sysExit(ILLEGAL_ARGUMENT);
   }
 

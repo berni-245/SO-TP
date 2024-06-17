@@ -212,7 +212,7 @@ void newPrompt() {
     currentPrompt = errorPrompt;
     currentPromptLen = 4;
   }
-  printString(currentPrompt);
+  (void)printString(currentPrompt);
 }
 
 void clearScreenKeepCommand() {

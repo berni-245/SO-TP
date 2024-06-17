@@ -36,7 +36,7 @@ int32_t printString(const char* s) {
 }
 
 void puts(const char* s) {
-  printString(s);
+  (void) printString(s);
   printChar('\n');
 }
 
