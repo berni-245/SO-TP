@@ -35,7 +35,6 @@ int32_t shell() {
   commandHistory = CHB_initialize(sizeof(Array), MAX_HISTORY_LEN, (FreeEleFn)freeArrayPtr, (CompareEleFn)compareArgv);
   commands = Array_initialize(sizeof(ShellCommand), 100, NULL, NULL);
 
-  addCommand("superSecret", "???", commandSuperSecret);
   addCommand("help", "List all commands and their descriptions.", commandHelp);
   addCommand("echo", "Print all arguments.", commandEcho);
   addCommand("$?", "Print previous command return code.", commandGetReturnCode);
@@ -83,6 +82,7 @@ int32_t shell() {
   addCommand("cat", "Read from stdin and output to stdout", commandCat);
   addCommand("wc", "Cound words from stdin", commandWordCount);
   addCommand("filter", "Return the given array without vocals", commandFilterVocals);
+  addCommand("superSecret", "???", commandSuperSecret);
 
   const char* argv[1] = {"help"};
   sysWaitPid(sysCreateProcess(1, argv, commandHelp));
