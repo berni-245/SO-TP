@@ -131,9 +131,9 @@ void Array_printInfo(Array a) {
   if (a == NULL) exitWithError("@Array_printInfo Array instance can't be NULL");
   printf("{ \n");
   printf(
-      "  length: %li\n"
-      "  elementSize: %li\n"
-      "  capacity: %li\n"
+      "  length: %lu\n"
+      "  elementSize: %lu\n"
+      "  capacity: %lu\n"
       "  array: %p\n",
       a->length, a->elementSize, a->capacity, a->array
   );

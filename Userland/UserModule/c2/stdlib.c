@@ -9,7 +9,7 @@ bool getKey(KeyStruct* key) {
   ProcessPipes pipes = sysGetPipes();
   sysRead(pipes.read, &key->character, 1);
   sysGetModKeys(&key->md);
-  return key->character != EOF;
+  return (int)key->character != EOF;
 }
 
 char getChar() {

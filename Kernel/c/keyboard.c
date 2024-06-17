@@ -53,7 +53,7 @@ void readKeyToBuffer() {
     md.capsLockActive = !md.capsLockActive;
     break;
   default:
-    if (code < 0 || code >= LAYOUT_SIZE) return;
+    if (code >= LAYOUT_SIZE) return;
     // This makes capslock virtually equivalent to shift, meaning all symbols will get
     // converted, not only letters. That's not the standard behaviour but I actually like it.
     if (md.capsLockActive != (md.leftShiftPressed || md.rightShiftPressed)) 

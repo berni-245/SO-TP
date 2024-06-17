@@ -20,15 +20,16 @@ void exitWithError(const char* msg) {
 }
 
 int32_t strncpy(char* dst, const char* src, int32_t max) {
+  if (max < 0) return -1;
   int32_t i = 0;
-  if (max > 0)
-    for (; i < max && src[i] != 0; ++i) dst[i] = src[i];
-  else
-    for (; src[i] != 0; ++i) dst[i] = src[i];
+  for (; i < max && src[i] != 0; ++i) dst[i] = src[i];
   dst[i] = 0;
   return i;
 }
 
-int32_t strcpy(char* dst, char* src) {
-  return strncpy(dst, src, 0);
+int32_t strcpy(char* dst, const char* src) {
+  int32_t i = 0;
+  for (; src[i] != 0; ++i) dst[i] = src[i];
+  dst[i] = 0;
+  return i;
 }
