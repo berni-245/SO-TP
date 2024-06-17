@@ -19,9 +19,9 @@ void my_process_inc(uint64_t argc, char* argv[argc]) {
     sysExit(MISSING_ARGUMENTS);
   }
 
-  int32_t n = strToInt(argv[1]);
-  int32_t inc = strToInt(argv[2]);
-  int32_t use_sem = strToInt(argv[3]);
+  int64_t n = satoi(argv[1]);
+  int64_t inc = satoi(argv[2]);
+  int64_t use_sem = satoi(argv[3]);
 
   if (n <= 0 || inc == 0 || use_sem < 0) {
     sysExit(ILLEGAL_ARGUMENT);
@@ -50,7 +50,7 @@ void commandTestSem(int32_t argc, char* argv[argc]) {
     printf("Usage: %s <n> <use_sem> <expected_val>\n", argv[0]);
     printf("\tn: number of iterations for each process.\n");
     printf("\tuse_sem: 0 for no semaphores, not 0 to use semaphores.\n");
-    printf("\expected_val: initial value for global variable, it should remain the same at the end of the process.\n");
+    printf("\texpected_val: initial value for global variable, it should remain the same at the end of the process.\n");
     sysExit(MISSING_ARGUMENTS);
   }
 
