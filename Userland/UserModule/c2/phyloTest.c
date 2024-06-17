@@ -6,8 +6,10 @@
 #define PHYLO_MAX_AMOUNT 10
 #define PHYLO_MIN_AMOUNT 2
 
+typedef enum { EATING, HUNGRY, THINKING, NOTHING } phylo_state;
+
 typedef struct philosopher{
-  int32_t state;
+  phylo_state state;
   int32_t fork_at_index;
   uint32_t pid;
 }philosopher;
@@ -18,7 +20,6 @@ int32_t print_mutex;
 philosopher phylo[PHYLO_MAX_AMOUNT];
 int32_t add_rem_value;
 
-enum phylo { EATING, HUNGRY, THINKING, NOTHING };
 
 int32_t right_fork(int32_t i) {
   return (i + 1) % phylos_on_table;
@@ -93,7 +94,7 @@ void myPhyloProcess(uint64_t argc, char* argv[argc]) {
 }
 
 int32_t addPhylo(int32_t pos) {
-  if (pos < PHYLO_MIN_AMOUNT || pos >= PHYLO_MAX_AMOUNT) return -1;
+  if (pos < PHYLO_MIN_AMOUNT || pos >= PHYLO_MAX_AMOUNT) return -2;
   blockAll();
   phylo[pos].fork_at_index = sysSemInit(1);
   if (phylo[pos].fork_at_index == -1) {
