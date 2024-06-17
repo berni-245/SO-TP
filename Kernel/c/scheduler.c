@@ -389,11 +389,12 @@ void killCurrentProcessInForeground() {
   contextSwitch();
 }
 
-void changePriority(uint32_t pid, uint32_t newPriority) {
+bool changePriority(uint32_t pid, uint8_t newPriority) {
+  if (newPriority <= 0 || newPriority > 9) return false;
   PCB* pcb = getPCBByPid(pid);
-  if (pcb != NULL) {
-    pcb->priority = newPriority;
-  }
+  if (pcb == NULL) return false;
+  pcb->priority = newPriority;
+  return true;
 }
 
 void changePipeRead(int32_t p) {

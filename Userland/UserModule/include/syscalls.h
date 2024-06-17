@@ -42,7 +42,7 @@ extern void* sysMemcpy(void* destination, const void* source, uint64_t length);
 extern uint32_t sysGetPid();
 extern bool sysKill(uint32_t pid);
 extern void sysSleep(uint64_t ms);
-extern void sysChangePriority(uint32_t pid, uint32_t newPriority);
+extern bool sysChangePriority(uint32_t pid, uint8_t newPriority);
 extern uint64_t sysPipeInit();
 extern bool sysDestroyPipe(int32_t pipeId);
 extern void sysChangePipeRead(int32_t p);

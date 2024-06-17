@@ -74,7 +74,7 @@ uint32_t getpid();
 bool kill(uint32_t pid);
 void killCurrentProcess();
 void killCurrentProcessInForeground();
-void changePriority(uint32_t pid, uint32_t newPriority);
+bool changePriority(uint32_t pid, uint8_t newPriority);
 void changePipeRead(int32_t p);
 void changePipeWrite(int32_t p);
 bool blockByUser(uint32_t pid);
