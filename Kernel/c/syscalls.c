@@ -63,7 +63,7 @@ static SyscallFunction syscalls[] = {
     (SyscallFunction)write,
     (SyscallFunction)blockByUser,
     (SyscallFunction)unblock,
-    (SyscallFunction)asdfInterruption,
+    (SyscallFunction)yield,
 };
 
 SyscallFunction* getSyscallsArray() {

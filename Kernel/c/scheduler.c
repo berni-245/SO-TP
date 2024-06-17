@@ -32,7 +32,7 @@ typedef struct {
 extern void* initializeProcessStack(int32_t argc, char* argv[], void* processRip, void* stackStart);
 extern void idleProc();
 extern void* userModule;
-extern void asdfInterruption();
+extern void contextSwitch();
 
 PCB* getPCBByPid(uint32_t pid);
 void exitProcessByPCB(PCB* pcb, int32_t exitCode);
@@ -279,7 +279,7 @@ void exitProcessByPCB(PCB* pcb, int32_t exitCode) {
     pcb->state = WAITING_FOR_EXIT;
     globalFree(pcb->heap);
     pcb->heapFreed = true;
-    if (pcb->pid == pcbList.current->pcb->pid) asdfInterruption();
+    if (pcb->pid == pcbList.current->pcb->pid) contextSwitch();
     return;
   }
 
@@ -294,17 +294,17 @@ void exitProcessByPCB(PCB* pcb, int32_t exitCode) {
       exitProcessByPCB(pcb2, KILL_EXIT_CODE);
     }
   }
-  if (pcb->pid == pcbList.current->pcb->pid) asdfInterruption();
+  if (pcb->pid == pcbList.current->pcb->pid) contextSwitch();
 }
 
 void exitCurrentProcess(int32_t exitCode) {
   exitProcessByPCB(pcbList.current->pcb, exitCode);
-  asdfInterruption();
+  contextSwitch();
 }
 
 void exitCurrentProcessInForeground(int32_t exitCode) {
   exitProcessByPCB(processInForeground, exitCode);
-  asdfInterruption();
+  contextSwitch();
 }
 
 PCB* getPCBByPid(uint32_t pid) {
@@ -326,7 +326,7 @@ int32_t waitPid(uint32_t pid) {
   pcb->waitingForMe[pcb->wfmLen++] = pcbList.current->pcb;
   pcbList.current->pcb->state = BLOCKED;
   if (pcbList.current->pcb->pid == processInForeground->pid) processInForeground = pcb;
-  asdfInterruption(); // Replace for int 0x20 when schedule gets called there.
+  contextSwitch(); // Replace for int 0x20 when schedule gets called there.
   return pcbList.current->pcb->waitedProcessExitCode;
 }
 
@@ -358,7 +358,7 @@ PCB* getCurrentPCB() {
 
 void blockCurrentProcess() {
   pcbList.current->pcb->state = BLOCKED;
-  asdfInterruption();
+  contextSwitch();
 }
 
 void readyProcess(const PCB* pcb) {
@@ -384,7 +384,7 @@ void killCurrentProcess() {
 void killCurrentProcessInForeground() {
   if (processInForeground->pid == 0) return;
   exitProcessByPCB(processInForeground, KILL_EXIT_CODE);
-  asdfInterruption();
+  contextSwitch();
 }
 
 void changePriority(uint32_t pid, uint32_t newPriority) {
@@ -423,7 +423,7 @@ bool blockByUser(uint32_t pid) {
   PCB* pcb = getPCBByPid(pid);
   if (pcb != NULL && (pcb->state == READY || pcb->state == RUNNING)) {
     pcb->state = BLOCKED_BY_USER;
-    if (pcb->pid == pcbList.current->pcb->pid) asdfInterruption();
+    if (pcb->pid == pcbList.current->pcb->pid) contextSwitch();
     return true;
   }
   return false;
@@ -436,4 +436,9 @@ bool unblock(uint32_t pid) {
     return true;
   }
   return false;
+}
+
+void yield() {
+  pcbList.current->pcb->state = READY;
+  contextSwitch();
 }

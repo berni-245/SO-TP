@@ -8,7 +8,7 @@ global startUserModule
 extern stackAlloc
 extern exitCurrentProcess
 extern createUserModuleProcess
-extern asdfInterruption
+extern contextSwitch
 
 
 section .text

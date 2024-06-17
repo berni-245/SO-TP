@@ -15,7 +15,7 @@ global exception00Handler
 global exception01Handler
 
 global asdf
-global asdfInterruption
+global contextSwitch
 
 extern irqDispatcher
 extern readKeyCode
@@ -43,7 +43,7 @@ timerTickIrqHandler:
   eoi
   iretq
 
-asdfInterruption:
+contextSwitch:
   int 0x22
   ret
 

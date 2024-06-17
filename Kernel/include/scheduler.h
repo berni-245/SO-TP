@@ -55,7 +55,7 @@ typedef struct {
   char* location;
 } PCBForUserland;
 
-extern void asdfInterruption();
+extern void contextSwitch();
 // void freePCBNode(PCBNode* node);
 void initializePCBList();
 void* schedule(void* rsp);
@@ -82,6 +82,7 @@ bool unblock(uint32_t pid);
 ProcessPipes getPipes();
 int64_t read(int32_t pipeId, char* buf, int32_t len);
 int64_t write(int32_t pipeId, const char* buf, int32_t len);
+void yield();
 
 
 #endif
